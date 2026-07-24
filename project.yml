@@ -1,0 +1,110 @@
+name: RiseAndGrind
+
+options:
+  minimumXcodeGenVersion: 2.46.0
+  bundleIdPrefix: com.kevin
+  createIntermediateGroups: true
+  developmentLanguage: en
+  xcodeVersion: "26.6"
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  RiseAndGrindCore:
+    path: .
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+
+targets:
+  RiseAndGrind:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.1"
+    sources:
+      - path: RiseAndGrind
+    info:
+      path: Config/Info.plist
+      properties:
+        CFBundleDisplayName: Rise & Grind
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.productivity
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        NSAlarmKitUsageDescription: Rise & Grind schedules the alarms you configure so your morning can achieve maximum shareholder value.
+        NSCalendarsFullAccessUsageDescription: Rise & Grind reads tomorrow's events to detect meetings earlier than your normal start time.
+        NSMotionUsageDescription: Rise & Grind uses Motion & Fitness data to verify that you completed your configured wake-up squat reps.
+        UIRequiredDeviceCapabilities:
+          - accelerometer
+          - gyroscope
+        UIBackgroundModes:
+          - audio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kevin.riseandgrind.alarmkit
+        PRODUCT_NAME: RiseAndGrind
+        MARKETING_VERSION: "0.2.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: J3BZJ3LKTQ
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: NO
+        SUPPORTS_MACCATALYST: NO
+        ENABLE_PREVIEWS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+    dependencies:
+      - package: RiseAndGrindCore
+      - sdk: AlarmKit.framework
+      - sdk: ActivityKit.framework
+      - sdk: AppIntents.framework
+      - sdk: EventKit.framework
+      - sdk: CoreMotion.framework
+      - sdk: CoreHaptics.framework
+      - sdk: AVFoundation.framework
+      - sdk: PhotosUI.framework
+      - sdk: UserNotifications.framework
+      - sdk: UniformTypeIdentifiers.framework
+
+  RiseAndGrindTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.1"
+    sources:
+      - path: Core/Tests/RiseAndGrindCoreTests
+    dependencies:
+      - package: RiseAndGrindCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kevin.riseandgrind.alarmkit.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  RiseAndGrind:
+    build:
+      targets:
+        RiseAndGrind: all
+        RiseAndGrindTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - name: RiseAndGrindTests
+          parallelizable: true
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

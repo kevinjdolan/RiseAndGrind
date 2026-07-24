@@ -1,0 +1,1529 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00EC5DAAA4BE375AF3A0A189 /* Motivational-079_stay_in_arena.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 84FFA870A649B4A0B09FFA6A /* Motivational-079_stay_in_arena.m4a */; };
+		03347D5EA65966F0E60608EF /* RiseTrack054.caf in Resources */ = {isa = PBXBuildFile; fileRef = 31BB1361A9C66FC6A7BA0795 /* RiseTrack054.caf */; };
+		03729B26E18C6FB163953830 /* Motivational-075_discipline_equals_freedom.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0D4F00856527F08FC40732FD /* Motivational-075_discipline_equals_freedom.m4a */; };
+		03C9AC05686FCFF38698EF51 /* CircuitBreaker.caf in Resources */ = {isa = PBXBuildFile; fileRef = D7CFA2F202C43D143E622533 /* CircuitBreaker.caf */; };
+		051FFB7071796C57F1ED7893 /* RiseTrack079.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8AFF132C55CEC7F32AD79987 /* RiseTrack079.caf */; };
+		06345A1093CC8C54C7C363C1 /* Motivational-098_stay_locked_in.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0125870AA374EFBE0B29BCF9 /* Motivational-098_stay_locked_in.m4a */; };
+		0778899B330BA6C7833D5DEF /* Motivational-088_outwork_outlearn_outlast.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5EC46821207A3171F2F7FC1F /* Motivational-088_outwork_outlearn_outlast.m4a */; };
+		084E9E040B587E74DE3A28CD /* RiseTrack043.caf in Resources */ = {isa = PBXBuildFile; fileRef = F2BB384502911D7B20ABA590 /* RiseTrack043.caf */; };
+		0856640FC5D6A7F5101FCE0F /* RiseTrack075.caf in Resources */ = {isa = PBXBuildFile; fileRef = C67645E059392853421C28CA /* RiseTrack075.caf */; };
+		086B5E714DF9A0A6B22DAF4F /* Motivational-091_execute_and_repeat.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C28B180B70EE0C75C778B1EC /* Motivational-091_execute_and_repeat.m4a */; };
+		097608E455F7D286DD24560B /* RiseTrack027.caf in Resources */ = {isa = PBXBuildFile; fileRef = DDE88C1EFCD36DDB24AF0CA6 /* RiseTrack027.caf */; };
+		09AD15B98459DB883A41E0F7 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11725C954EE769A99B2C13EC /* UniformTypeIdentifiers.framework */; };
+		0A075C64D5CF94F5FD93BE9D /* BarrageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBDFF6CB72D4854FBE974952 /* BarrageView.swift */; };
+		0A226DBDA698C462BD97323C /* Motivational-085_sweat_equity_wins.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 4B7108E0E85E3225DB1B0A10 /* Motivational-085_sweat_equity_wins.m4a */; };
+		0A481060B7A17802F3E4A965 /* Motivational-097_earn_it_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9FDF6121B6797AD2A481DB01 /* Motivational-097_earn_it_daily.m4a */; };
+		0A9E3333A80990621E789E5E /* RiseTrack077.caf in Resources */ = {isa = PBXBuildFile; fileRef = E919D71787DB06F6D5276052 /* RiseTrack077.caf */; };
+		0DB1894DE07078FF7FD9A26F /* Motivational-055_no_shortcuts_exist.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 604CB7734C01D3A99D8CB695 /* Motivational-055_no_shortcuts_exist.m4a */; };
+		0E3A616AECEAE9872020DA6B /* MetallicMayhem.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1A13673D7ED6F638B09FB57B /* MetallicMayhem.caf */; };
+		0E47DBCB99130E08019E29E2 /* SquatCalibrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4426C36A8C2DD2491FE1D7 /* SquatCalibrationTests.swift */; };
+		0FECA123385EF443281C9452 /* RiseTrack052.caf in Resources */ = {isa = PBXBuildFile; fileRef = 634FED1233382FA2C877EC85 /* RiseTrack052.caf */; };
+		11591F586620BC697B73409B /* RiseTrack065.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8EC56C567192183352C549DB /* RiseTrack065.caf */; };
+		11695F5AB2ABE6B3028C0F38 /* Motivational-014_save_yourself_first.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 834FFE4E2E038F0A2407E641 /* Motivational-014_save_yourself_first.m4a */; };
+		12DA9C86192FCC09C5AFC44F /* PressureValve.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9AD964653B1114BF5B066AF5 /* PressureValve.caf */; };
+		13ED7DF130A910048D1410CE /* NeonFireDrill.caf in Resources */ = {isa = PBXBuildFile; fileRef = BB60AABF4D78D7050F8BD1FB /* NeonFireDrill.caf */; };
+		14E6D197F64649F3A66C12A7 /* Motivational-002_sleep_is_weak.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 30BDA6193325F67BB4347BAD /* Motivational-002_sleep_is_weak.m4a */; };
+		165FA9909DD69F12B1D201D6 /* DieselDrumline.caf in Resources */ = {isa = PBXBuildFile; fileRef = 97FF6A1EF12695AD9707EB6B /* DieselDrumline.caf */; };
+		16E5F55E31368D2A296ED2BE /* Motivational-065_work_hardest_always.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3BA3B10030F05F5C80A691CA /* Motivational-065_work_hardest_always.m4a */; };
+		183303F87E91B6576F9FAAD0 /* Motivational-033_sacrifice_now_win_later.m4a in Resources */ = {isa = PBXBuildFile; fileRef = EE733E1933EE8031A701A30A /* Motivational-033_sacrifice_now_win_later.m4a */; };
+		1902796646387DA59179A669 /* BuzzsawBreakbeat.caf in Resources */ = {isa = PBXBuildFile; fileRef = 091AAB241CFDCCF5F967CC50 /* BuzzsawBreakbeat.caf */; };
+		1CE1B780714BB2F654551847 /* Motivational-073_excuses_expire_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 866D6407595DB641E18228C1 /* Motivational-073_excuses_expire_today.m4a */; };
+		1E886FA6F16ED4D26B18245C /* Motivational-004_discipline_beats_motivation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 68D1A662798478BB27AA6763 /* Motivational-004_discipline_beats_motivation.m4a */; };
+		1F7C09323C51ADD03294DD28 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 386EB75AD594DCDFA3C58220 /* ActivityKit.framework */; };
+		2093B760550B3FA19E966C9C /* RiseTrack048.caf in Resources */ = {isa = PBXBuildFile; fileRef = 339E6FA7504BFE620DBBD093 /* RiseTrack048.caf */; };
+		21530CC9083188201259809C /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBE9E4DACE6E25C47A0131B4 /* PhotosUI.framework */; };
+		247EF70D11B3F86E36F30210 /* Motivational-005_comfort_is_the_enemy.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0AC1590B54B0B1FE0147B0C5 /* Motivational-005_comfort_is_the_enemy.m4a */; };
+		249778C65F6A42A7E073291E /* RiseTrack059.caf in Resources */ = {isa = PBXBuildFile; fileRef = C646AA508B4ED656A0A3CC06 /* RiseTrack059.caf */; };
+		27DFA1A132692698167C299D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F78C2308B3C12020AEF065 /* ContentView.swift */; };
+		2878F447DE98287D92C36443 /* WakeChallengeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1664DE490FD2D34573823681 /* WakeChallengeView.swift */; };
+		29157AFD1A236F13C6C9D073 /* RiseTrack050.caf in Resources */ = {isa = PBXBuildFile; fileRef = 95BE9DC883BD50F8E0506008 /* RiseTrack050.caf */; };
+		2B27CCB80895B1E278CCDD8E /* AlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A0D23A5DEEB185E661849F /* AlarmScheduler.swift */; };
+		2C089F9117422D953D1551F4 /* RiseTrack035.caf in Resources */ = {isa = PBXBuildFile; fileRef = B09B11125C0C4A4A72443401 /* RiseTrack035.caf */; };
+		2C7ADCE0FE5BED94C7C795E4 /* Motivational-062_grind_today_always.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0E5DF155E278C2A6F25D7A63 /* Motivational-062_grind_today_always.m4a */; };
+		2CE8F16C63B7F9A69DE0FFDC /* RiseTrack090.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8B08EB7C665A22D706C476E6 /* RiseTrack090.caf */; };
+		2D298FED09D4B02B8851C5D7 /* Motivational-095_chase_greatness_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 49E31D1A3DAB1E69850E93AC /* Motivational-095_chase_greatness_daily.m4a */; };
+		2E598BAC57EF288509780BFF /* RiseTrack080.caf in Resources */ = {isa = PBXBuildFile; fileRef = F1AD28FD23FFBAABB1E61DB5 /* RiseTrack080.caf */; };
+		2F24904DC67C6915859F3E7A /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */; };
+		2F3EC06B476D9F7FDE1EBEC0 /* RiseTrack063.caf in Resources */ = {isa = PBXBuildFile; fileRef = 64DB2601C72739B4FE6E4CCA /* RiseTrack063.caf */; };
+		31942D0F7BB27CC2934A238B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A2E40200241D9A0663AD833B /* CoreMotion.framework */; };
+		32C0AD885D310E8E9847F498 /* ShortcutSetupDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCA9F10E8AF9C6864540FD1A /* ShortcutSetupDemoView.swift */; };
+		33B18BDA189CE547D5CEEEEA /* RiseTrack046.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1C1CDB1991FAED1C0C118D23 /* RiseTrack046.caf */; };
+		351290C28FBC7F245D8B8B8A /* RiseTrack086.caf in Resources */ = {isa = PBXBuildFile; fileRef = 96ACEBF6111AA9989C699EA1 /* RiseTrack086.caf */; };
+		36C876A1BE450B69418BBFDF /* Motivational-050_grind_is_reward.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 51D91714A9F286392961C9F8 /* Motivational-050_grind_is_reward.m4a */; };
+		37AB44DB19A2A1AB84738D9D /* RiseTrack095.caf in Resources */ = {isa = PBXBuildFile; fileRef = FD994AD4316D648BCE54ED40 /* RiseTrack095.caf */; };
+		383CDC7782208E417D716B58 /* JackhammerJubilee.caf in Resources */ = {isa = PBXBuildFile; fileRef = 21E4FA4985095280642A88CA /* JackhammerJubilee.caf */; };
+		3849C665815AC8BE04DD2287 /* HornetNest.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3769BB8B5C47467780EC10DA /* HornetNest.caf */; };
+		396A90B3F1FE3D66EB932551 /* Motivational-007_build_the_empire.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2307EC189A37B496D5FB058D /* Motivational-007_build_the_empire.m4a */; };
+		3AD7626085961FF790BEAAB0 /* Motivational-076_don_t_ever_quit.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D9BFAB7439EBF86C3A6A9A45 /* Motivational-076_don_t_ever_quit.m4a */; };
+		3D1741E24D212A5FAF6590A0 /* SubwayScreech.caf in Resources */ = {isa = PBXBuildFile; fileRef = F14623DCA9B1203D197C7C7C /* SubwayScreech.caf */; };
+		3D6FD3E2B646EF30655FEBC6 /* RiseTrack041.caf in Resources */ = {isa = PBXBuildFile; fileRef = 91305D6A078ABF448E8B1F53 /* RiseTrack041.caf */; };
+		3DC510B89CC4276C93F40994 /* RiseTrack037.caf in Resources */ = {isa = PBXBuildFile; fileRef = 94755003A927FB9B5D77A8E8 /* RiseTrack037.caf */; };
+		3F157E13DBCDDEB21432F250 /* WarningSignal.caf in Resources */ = {isa = PBXBuildFile; fileRef = B9D32600DDE5E0F4A6FE17D6 /* WarningSignal.caf */; };
+		3F511B12B01B131A7EA2836C /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBD5B76119A9CE0A1BCF6603 /* UserNotifications.framework */; };
+		405A5D0C7AC23E1182E7CF56 /* AlarmInteractionPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA66C1529C169BC2CBA2086B /* AlarmInteractionPolicyTests.swift */; };
+		44622A1F4E41F5E113765FC4 /* Motivational-099_keep_grinding_forward.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C946341A7BDCFADF6C04FC1F /* Motivational-099_keep_grinding_forward.m4a */; };
+		45C00228F39A63A675D9E8C6 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469191B595D6FDFE57496C58 /* SettingsStore.swift */; };
+		48244708FEC1EB7A4CD1BE44 /* RiseTrack044.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9E171D8761A065F989FD5492 /* RiseTrack044.caf */; };
+		48A1BE501B25289C5DAB0935 /* Motivational-060_grit_over_comfort.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C627D1A91CEF87CA2F0EB2CF /* Motivational-060_grit_over_comfort.m4a */; };
+		4959080798349E2CC14E58B9 /* Motivational-054_silence_your_haters.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 98CEBE05451DA8338A150456 /* Motivational-054_silence_your_haters.m4a */; };
+		4C1218A5E577484761C3DC1C /* Motivational-049_secure_the_future.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 4F9CE70145EEBD06E612301E /* Motivational-049_secure_the_future.m4a */; };
+		4C4F6EC76C2C507DD564DBDD /* SquatCalibrationDiagnosticRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */; };
+		4C7FA38387331C268AB8C273 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4677A17997B915E5881F34 /* SetupView.swift */; };
+		53384F5DF906C713B33298A1 /* CymbalCrashCourse.caf in Resources */ = {isa = PBXBuildFile; fileRef = 50862C725A8FAB1DA723EB38 /* CymbalCrashCourse.caf */; };
+		538F4D70F8CDB945861C514C /* RiseTrack062.caf in Resources */ = {isa = PBXBuildFile; fileRef = EDB8D7BF2761E5CB849AFD3A /* RiseTrack062.caf */; };
+		563B15B517949F46276914F0 /* Motivational-067_build_momentum_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = ACCC83E7E6602B2B25A0166E /* Motivational-067_build_momentum_daily.m4a */; };
+		579A3B6D93292363522FB2DE /* RiseTrack100.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5855E8E7665AA91D20D81097 /* RiseTrack100.caf */; };
+		5CC62051F2931DE87B00B4CF /* RiseTrack089.caf in Resources */ = {isa = PBXBuildFile; fileRef = 635DC7C54D828F6B4FF170EB /* RiseTrack089.caf */; };
+		5D2B90C978C88D287BF4B22E /* RiseTrack081.caf in Resources */ = {isa = PBXBuildFile; fileRef = 641B09932DF906DED90948B6 /* RiseTrack081.caf */; };
+		5E3E27DC29F21A6B65CF6388 /* Motivational-001_no_days_off.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2B114636612756B0303A5720 /* Motivational-001_no_days_off.m4a */; };
+		5EFFF06B57630201466529A8 /* Motivational-056_just_don_t_quit.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 1CFC8A4C2B930D7CF4AAECBD /* Motivational-056_just_don_t_quit.m4a */; };
+		602DD554040145FD7AC091E9 /* RiseTrack078.caf in Resources */ = {isa = PBXBuildFile; fileRef = 78D922A3AD893CE5C389D872 /* RiseTrack078.caf */; };
+		607146045238CFAF41BAAE73 /* RiseTrack069.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8A2B66E7A2D889051FCD5601 /* RiseTrack069.caf */; };
+		622DC412C71538BBD3865442 /* Motivational-006_bet_on_yourself.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 1ED9A6DC406BE6919B633672 /* Motivational-006_bet_on_yourself.m4a */; };
+		652F06ACD8B4F8762B74B004 /* RiseTrack064.caf in Resources */ = {isa = PBXBuildFile; fileRef = ABA91F5E2913144961BB5B80 /* RiseTrack064.caf */; };
+		65BD59E607DDF512F9F273ED /* SoundLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */; };
+		65E96EB4686CF3B4EEB39A1B /* Motivational-008_stack_wins_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A5BB00BA54B54B698E85B4BA /* Motivational-008_stack_wins_daily.m4a */; };
+		6751476E562C223E8DB0F5C6 /* Motivational-051_discipline_builds_bridges.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 89057A4739AE1B877F2B4556 /* Motivational-051_discipline_builds_bridges.m4a */; };
+		6A3700233B03BDFB8E8986CF /* PercussionOverload.caf in Resources */ = {isa = PBXBuildFile; fileRef = CBBF86C30D798F8CFDBABB37 /* PercussionOverload.caf */; };
+		6A38B12346ED33B09EAB21E0 /* Motivational-019_beat_your_competition.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AEC1681E5C66B0412806E917 /* Motivational-019_beat_your_competition.m4a */; };
+		6B37EC64285B1586797E0D7A /* Motivational-045_you_re_the_limit.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 798D335081649B0D59CAB4D4 /* Motivational-045_you_re_the_limit.m4a */; };
+		6B79951BEA3F1E1E756D70A8 /* RiseTrack072.caf in Resources */ = {isa = PBXBuildFile; fileRef = BE7E6DCB1A14C6EF32FE4E74 /* RiseTrack072.caf */; };
+		6C676E1A2EB70C45FA33119B /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E171F7003BF760ABD90BC93 /* AlarmKit.framework */; };
+		6E1A5770E10ADC648A4299F3 /* Motivational-046_earned_in_darkness.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E859CE26ECB6E3C9A1F74E67 /* Motivational-046_earned_in_darkness.m4a */; };
+		6EF5A9F64F798AE50EEA4746 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B59733AA609B40617C969 /* Theme.swift */; };
+		6F413646F7F7133925FFCBD3 /* RiseTrack074.caf in Resources */ = {isa = PBXBuildFile; fileRef = 526A1D3709E0269D048D2DCE /* RiseTrack074.caf */; };
+		6F4A17B959262F124466921D /* RiseTrack082.caf in Resources */ = {isa = PBXBuildFile; fileRef = 98B78EEDBB5967FD925125B5 /* RiseTrack082.caf */; };
+		73B0D8F7FE261B338812BD8F /* RiseTrack040.caf in Resources */ = {isa = PBXBuildFile; fileRef = D9BAB3F16203B6A120971926 /* RiseTrack040.caf */; };
+		748E3B8BC98686EF42005555 /* AlarmBellAssault.caf in Resources */ = {isa = PBXBuildFile; fileRef = E13C31043C82704E285CA82A /* AlarmBellAssault.caf */; };
+		781B2DC215CB17EA8AA2B5C2 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */; };
+		7822D34E48031F2EFA53480E /* Motivational-043_results_talk_loudest.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3ADBA286A09F1D3A7ACDF946 /* Motivational-043_results_talk_loudest.m4a */; };
+		78C5AE1DDEF0EA70464B0DEF /* Motivational-071_grind_ignores_feelings.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 05A44D0D2DF0F047E255E190 /* Motivational-071_grind_ignores_feelings.m4a */; };
+		78CC36E1A3831C98FF5F860E /* Motivational-017_grind_never_stops.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B2F243EA253D28DCED303262 /* Motivational-017_grind_never_stops.m4a */; };
+		790BC64009A92DA0BA1AE6C5 /* RiseTrack087.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4190F5ED5A02DFA13F41C4A0 /* RiseTrack087.caf */; };
+		7C1E09E737501E345B82F633 /* RiseTrack025.caf in Resources */ = {isa = PBXBuildFile; fileRef = 55877E700A16B165B080152D /* RiseTrack025.caf */; };
+		7D91C2EEE413099AD42F1DCD /* Motivational-010_level_up_now.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D3E169418C279B18568A2A2E /* Motivational-010_level_up_now.m4a */; };
+		7DA95D52EA8A3EDB42185630 /* RiseTrack066.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5A214257E366339D4CC885C6 /* RiseTrack066.caf */; };
+		7DB15CB160FB8DAF8D7D02CF /* Motivational-052_rest_when_rich.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F8ED852B6FB2A30BAB1D9AFE /* Motivational-052_rest_when_rich.m4a */; };
+		7DD4926C5B52692819B174F4 /* Motivational-094_grind_builds_character.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 930342A64B758E36B1FB283F /* Motivational-094_grind_builds_character.m4a */; };
+		7EDE8899F92E9EA6A4300CC4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1BA265C47D4A9FE4D500B713 /* Assets.xcassets */; };
+		80999B802008726CE5AFAB43 /* Motivational-038_grind_is_equalizer.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3010E5057EBB863E3595E8AD /* Motivational-038_grind_is_equalizer.m4a */; };
+		80D50D8A8B4E321D3819A59A /* Motivational-028_play_the_long_game.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 1F7575D5FC2036E26C59E3AE /* Motivational-028_play_the_long_game.m4a */; };
+		80E0C74ED00880CA6F8DEFBA /* Motivational-012_grind_now_shine_later.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B7A0B837BDC5F5CCA54511E3 /* Motivational-012_grind_now_shine_later.m4a */; };
+		8103787BEBEE974DF7F2F03F /* RiseTrack070.caf in Resources */ = {isa = PBXBuildFile; fileRef = 67C70D555A6B679378C66E03 /* RiseTrack070.caf */; };
+		8197ED886F907DA4A503BA69 /* Motivational-011_execute_don_t_wait.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9E19A7B202329E8E60B194DD /* Motivational-011_execute_don_t_wait.m4a */; };
+		8485192EBDFF592042ACB135 /* RiseTrack094.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5A2FD3865D5E825CD388AB92 /* RiseTrack094.caf */; };
+		8501510B9F92B93C87330D49 /* SirenStorm.caf in Resources */ = {isa = PBXBuildFile; fileRef = 96E00748EC0242201FCBE8D9 /* SirenStorm.caf */; };
+		8539F46365BA33BDC6A07295 /* Motivational-078_setbacks_fuel_comebacks.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AB163F1B6C72FC7B7B41C704 /* Motivational-078_setbacks_fuel_comebacks.m4a */; };
+		8579FE0943EACBBAF4E84FCF /* Motivational-031_wait_for_nothing.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 59804DB20D84E14745B99CFA /* Motivational-031_wait_for_nothing.m4a */; };
+		85A5B27C5D72F4155E14CC85 /* RiseTrack076.caf in Resources */ = {isa = PBXBuildFile; fileRef = D6A6A484E61CBD037167E425 /* RiseTrack076.caf */; };
+		85C84A7D75B71B94BDC80700 /* Motivational-035_do_it_scared.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FBC6CE02DFEA804A480E49C0 /* Motivational-035_do_it_scared.m4a */; };
+		85E6B2BF0155FCF8BEA5A234 /* Motivational-041_get_uncomfortable_now.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3CB4B0FC6A3D6B341102B52A /* Motivational-041_get_uncomfortable_now.m4a */; };
+		8654153447FE11949D4B6B7F /* RiseAndGrindIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9260CEACEA751DFFFFBE049 /* RiseAndGrindIntents.swift */; };
+		868D31F43761623B33853699 /* RiseTrack084.caf in Resources */ = {isa = PBXBuildFile; fileRef = C3408898C01B46608E93A291 /* RiseTrack084.caf */; };
+		882CF4E30507B95CB025329C /* Motivational-026_pain_fuels_progress.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6EA0D2F745CCBF4907383553 /* Motivational-026_pain_fuels_progress.m4a */; };
+		885E4F0E798281109847EFB2 /* AlarmSoundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFECD77781655AA691FF884 /* AlarmSoundsView.swift */; };
+		88CDCCCD692F6F88B6C2F0AD /* RiseTrack098.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1104C9F3601EB1E29E977220 /* RiseTrack098.caf */; };
+		893038AFDE9DAB5911A83F88 /* Motivational-003_outwork_everyone_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5A48687B68170A2A309CDB24 /* Motivational-003_outwork_everyone_today.m4a */; };
+		89531C8F4EBE422139A4C464 /* Motivational-057_obsess_don_t_wish.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2733C9573ADD3E074B711F42 /* Motivational-057_obsess_don_t_wish.m4a */; };
+		8AB1C750003D33EB37A9B200 /* FactoryFloorFrenzy.caf in Resources */ = {isa = PBXBuildFile; fileRef = 87920972C4DA6F21189AA715 /* FactoryFloorFrenzy.caf */; };
+		8D2AAAFB58019639326FB354 /* Motivational-066_habits_build_destiny.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CDA315E0E5BA9B2D58DAD730 /* Motivational-066_habits_build_destiny.m4a */; };
+		8F1789ACF1CC0B08B028CD04 /* BrassKnuckleMarch.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1D7BC9C6AADA74E45B83BF33 /* BrassKnuckleMarch.caf */; };
+		9391E51CD3B99AB8431AD3D6 /* Motivational-061_small_wins_compound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 497D5FF52B165B68F36C5404 /* Motivational-061_small_wins_compound.m4a */; };
+		957473DEA3544CE943427A66 /* Motivational-022_comfort_kills_dreams.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6A97E59004F4145DE29E4BE5 /* Motivational-022_comfort_kills_dreams.m4a */; };
+		96BB58899E25A17749670756 /* WakeUpWarpath.caf in Resources */ = {isa = PBXBuildFile; fileRef = E440B049BC04CC33D6DB378E /* WakeUpWarpath.caf */; };
+		98390B2BC36C5A07AC11066F /* Motivational-027_stay_hungry_humble.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F1EC2B7DD1683D197CEF8BB8 /* Motivational-027_stay_hungry_humble.m4a */; };
+		98D338D3AD8BEC8BDED55036 /* Motivational-084_fortune_favors_relentless.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F4E53F040F6483F2868F8318 /* Motivational-084_fortune_favors_relentless.m4a */; };
+		9A358AEA0C4C33D6C997477C /* RiseAndGrindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB9F43BC9B2C2FCA7DE88A9 /* RiseAndGrindApp.swift */; };
+		9A40513D69D6E4C83E96599F /* RiseAndGrindCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7AB08C92EDDB02D63B26B14D /* RiseAndGrindCore */; };
+		9A8A1DA940C9C9E1AB849395 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0ADFA7646121484A4176FDCC /* AVFoundation.framework */; };
+		9A971EA74AE5A66955FEE7A4 /* RiseTrack071.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6664313160553538B4C297F0 /* RiseTrack071.caf */; };
+		9C46F0ADBA6784AEDD3CA822 /* Motivational-025_discomfort_equals_growth.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5420DDBB05242F8C8C51D9F1 /* Motivational-025_discomfort_equals_growth.m4a */; };
+		9C6D2C736962371D72DDCE34 /* Motivational-058_1_better_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = DAB21839847E4F5CB1F263A9 /* Motivational-058_1_better_daily.m4a */; };
+		9CF9DEB3840D6851EF6A20C9 /* Motivational-090_lock_in_now.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2E00C17D687475E1FA5B2AAB /* Motivational-090_lock_in_now.m4a */; };
+		9D06322BD0456411B06C0931 /* RiseTrack053.caf in Resources */ = {isa = PBXBuildFile; fileRef = AE522CA1F99554EBC0EC0D39 /* RiseTrack053.caf */; };
+		9D3FF219388835AA9E6DEA7D /* RiseTrack073.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F893E71CE68D3B3688C5FD1 /* RiseTrack073.caf */; };
+		9E49E0E761515338B0B7EB4D /* Motivational-036_chase_vision_not_validation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 7D67D50118F8BE56424A3B39 /* Motivational-036_chase_vision_not_validation.m4a */; };
+		9EAC0D8480508C7309E1F2FD /* Motivational-077_build_the_unimaginable.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55B6B74F8069354EC61E9DCB /* Motivational-077_build_the_unimaginable.m4a */; };
+		9F7E30D7021413B6602C509D /* AlarmAudioTranscoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */; };
+		A01F6D5E65328B5932E2BE73 /* RiseTrack057.caf in Resources */ = {isa = PBXBuildFile; fileRef = CF2CF873093A960EA3A18CDE /* RiseTrack057.caf */; };
+		A24BE9C9A84C8320D2D16357 /* RiseTrack096.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8DA19AE5B8A8DE0A2D6C4004 /* RiseTrack096.caf */; };
+		A4A08BFC2E79C113A8C6925B /* PuzzlesInTheHighGrass.m4a in Resources */ = {isa = PBXBuildFile; fileRef = BABBC8CF365FF6F32B42A38E /* PuzzlesInTheHighGrass.m4a */; };
+		A54EE44DB7DFF14295AA07C3 /* RiseTrack083.caf in Resources */ = {isa = PBXBuildFile; fileRef = ABDC1C6F148BE9C165EA600E /* RiseTrack083.caf */; };
+		A678D197D0CDC046D8A1F551 /* NightlyCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F6996F70B0E9B58765F9D6 /* NightlyCoordinator.swift */; };
+		A6A219FA8FEE18A08FF4E157 /* Motivational-029_consistency_compounds_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2682C90D0F887F6332C77703 /* Motivational-029_consistency_compounds_daily.m4a */; };
+		A88A27AC27BEA936AC8B84F6 /* RiseTrack029.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6393BA259A229FE6A771C2D2 /* RiseTrack029.caf */; };
+		A8E3A875092E66C7B4309241 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26C97F928BE4070C82E761A4 /* AppIntents.framework */; };
+		A973722042337012647D475C /* AlarmRetryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F9F8D5B845617434B8B3A9 /* AlarmRetryState.swift */; };
+		AADEDEC631826048CF8E1258 /* ElectricShock.caf in Resources */ = {isa = PBXBuildFile; fileRef = D2BE31CB4CD4CD68BA28B217 /* ElectricShock.caf */; };
+		AB5D7F53ED869A3CC5A3E15D /* Motivational-063_speed_over_hesitation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 03E1E64B51A32DEF05B2EC07 /* Motivational-063_speed_over_hesitation.m4a */; };
+		AF678BA8DB8AA4B23E07E063 /* RiseTrack085.caf in Resources */ = {isa = PBXBuildFile; fileRef = FEB59984AD9336043E29D797 /* RiseTrack085.caf */; };
+		B0228EF17E4F5590BF754409 /* Motivational-042_take_the_stairs.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 7196EBDD20A7DE3DC642820B /* Motivational-042_take_the_stairs.m4a */; };
+		B0DB58616C3BD927CB65496E /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28AFC3092AAFDFEECD2D3C /* Components.swift */; };
+		B280C2F592ACCCE6E18CEDC6 /* Motivational-009_go_get_it.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CCBFF72FAA352C94E0D9E2D9 /* Motivational-009_go_get_it.m4a */; };
+		B457220A61D7DF58DEA928CB /* Motivational-044_every_rep_counts.m4a in Resources */ = {isa = PBXBuildFile; fileRef = EC54CDB4B44EF17E19331196 /* Motivational-044_every_rep_counts.m4a */; };
+		B4C6B60E077E6E2851A27EFF /* SonicDefibrillator.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4C1B1250A67E686EA25CC5E5 /* SonicDefibrillator.caf */; };
+		B5A68014A9CED1A8B2D32001 /* RiseTrack051.caf in Resources */ = {isa = PBXBuildFile; fileRef = 2FC2AE8E8BC94F7A0F2BA309 /* RiseTrack051.caf */; };
+		B7D86F84709E6B0BC5FA9534 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B62ED628967133CA4028243 /* CalendarService.swift */; };
+		B81F6057665AAD1308775AD7 /* RiseTrack030.caf in Resources */ = {isa = PBXBuildFile; fileRef = 64503B0D5B4BC4EBCE407E1E /* RiseTrack030.caf */; };
+		B887D21DFF5E0BABB474D743 /* NightlyNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7964268A1528F9F2FDDE21AC /* NightlyNotificationService.swift */; };
+		B8D5171EE394D38B98C8933E /* RiseTrack047.caf in Resources */ = {isa = PBXBuildFile; fileRef = A891B65A94F9A1FA23BB0B34 /* RiseTrack047.caf */; };
+		B9B649A35DB76FC9EE65F37E /* RiseTrack097.caf in Resources */ = {isa = PBXBuildFile; fileRef = C53FAFB2CCAE1F234BC86EA8 /* RiseTrack097.caf */; };
+		BA1BDCA7B097BABDA50D9D83 /* Motivational-053_hard_work_wins.m4a in Resources */ = {isa = PBXBuildFile; fileRef = BFBE6064DDB6E65C7C8D6305 /* Motivational-053_hard_work_wins.m4a */; };
+		BA30FF177C39941394D2A445 /* RiseTrack028.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9E1B2CA40800FEEAE6746A62 /* RiseTrack028.caf */; };
+		BB55C92F461219A0237C00C8 /* Motivational-018_find_a_way.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 26EBEACA363EB8C347BF8F3D /* Motivational-018_find_a_way.m4a */; };
+		BD2F7FB2C1FA011566209E08 /* RiseTrack034.caf in Resources */ = {isa = PBXBuildFile; fileRef = 14729A9308AA85A894097C80 /* RiseTrack034.caf */; };
+		BDE5B55F04B1E383B5057014 /* Motivational-082_no_finish_line.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 24A61138E92643163FAFF583 /* Motivational-082_no_finish_line.m4a */; };
+		BE943E7775744DDB198E0035 /* Motivational-064_market_rewards_obsession.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 991DF46A2E222EAED5FB6BD8 /* Motivational-064_market_rewards_obsession.m4a */; };
+		C004A0200737480E3428EC93 /* ShortcutSetupDemo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = EE4F02292F28366F86CB3A92 /* ShortcutSetupDemo.mp4 */; };
+		C08E78D42A0BFCA872473935 /* RiseTrack038.caf in Resources */ = {isa = PBXBuildFile; fileRef = D45F1003F67E8AE4522C6A06 /* RiseTrack038.caf */; };
+		C123302230D9BB21B9F0C4A6 /* Motivational-068_focus_beats_motivation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B832A7CA17112E255E90A87B /* Motivational-068_focus_beats_motivation.m4a */; };
+		C1EA9615936B0B4886906AF8 /* WakeChallengeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */; };
+		C1F025129E029E16FAC3AD3E /* Motivational-040_dreams_need_work.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 93837EECF6B6A1FF48EF10D2 /* Motivational-040_dreams_need_work.m4a */; };
+		C3108BC193C356359E9F92BF /* RiseTrack049.caf in Resources */ = {isa = PBXBuildFile; fileRef = 10F9EA574438C073C8B2939A /* RiseTrack049.caf */; };
+		C32E29AEA41809528E463953 /* RiseTrack058.caf in Resources */ = {isa = PBXBuildFile; fileRef = D3157FFB309AF918E455BCED /* RiseTrack058.caf */; };
+		C38DFE9A8F326291B7BB613C /* Motivational-013_own_your_morning.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C25F87EB2835E180E92CAF3B /* Motivational-013_own_your_morning.m4a */; };
+		C39F664AE863676C97948F92 /* MotionAuthorizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503F7A5EC32D1F3EFFA75F5B /* MotionAuthorizationService.swift */; };
+		C3BAB2251C9179D57FDB92E3 /* Motivational-087_never_born_average.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AC4A8B283773BD2BC00E7BDE /* Motivational-087_never_born_average.m4a */; };
+		C56D7EA32ECE5EAE3EBB34B0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 922732951817774E79831633 /* PrivacyInfo.xcprivacy */; };
+		C7018B05BDAD28A7E668F584 /* Motivational-015_excuses_don_t_pay.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 05615E30EB18987FC08E925B /* Motivational-015_excuses_don_t_pay.m4a */; };
+		C7C6A98FD32A069476D2F1EE /* Motivational-074_get_after_it.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AD05F274E366ABB0117C5E35 /* Motivational-074_get_after_it.m4a */; };
+		C87B28E2BD5C64B0C8244C5D /* Motivational-081_own_your_life.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C1BC1FAE459CC46F0CF5B437 /* Motivational-081_own_your_life.m4a */; };
+		C91976A6D3B08A7D31E92D51 /* EmergencyRave.caf in Resources */ = {isa = PBXBuildFile; fileRef = C817B0630951E79E7A7AE905 /* EmergencyRave.caf */; };
+		C94077467754A95577C9E612 /* RiseTrack033.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F95E65BC682E9EF83CB4671 /* RiseTrack033.caf */; };
+		CA854C339DDA26B4C55419C5 /* Motivational-024_relentless_always_relentless.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 33C22E8FC3F3A5527F4E928E /* Motivational-024_relentless_always_relentless.m4a */; };
+		CD2603C0E78B513C1CE5F9B2 /* Motivational-023_nobody_cares_work.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6930B617BE532C47F2957F1C /* Motivational-023_nobody_cares_work.m4a */; };
+		CDFE5BB1AC969080A9653CFC /* RiseTrack091.caf in Resources */ = {isa = PBXBuildFile; fileRef = D1A139E836D37EEFDC8C420C /* RiseTrack091.caf */; };
+		CE3701F2503D32E2A4204CAB /* RiseTrack055.caf in Resources */ = {isa = PBXBuildFile; fileRef = 60CB73999CF89A1AD7E765B3 /* RiseTrack055.caf */; };
+		CEE3C9C5A4319F0556D9EF96 /* AirRaidArsenal.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4379E279989592501DE905F3 /* AirRaidArsenal.caf */; };
+		CF623081E330405C1FE8587D /* SquatCalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */; };
+		D16045831ABCF180A7188119 /* RiseTrack045.caf in Resources */ = {isa = PBXBuildFile; fileRef = E136CC4B544285F568419C9B /* RiseTrack045.caf */; };
+		D23C63E3A215140B887263AD /* Motivational-100_rise_and_grind.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 4EF856DBF0C650B5CFAE7F66 /* Motivational-100_rise_and_grind.m4a */; };
+		D26F0AF0CDCA92C30D4D0990 /* Motivational-072_show_up_anyway.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 29875B3D38AA6DA235502DB0 /* Motivational-072_show_up_anyway.m4a */; };
+		D4F6DB4083FB1D7D99A43263 /* RiseTrack036.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8417E2932855E3020D6D4C01 /* RiseTrack036.caf */; };
+		D4FB1E47A367B1FA479AFDDF /* Motivational-039_show_up_anyway.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CE1EEF6C13FFCAF653697C5A /* Motivational-039_show_up_anyway.m4a */; };
+		D767C1EB836B39A412678762 /* Motivational-020_hustle_in_silence.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3960CC86996F3442257A771B /* Motivational-020_hustle_in_silence.m4a */; };
+		D7792389C31180031B372BA5 /* Motivational-086_trust_the_process.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A09CCF5C637D7259ECAD069F /* Motivational-086_trust_the_process.m4a */; };
+		D80D3838E6CF15B34094FC34 /* Motivational-037_no_8_hour_excuses.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2436B81483B190DF089F97BD /* Motivational-037_no_8_hour_excuses.m4a */; };
+		D87280239537C4E82967A9B5 /* Motivational-089_more_reps_always.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 32A36372EF98F8F22BCE8D9E /* Motivational-089_more_reps_always.m4a */; };
+		D93A817F0E3A6404F200BB1A /* Motivational-021_build_or_fall_behind.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 227B017361E55F4CFAA4A6EB /* Motivational-021_build_or_fall_behind.m4a */; };
+		DA81F7C4230BF7C3AB82F053 /* RiseTrack031.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9C914BBD0BB958F92AD918DF /* RiseTrack031.caf */; };
+		DB4AEC6BC6D30A799CA91B60 /* RiseTrack099.caf in Resources */ = {isa = PBXBuildFile; fileRef = B0171652D1885B5DF19AF26D /* RiseTrack099.caf */; };
+		DCAF99D03C42C4AD771A9A2C /* Motivational-069_win_the_morning.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F32D1305F64B870FD83B4DFB /* Motivational-069_win_the_morning.m4a */; };
+		DE01EE1B886CE41B549F4A31 /* Motivational-093_push_past_limits.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5873030273DE6D02BBA5AA22 /* Motivational-093_push_past_limits.m4a */; };
+		DF6869BC27F4176B9464ED6E /* Motivational-048_stop_scrolling_build.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AB179F200CDC94CE5125681D /* Motivational-048_stop_scrolling_build.m4a */; };
+		E0468EC9CDC462224F87BD06 /* RiseTrack088.caf in Resources */ = {isa = PBXBuildFile; fileRef = 89346C49A785103E4B4861C0 /* RiseTrack088.caf */; };
+		E05C37933C4A243D3958DF91 /* SquatDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C101F439F85DE99B928086D /* SquatDetectorTests.swift */; };
+		E1012CDE02EED7BBD73D93AD /* Motivational-032_adversity_builds_greatness.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CEA047F504B492720BD72FDE /* Motivational-032_adversity_builds_greatness.m4a */; };
+		E190EB7316749C1305575FD1 /* RiseTrack026.caf in Resources */ = {isa = PBXBuildFile; fileRef = CA17B4E836A7DF7B9C30C536 /* RiseTrack026.caf */; };
+		E2550781283EFD15A6E0FE5C /* RiseTrack039.caf in Resources */ = {isa = PBXBuildFile; fileRef = D06A93B3C8428BE791277AAC /* RiseTrack039.caf */; };
+		E2E578191E3568006FDDFB63 /* RiseTrack056.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1A157C3EB6B8644CFDCDB606 /* RiseTrack056.caf */; };
+		E30157A6755C4BFCA3034C39 /* RiseTrack060.caf in Resources */ = {isa = PBXBuildFile; fileRef = F2B79A9D2CA103E83FB7D873 /* RiseTrack060.caf */; };
+		E5DD99FB3303AE4F33D7331A /* RiseAndGrindCore in Frameworks */ = {isa = PBXBuildFile; productRef = A7FD9C5CB2592EFF6404F0CE /* RiseAndGrindCore */; };
+		E63132B320BCC89BB1DB9C6D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FB1132B71929E0FEDDD47E /* AppModel.swift */; };
+		E8683D7607E798965F6F7380 /* RiseTrack092.caf in Resources */ = {isa = PBXBuildFile; fileRef = 934E344CA9FC2E57405CBBAB /* RiseTrack092.caf */; };
+		EA661F2AD4B14F19EB070F24 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = FD4D2129676086C7873B7528 /* manifest.json */; };
+		EA7BAEEB7DCC92DDAFA5B37C /* Motivational-059_do_it_now.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 48716B33343049493DF829DE /* Motivational-059_do_it_now.m4a */; };
+		ECAF049CA159380EA2A85D93 /* Motivational-034_reject_average_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6732923A68897B5130ACEAB4 /* Motivational-034_reject_average_today.m4a */; };
+		ED9050C8E204841D303CB7E7 /* BoilerRoomBarrage.caf in Resources */ = {isa = PBXBuildFile; fileRef = DBA37C3E9349D0575D2F6825 /* BoilerRoomBarrage.caf */; };
+		EF8C65ACC5A548745E8FC279 /* RiseTrack032.caf in Resources */ = {isa = PBXBuildFile; fileRef = 09DA4FBE946E96BD9E3A704E /* RiseTrack032.caf */; };
+		F18FA3E410326888704909ED /* SchedulePlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AFC001366028F5E2F44D0 /* SchedulePlannerTests.swift */; };
+		F19BB0FC6B567016B2595DB0 /* Motivational-070_struggle_is_tuition.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6C4E780FC03F90FBE7AA4137 /* Motivational-070_struggle_is_tuition.m4a */; };
+		F2306EB252F1A7EA06934888 /* Motivational-083_beat_complacency_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = DAA893DF039DA0FFB63604E7 /* Motivational-083_beat_complacency_daily.m4a */; };
+		F2DA673113B2BDC4BA77F66F /* RiseTrack061.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5AC2FADB90A07788B6E99985 /* RiseTrack061.caf */; };
+		F2E97C4F19412B002E92F061 /* IndustrialPanic.caf in Resources */ = {isa = PBXBuildFile; fileRef = 39330C33D541D4C775345218 /* IndustrialPanic.caf */; };
+		F3DEA17472077FC54212F562 /* RiseTrack042.caf in Resources */ = {isa = PBXBuildFile; fileRef = 684BC66F41BB3F7805C594A9 /* RiseTrack042.caf */; };
+		F546801F12F6B99C507A9A1F /* RiseTrack093.caf in Resources */ = {isa = PBXBuildFile; fileRef = C28D6D7F028F9BFAA5678F4A /* RiseTrack093.caf */; };
+		F7BB48E1D7D626B4066C043A /* Motivational-080_do_more_always.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F77BE2B03E74C44BE8E3C02E /* Motivational-080_do_more_always.m4a */; };
+		F877729F22DF6220F6F2970D /* FirehouseFanfare.caf in Resources */ = {isa = PBXBuildFile; fileRef = 10F753F5A33F54D6C3E1DBAB /* FirehouseFanfare.caf */; };
+		F8A9937857944DC8478EDC76 /* RiseTrack067.caf in Resources */ = {isa = PBXBuildFile; fileRef = E3F7CB8E92C767165A2BA6DE /* RiseTrack067.caf */; };
+		F976884C555F83E91B98D310 /* Motivational-030_beat_yesterday_s_you.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64E60FB3231D164EC9671C2D /* Motivational-030_beat_yesterday_s_you.m4a */; };
+		FA5EAF48C12EFF34F23BD323 /* Motivational-016_sweat_now_flex_later.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CA28150641398DA863883B5D /* Motivational-016_sweat_now_flex_later.m4a */; };
+		FAAAA79FF0FCD9B1044E452D /* CalendarOverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0467A5374B2E7371297BCA49 /* CalendarOverrideView.swift */; };
+		FBE5AC7FCAA06BB9D0C8C486 /* Motivational-047_create_your_luck.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D0F3B54A6B2DE98850866A62 /* Motivational-047_create_your_luck.m4a */; };
+		FC3F7AE9502B6F01F658142B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA004DE12777E6675646388 /* OnboardingView.swift */; };
+		FCB9D9EFF6CBE32564BBAC2E /* RiseTrack068.caf in Resources */ = {isa = PBXBuildFile; fileRef = 888664EA37A2932347F9E1CA /* RiseTrack068.caf */; };
+		FD61FC8C09D28B3253846504 /* Motivational-096_no_excuses_allowed.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 1769131116654292033027EB /* Motivational-096_no_excuses_allowed.m4a */; };
+		FDCFFB9349962B89A5B648D6 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0AFF1FCA8052DB4E6A29DD2 /* EventKit.framework */; };
+		FFBEEC65C91CED484A118F50 /* Motivational-092_win_in_silence.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F64117266725337691E51168 /* Motivational-092_win_in_silence.m4a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0125870AA374EFBE0B29BCF9 /* Motivational-098_stay_locked_in.m4a */ = {isa = PBXFileReference; path = "Motivational-098_stay_locked_in.m4a"; sourceTree = "<group>"; };
+		03E1E64B51A32DEF05B2EC07 /* Motivational-063_speed_over_hesitation.m4a */ = {isa = PBXFileReference; path = "Motivational-063_speed_over_hesitation.m4a"; sourceTree = "<group>"; };
+		0467A5374B2E7371297BCA49 /* CalendarOverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarOverrideView.swift; sourceTree = "<group>"; };
+		05615E30EB18987FC08E925B /* Motivational-015_excuses_don_t_pay.m4a */ = {isa = PBXFileReference; path = "Motivational-015_excuses_don_t_pay.m4a"; sourceTree = "<group>"; };
+		05A44D0D2DF0F047E255E190 /* Motivational-071_grind_ignores_feelings.m4a */ = {isa = PBXFileReference; path = "Motivational-071_grind_ignores_feelings.m4a"; sourceTree = "<group>"; };
+		05C6E34FC312275496336E38 /* RiseAndGrind */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RiseAndGrind; path = .; sourceTree = SOURCE_ROOT; };
+		0859C7BD2C4C63DD71BE61A8 /* RiseAndGrindTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = RiseAndGrindTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		091AAB241CFDCCF5F967CC50 /* BuzzsawBreakbeat.caf */ = {isa = PBXFileReference; path = BuzzsawBreakbeat.caf; sourceTree = "<group>"; };
+		09DA4FBE946E96BD9E3A704E /* RiseTrack032.caf */ = {isa = PBXFileReference; path = RiseTrack032.caf; sourceTree = "<group>"; };
+		0AC1590B54B0B1FE0147B0C5 /* Motivational-005_comfort_is_the_enemy.m4a */ = {isa = PBXFileReference; path = "Motivational-005_comfort_is_the_enemy.m4a"; sourceTree = "<group>"; };
+		0ADFA7646121484A4176FDCC /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		0B4677A17997B915E5881F34 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		0D4F00856527F08FC40732FD /* Motivational-075_discipline_equals_freedom.m4a */ = {isa = PBXFileReference; path = "Motivational-075_discipline_equals_freedom.m4a"; sourceTree = "<group>"; };
+		0E5DF155E278C2A6F25D7A63 /* Motivational-062_grind_today_always.m4a */ = {isa = PBXFileReference; path = "Motivational-062_grind_today_always.m4a"; sourceTree = "<group>"; };
+		10F753F5A33F54D6C3E1DBAB /* FirehouseFanfare.caf */ = {isa = PBXFileReference; path = FirehouseFanfare.caf; sourceTree = "<group>"; };
+		10F9EA574438C073C8B2939A /* RiseTrack049.caf */ = {isa = PBXFileReference; path = RiseTrack049.caf; sourceTree = "<group>"; };
+		1104C9F3601EB1E29E977220 /* RiseTrack098.caf */ = {isa = PBXFileReference; path = RiseTrack098.caf; sourceTree = "<group>"; };
+		11725C954EE769A99B2C13EC /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		14729A9308AA85A894097C80 /* RiseTrack034.caf */ = {isa = PBXFileReference; path = RiseTrack034.caf; sourceTree = "<group>"; };
+		1664DE490FD2D34573823681 /* WakeChallengeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeChallengeView.swift; sourceTree = "<group>"; };
+		1769131116654292033027EB /* Motivational-096_no_excuses_allowed.m4a */ = {isa = PBXFileReference; path = "Motivational-096_no_excuses_allowed.m4a"; sourceTree = "<group>"; };
+		1A13673D7ED6F638B09FB57B /* MetallicMayhem.caf */ = {isa = PBXFileReference; path = MetallicMayhem.caf; sourceTree = "<group>"; };
+		1A157C3EB6B8644CFDCDB606 /* RiseTrack056.caf */ = {isa = PBXFileReference; path = RiseTrack056.caf; sourceTree = "<group>"; };
+		1BA265C47D4A9FE4D500B713 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1C1CDB1991FAED1C0C118D23 /* RiseTrack046.caf */ = {isa = PBXFileReference; path = RiseTrack046.caf; sourceTree = "<group>"; };
+		1CFC8A4C2B930D7CF4AAECBD /* Motivational-056_just_don_t_quit.m4a */ = {isa = PBXFileReference; path = "Motivational-056_just_don_t_quit.m4a"; sourceTree = "<group>"; };
+		1D7BC9C6AADA74E45B83BF33 /* BrassKnuckleMarch.caf */ = {isa = PBXFileReference; path = BrassKnuckleMarch.caf; sourceTree = "<group>"; };
+		1E171F7003BF760ABD90BC93 /* AlarmKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AlarmKit.framework; path = System/Library/Frameworks/AlarmKit.framework; sourceTree = SDKROOT; };
+		1ED9A6DC406BE6919B633672 /* Motivational-006_bet_on_yourself.m4a */ = {isa = PBXFileReference; path = "Motivational-006_bet_on_yourself.m4a"; sourceTree = "<group>"; };
+		1F7575D5FC2036E26C59E3AE /* Motivational-028_play_the_long_game.m4a */ = {isa = PBXFileReference; path = "Motivational-028_play_the_long_game.m4a"; sourceTree = "<group>"; };
+		21E4FA4985095280642A88CA /* JackhammerJubilee.caf */ = {isa = PBXFileReference; path = JackhammerJubilee.caf; sourceTree = "<group>"; };
+		227B017361E55F4CFAA4A6EB /* Motivational-021_build_or_fall_behind.m4a */ = {isa = PBXFileReference; path = "Motivational-021_build_or_fall_behind.m4a"; sourceTree = "<group>"; };
+		2307EC189A37B496D5FB058D /* Motivational-007_build_the_empire.m4a */ = {isa = PBXFileReference; path = "Motivational-007_build_the_empire.m4a"; sourceTree = "<group>"; };
+		2436B81483B190DF089F97BD /* Motivational-037_no_8_hour_excuses.m4a */ = {isa = PBXFileReference; path = "Motivational-037_no_8_hour_excuses.m4a"; sourceTree = "<group>"; };
+		24A61138E92643163FAFF583 /* Motivational-082_no_finish_line.m4a */ = {isa = PBXFileReference; path = "Motivational-082_no_finish_line.m4a"; sourceTree = "<group>"; };
+		2682C90D0F887F6332C77703 /* Motivational-029_consistency_compounds_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-029_consistency_compounds_daily.m4a"; sourceTree = "<group>"; };
+		26C97F928BE4070C82E761A4 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
+		26EBEACA363EB8C347BF8F3D /* Motivational-018_find_a_way.m4a */ = {isa = PBXFileReference; path = "Motivational-018_find_a_way.m4a"; sourceTree = "<group>"; };
+		2733C9573ADD3E074B711F42 /* Motivational-057_obsess_don_t_wish.m4a */ = {isa = PBXFileReference; path = "Motivational-057_obsess_don_t_wish.m4a"; sourceTree = "<group>"; };
+		29875B3D38AA6DA235502DB0 /* Motivational-072_show_up_anyway.m4a */ = {isa = PBXFileReference; path = "Motivational-072_show_up_anyway.m4a"; sourceTree = "<group>"; };
+		2B114636612756B0303A5720 /* Motivational-001_no_days_off.m4a */ = {isa = PBXFileReference; path = "Motivational-001_no_days_off.m4a"; sourceTree = "<group>"; };
+		2E00C17D687475E1FA5B2AAB /* Motivational-090_lock_in_now.m4a */ = {isa = PBXFileReference; path = "Motivational-090_lock_in_now.m4a"; sourceTree = "<group>"; };
+		2FA004DE12777E6675646388 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		2FC2AE8E8BC94F7A0F2BA309 /* RiseTrack051.caf */ = {isa = PBXFileReference; path = RiseTrack051.caf; sourceTree = "<group>"; };
+		3010E5057EBB863E3595E8AD /* Motivational-038_grind_is_equalizer.m4a */ = {isa = PBXFileReference; path = "Motivational-038_grind_is_equalizer.m4a"; sourceTree = "<group>"; };
+		30BDA6193325F67BB4347BAD /* Motivational-002_sleep_is_weak.m4a */ = {isa = PBXFileReference; path = "Motivational-002_sleep_is_weak.m4a"; sourceTree = "<group>"; };
+		30F9F8D5B845617434B8B3A9 /* AlarmRetryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRetryState.swift; sourceTree = "<group>"; };
+		31BB1361A9C66FC6A7BA0795 /* RiseTrack054.caf */ = {isa = PBXFileReference; path = RiseTrack054.caf; sourceTree = "<group>"; };
+		32A36372EF98F8F22BCE8D9E /* Motivational-089_more_reps_always.m4a */ = {isa = PBXFileReference; path = "Motivational-089_more_reps_always.m4a"; sourceTree = "<group>"; };
+		339E6FA7504BFE620DBBD093 /* RiseTrack048.caf */ = {isa = PBXFileReference; path = RiseTrack048.caf; sourceTree = "<group>"; };
+		33C22E8FC3F3A5527F4E928E /* Motivational-024_relentless_always_relentless.m4a */ = {isa = PBXFileReference; path = "Motivational-024_relentless_always_relentless.m4a"; sourceTree = "<group>"; };
+		3769BB8B5C47467780EC10DA /* HornetNest.caf */ = {isa = PBXFileReference; path = HornetNest.caf; sourceTree = "<group>"; };
+		386EB75AD594DCDFA3C58220 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
+		39330C33D541D4C775345218 /* IndustrialPanic.caf */ = {isa = PBXFileReference; path = IndustrialPanic.caf; sourceTree = "<group>"; };
+		3960CC86996F3442257A771B /* Motivational-020_hustle_in_silence.m4a */ = {isa = PBXFileReference; path = "Motivational-020_hustle_in_silence.m4a"; sourceTree = "<group>"; };
+		3ADBA286A09F1D3A7ACDF946 /* Motivational-043_results_talk_loudest.m4a */ = {isa = PBXFileReference; path = "Motivational-043_results_talk_loudest.m4a"; sourceTree = "<group>"; };
+		3BA3B10030F05F5C80A691CA /* Motivational-065_work_hardest_always.m4a */ = {isa = PBXFileReference; path = "Motivational-065_work_hardest_always.m4a"; sourceTree = "<group>"; };
+		3CB4B0FC6A3D6B341102B52A /* Motivational-041_get_uncomfortable_now.m4a */ = {isa = PBXFileReference; path = "Motivational-041_get_uncomfortable_now.m4a"; sourceTree = "<group>"; };
+		415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		4190F5ED5A02DFA13F41C4A0 /* RiseTrack087.caf */ = {isa = PBXFileReference; path = RiseTrack087.caf; sourceTree = "<group>"; };
+		4379E279989592501DE905F3 /* AirRaidArsenal.caf */ = {isa = PBXFileReference; path = AirRaidArsenal.caf; sourceTree = "<group>"; };
+		459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioTranscoder.swift; sourceTree = "<group>"; };
+		469191B595D6FDFE57496C58 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		48716B33343049493DF829DE /* Motivational-059_do_it_now.m4a */ = {isa = PBXFileReference; path = "Motivational-059_do_it_now.m4a"; sourceTree = "<group>"; };
+		497D5FF52B165B68F36C5404 /* Motivational-061_small_wins_compound.m4a */ = {isa = PBXFileReference; path = "Motivational-061_small_wins_compound.m4a"; sourceTree = "<group>"; };
+		49E31D1A3DAB1E69850E93AC /* Motivational-095_chase_greatness_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-095_chase_greatness_daily.m4a"; sourceTree = "<group>"; };
+		4B62ED628967133CA4028243 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		4B7108E0E85E3225DB1B0A10 /* Motivational-085_sweat_equity_wins.m4a */ = {isa = PBXFileReference; path = "Motivational-085_sweat_equity_wins.m4a"; sourceTree = "<group>"; };
+		4C1B1250A67E686EA25CC5E5 /* SonicDefibrillator.caf */ = {isa = PBXFileReference; path = SonicDefibrillator.caf; sourceTree = "<group>"; };
+		4EF856DBF0C650B5CFAE7F66 /* Motivational-100_rise_and_grind.m4a */ = {isa = PBXFileReference; path = "Motivational-100_rise_and_grind.m4a"; sourceTree = "<group>"; };
+		4F9CE70145EEBD06E612301E /* Motivational-049_secure_the_future.m4a */ = {isa = PBXFileReference; path = "Motivational-049_secure_the_future.m4a"; sourceTree = "<group>"; };
+		503F7A5EC32D1F3EFFA75F5B /* MotionAuthorizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionAuthorizationService.swift; sourceTree = "<group>"; };
+		50862C725A8FAB1DA723EB38 /* CymbalCrashCourse.caf */ = {isa = PBXFileReference; path = CymbalCrashCourse.caf; sourceTree = "<group>"; };
+		50F6996F70B0E9B58765F9D6 /* NightlyCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightlyCoordinator.swift; sourceTree = "<group>"; };
+		51D91714A9F286392961C9F8 /* Motivational-050_grind_is_reward.m4a */ = {isa = PBXFileReference; path = "Motivational-050_grind_is_reward.m4a"; sourceTree = "<group>"; };
+		526A1D3709E0269D048D2DCE /* RiseTrack074.caf */ = {isa = PBXFileReference; path = RiseTrack074.caf; sourceTree = "<group>"; };
+		52FB1132B71929E0FEDDD47E /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		5420DDBB05242F8C8C51D9F1 /* Motivational-025_discomfort_equals_growth.m4a */ = {isa = PBXFileReference; path = "Motivational-025_discomfort_equals_growth.m4a"; sourceTree = "<group>"; };
+		55877E700A16B165B080152D /* RiseTrack025.caf */ = {isa = PBXFileReference; path = RiseTrack025.caf; sourceTree = "<group>"; };
+		55B6B74F8069354EC61E9DCB /* Motivational-077_build_the_unimaginable.m4a */ = {isa = PBXFileReference; path = "Motivational-077_build_the_unimaginable.m4a"; sourceTree = "<group>"; };
+		5855E8E7665AA91D20D81097 /* RiseTrack100.caf */ = {isa = PBXFileReference; path = RiseTrack100.caf; sourceTree = "<group>"; };
+		5873030273DE6D02BBA5AA22 /* Motivational-093_push_past_limits.m4a */ = {isa = PBXFileReference; path = "Motivational-093_push_past_limits.m4a"; sourceTree = "<group>"; };
+		59804DB20D84E14745B99CFA /* Motivational-031_wait_for_nothing.m4a */ = {isa = PBXFileReference; path = "Motivational-031_wait_for_nothing.m4a"; sourceTree = "<group>"; };
+		5A214257E366339D4CC885C6 /* RiseTrack066.caf */ = {isa = PBXFileReference; path = RiseTrack066.caf; sourceTree = "<group>"; };
+		5A2FD3865D5E825CD388AB92 /* RiseTrack094.caf */ = {isa = PBXFileReference; path = RiseTrack094.caf; sourceTree = "<group>"; };
+		5A48687B68170A2A309CDB24 /* Motivational-003_outwork_everyone_today.m4a */ = {isa = PBXFileReference; path = "Motivational-003_outwork_everyone_today.m4a"; sourceTree = "<group>"; };
+		5AC2FADB90A07788B6E99985 /* RiseTrack061.caf */ = {isa = PBXFileReference; path = RiseTrack061.caf; sourceTree = "<group>"; };
+		5C101F439F85DE99B928086D /* SquatDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatDetectorTests.swift; sourceTree = "<group>"; };
+		5D5B59733AA609B40617C969 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5EC46821207A3171F2F7FC1F /* Motivational-088_outwork_outlearn_outlast.m4a */ = {isa = PBXFileReference; path = "Motivational-088_outwork_outlearn_outlast.m4a"; sourceTree = "<group>"; };
+		604CB7734C01D3A99D8CB695 /* Motivational-055_no_shortcuts_exist.m4a */ = {isa = PBXFileReference; path = "Motivational-055_no_shortcuts_exist.m4a"; sourceTree = "<group>"; };
+		60CB73999CF89A1AD7E765B3 /* RiseTrack055.caf */ = {isa = PBXFileReference; path = RiseTrack055.caf; sourceTree = "<group>"; };
+		634FED1233382FA2C877EC85 /* RiseTrack052.caf */ = {isa = PBXFileReference; path = RiseTrack052.caf; sourceTree = "<group>"; };
+		635DC7C54D828F6B4FF170EB /* RiseTrack089.caf */ = {isa = PBXFileReference; path = RiseTrack089.caf; sourceTree = "<group>"; };
+		6393BA259A229FE6A771C2D2 /* RiseTrack029.caf */ = {isa = PBXFileReference; path = RiseTrack029.caf; sourceTree = "<group>"; };
+		641B09932DF906DED90948B6 /* RiseTrack081.caf */ = {isa = PBXFileReference; path = RiseTrack081.caf; sourceTree = "<group>"; };
+		64503B0D5B4BC4EBCE407E1E /* RiseTrack030.caf */ = {isa = PBXFileReference; path = RiseTrack030.caf; sourceTree = "<group>"; };
+		64DB2601C72739B4FE6E4CCA /* RiseTrack063.caf */ = {isa = PBXFileReference; path = RiseTrack063.caf; sourceTree = "<group>"; };
+		64E60FB3231D164EC9671C2D /* Motivational-030_beat_yesterday_s_you.m4a */ = {isa = PBXFileReference; path = "Motivational-030_beat_yesterday_s_you.m4a"; sourceTree = "<group>"; };
+		6664313160553538B4C297F0 /* RiseTrack071.caf */ = {isa = PBXFileReference; path = RiseTrack071.caf; sourceTree = "<group>"; };
+		6732923A68897B5130ACEAB4 /* Motivational-034_reject_average_today.m4a */ = {isa = PBXFileReference; path = "Motivational-034_reject_average_today.m4a"; sourceTree = "<group>"; };
+		67C70D555A6B679378C66E03 /* RiseTrack070.caf */ = {isa = PBXFileReference; path = RiseTrack070.caf; sourceTree = "<group>"; };
+		67F78C2308B3C12020AEF065 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		684BC66F41BB3F7805C594A9 /* RiseTrack042.caf */ = {isa = PBXFileReference; path = RiseTrack042.caf; sourceTree = "<group>"; };
+		68D1A662798478BB27AA6763 /* Motivational-004_discipline_beats_motivation.m4a */ = {isa = PBXFileReference; path = "Motivational-004_discipline_beats_motivation.m4a"; sourceTree = "<group>"; };
+		6930B617BE532C47F2957F1C /* Motivational-023_nobody_cares_work.m4a */ = {isa = PBXFileReference; path = "Motivational-023_nobody_cares_work.m4a"; sourceTree = "<group>"; };
+		6A97E59004F4145DE29E4BE5 /* Motivational-022_comfort_kills_dreams.m4a */ = {isa = PBXFileReference; path = "Motivational-022_comfort_kills_dreams.m4a"; sourceTree = "<group>"; };
+		6C4E780FC03F90FBE7AA4137 /* Motivational-070_struggle_is_tuition.m4a */ = {isa = PBXFileReference; path = "Motivational-070_struggle_is_tuition.m4a"; sourceTree = "<group>"; };
+		6EA0D2F745CCBF4907383553 /* Motivational-026_pain_fuels_progress.m4a */ = {isa = PBXFileReference; path = "Motivational-026_pain_fuels_progress.m4a"; sourceTree = "<group>"; };
+		6F893E71CE68D3B3688C5FD1 /* RiseTrack073.caf */ = {isa = PBXFileReference; path = RiseTrack073.caf; sourceTree = "<group>"; };
+		6F95E65BC682E9EF83CB4671 /* RiseTrack033.caf */ = {isa = PBXFileReference; path = RiseTrack033.caf; sourceTree = "<group>"; };
+		7196EBDD20A7DE3DC642820B /* Motivational-042_take_the_stairs.m4a */ = {isa = PBXFileReference; path = "Motivational-042_take_the_stairs.m4a"; sourceTree = "<group>"; };
+		78D922A3AD893CE5C389D872 /* RiseTrack078.caf */ = {isa = PBXFileReference; path = RiseTrack078.caf; sourceTree = "<group>"; };
+		7964268A1528F9F2FDDE21AC /* NightlyNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightlyNotificationService.swift; sourceTree = "<group>"; };
+		798D335081649B0D59CAB4D4 /* Motivational-045_you_re_the_limit.m4a */ = {isa = PBXFileReference; path = "Motivational-045_you_re_the_limit.m4a"; sourceTree = "<group>"; };
+		7D67D50118F8BE56424A3B39 /* Motivational-036_chase_vision_not_validation.m4a */ = {isa = PBXFileReference; path = "Motivational-036_chase_vision_not_validation.m4a"; sourceTree = "<group>"; };
+		7E4426C36A8C2DD2491FE1D7 /* SquatCalibrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatCalibrationTests.swift; sourceTree = "<group>"; };
+		7EB9F43BC9B2C2FCA7DE88A9 /* RiseAndGrindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiseAndGrindApp.swift; sourceTree = "<group>"; };
+		834FFE4E2E038F0A2407E641 /* Motivational-014_save_yourself_first.m4a */ = {isa = PBXFileReference; path = "Motivational-014_save_yourself_first.m4a"; sourceTree = "<group>"; };
+		8417E2932855E3020D6D4C01 /* RiseTrack036.caf */ = {isa = PBXFileReference; path = RiseTrack036.caf; sourceTree = "<group>"; };
+		84FFA870A649B4A0B09FFA6A /* Motivational-079_stay_in_arena.m4a */ = {isa = PBXFileReference; path = "Motivational-079_stay_in_arena.m4a"; sourceTree = "<group>"; };
+		866D6407595DB641E18228C1 /* Motivational-073_excuses_expire_today.m4a */ = {isa = PBXFileReference; path = "Motivational-073_excuses_expire_today.m4a"; sourceTree = "<group>"; };
+		87920972C4DA6F21189AA715 /* FactoryFloorFrenzy.caf */ = {isa = PBXFileReference; path = FactoryFloorFrenzy.caf; sourceTree = "<group>"; };
+		888664EA37A2932347F9E1CA /* RiseTrack068.caf */ = {isa = PBXFileReference; path = RiseTrack068.caf; sourceTree = "<group>"; };
+		89057A4739AE1B877F2B4556 /* Motivational-051_discipline_builds_bridges.m4a */ = {isa = PBXFileReference; path = "Motivational-051_discipline_builds_bridges.m4a"; sourceTree = "<group>"; };
+		89346C49A785103E4B4861C0 /* RiseTrack088.caf */ = {isa = PBXFileReference; path = RiseTrack088.caf; sourceTree = "<group>"; };
+		8A2B66E7A2D889051FCD5601 /* RiseTrack069.caf */ = {isa = PBXFileReference; path = RiseTrack069.caf; sourceTree = "<group>"; };
+		8AFF132C55CEC7F32AD79987 /* RiseTrack079.caf */ = {isa = PBXFileReference; path = RiseTrack079.caf; sourceTree = "<group>"; };
+		8B08EB7C665A22D706C476E6 /* RiseTrack090.caf */ = {isa = PBXFileReference; path = RiseTrack090.caf; sourceTree = "<group>"; };
+		8DA19AE5B8A8DE0A2D6C4004 /* RiseTrack096.caf */ = {isa = PBXFileReference; path = RiseTrack096.caf; sourceTree = "<group>"; };
+		8EC56C567192183352C549DB /* RiseTrack065.caf */ = {isa = PBXFileReference; path = RiseTrack065.caf; sourceTree = "<group>"; };
+		91305D6A078ABF448E8B1F53 /* RiseTrack041.caf */ = {isa = PBXFileReference; path = RiseTrack041.caf; sourceTree = "<group>"; };
+		922732951817774E79831633 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		930342A64B758E36B1FB283F /* Motivational-094_grind_builds_character.m4a */ = {isa = PBXFileReference; path = "Motivational-094_grind_builds_character.m4a"; sourceTree = "<group>"; };
+		934E344CA9FC2E57405CBBAB /* RiseTrack092.caf */ = {isa = PBXFileReference; path = RiseTrack092.caf; sourceTree = "<group>"; };
+		93837EECF6B6A1FF48EF10D2 /* Motivational-040_dreams_need_work.m4a */ = {isa = PBXFileReference; path = "Motivational-040_dreams_need_work.m4a"; sourceTree = "<group>"; };
+		94755003A927FB9B5D77A8E8 /* RiseTrack037.caf */ = {isa = PBXFileReference; path = RiseTrack037.caf; sourceTree = "<group>"; };
+		95BE9DC883BD50F8E0506008 /* RiseTrack050.caf */ = {isa = PBXFileReference; path = RiseTrack050.caf; sourceTree = "<group>"; };
+		96ACEBF6111AA9989C699EA1 /* RiseTrack086.caf */ = {isa = PBXFileReference; path = RiseTrack086.caf; sourceTree = "<group>"; };
+		96E00748EC0242201FCBE8D9 /* SirenStorm.caf */ = {isa = PBXFileReference; path = SirenStorm.caf; sourceTree = "<group>"; };
+		97A0D23A5DEEB185E661849F /* AlarmScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmScheduler.swift; sourceTree = "<group>"; };
+		97FF6A1EF12695AD9707EB6B /* DieselDrumline.caf */ = {isa = PBXFileReference; path = DieselDrumline.caf; sourceTree = "<group>"; };
+		98B78EEDBB5967FD925125B5 /* RiseTrack082.caf */ = {isa = PBXFileReference; path = RiseTrack082.caf; sourceTree = "<group>"; };
+		98CEBE05451DA8338A150456 /* Motivational-054_silence_your_haters.m4a */ = {isa = PBXFileReference; path = "Motivational-054_silence_your_haters.m4a"; sourceTree = "<group>"; };
+		991DF46A2E222EAED5FB6BD8 /* Motivational-064_market_rewards_obsession.m4a */ = {isa = PBXFileReference; path = "Motivational-064_market_rewards_obsession.m4a"; sourceTree = "<group>"; };
+		9AD964653B1114BF5B066AF5 /* PressureValve.caf */ = {isa = PBXFileReference; path = PressureValve.caf; sourceTree = "<group>"; };
+		9C914BBD0BB958F92AD918DF /* RiseTrack031.caf */ = {isa = PBXFileReference; path = RiseTrack031.caf; sourceTree = "<group>"; };
+		9E171D8761A065F989FD5492 /* RiseTrack044.caf */ = {isa = PBXFileReference; path = RiseTrack044.caf; sourceTree = "<group>"; };
+		9E19A7B202329E8E60B194DD /* Motivational-011_execute_don_t_wait.m4a */ = {isa = PBXFileReference; path = "Motivational-011_execute_don_t_wait.m4a"; sourceTree = "<group>"; };
+		9E1B2CA40800FEEAE6746A62 /* RiseTrack028.caf */ = {isa = PBXFileReference; path = RiseTrack028.caf; sourceTree = "<group>"; };
+		9E5AFC001366028F5E2F44D0 /* SchedulePlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulePlannerTests.swift; sourceTree = "<group>"; };
+		9EFECD77781655AA691FF884 /* AlarmSoundsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundsView.swift; sourceTree = "<group>"; };
+		9FDF6121B6797AD2A481DB01 /* Motivational-097_earn_it_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-097_earn_it_daily.m4a"; sourceTree = "<group>"; };
+		A09CCF5C637D7259ECAD069F /* Motivational-086_trust_the_process.m4a */ = {isa = PBXFileReference; path = "Motivational-086_trust_the_process.m4a"; sourceTree = "<group>"; };
+		A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeChallengeCoordinator.swift; sourceTree = "<group>"; };
+		A0AFF1FCA8052DB4E6A29DD2 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
+		A2E40200241D9A0663AD833B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		A5BB00BA54B54B698E85B4BA /* Motivational-008_stack_wins_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-008_stack_wins_daily.m4a"; sourceTree = "<group>"; };
+		A891B65A94F9A1FA23BB0B34 /* RiseTrack047.caf */ = {isa = PBXFileReference; path = RiseTrack047.caf; sourceTree = "<group>"; };
+		A9260CEACEA751DFFFFBE049 /* RiseAndGrindIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiseAndGrindIntents.swift; sourceTree = "<group>"; };
+		AB163F1B6C72FC7B7B41C704 /* Motivational-078_setbacks_fuel_comebacks.m4a */ = {isa = PBXFileReference; path = "Motivational-078_setbacks_fuel_comebacks.m4a"; sourceTree = "<group>"; };
+		AB179F200CDC94CE5125681D /* Motivational-048_stop_scrolling_build.m4a */ = {isa = PBXFileReference; path = "Motivational-048_stop_scrolling_build.m4a"; sourceTree = "<group>"; };
+		ABA91F5E2913144961BB5B80 /* RiseTrack064.caf */ = {isa = PBXFileReference; path = RiseTrack064.caf; sourceTree = "<group>"; };
+		ABDC1C6F148BE9C165EA600E /* RiseTrack083.caf */ = {isa = PBXFileReference; path = RiseTrack083.caf; sourceTree = "<group>"; };
+		AC4A8B283773BD2BC00E7BDE /* Motivational-087_never_born_average.m4a */ = {isa = PBXFileReference; path = "Motivational-087_never_born_average.m4a"; sourceTree = "<group>"; };
+		ACCC83E7E6602B2B25A0166E /* Motivational-067_build_momentum_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-067_build_momentum_daily.m4a"; sourceTree = "<group>"; };
+		AD05F274E366ABB0117C5E35 /* Motivational-074_get_after_it.m4a */ = {isa = PBXFileReference; path = "Motivational-074_get_after_it.m4a"; sourceTree = "<group>"; };
+		AE522CA1F99554EBC0EC0D39 /* RiseTrack053.caf */ = {isa = PBXFileReference; path = RiseTrack053.caf; sourceTree = "<group>"; };
+		AEC1681E5C66B0412806E917 /* Motivational-019_beat_your_competition.m4a */ = {isa = PBXFileReference; path = "Motivational-019_beat_your_competition.m4a"; sourceTree = "<group>"; };
+		B0171652D1885B5DF19AF26D /* RiseTrack099.caf */ = {isa = PBXFileReference; path = RiseTrack099.caf; sourceTree = "<group>"; };
+		B09B11125C0C4A4A72443401 /* RiseTrack035.caf */ = {isa = PBXFileReference; path = RiseTrack035.caf; sourceTree = "<group>"; };
+		B2F243EA253D28DCED303262 /* Motivational-017_grind_never_stops.m4a */ = {isa = PBXFileReference; path = "Motivational-017_grind_never_stops.m4a"; sourceTree = "<group>"; };
+		B7A0B837BDC5F5CCA54511E3 /* Motivational-012_grind_now_shine_later.m4a */ = {isa = PBXFileReference; path = "Motivational-012_grind_now_shine_later.m4a"; sourceTree = "<group>"; };
+		B832A7CA17112E255E90A87B /* Motivational-068_focus_beats_motivation.m4a */ = {isa = PBXFileReference; path = "Motivational-068_focus_beats_motivation.m4a"; sourceTree = "<group>"; };
+		B9D32600DDE5E0F4A6FE17D6 /* WarningSignal.caf */ = {isa = PBXFileReference; path = WarningSignal.caf; sourceTree = "<group>"; };
+		BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatCalibrationDiagnosticRecorder.swift; sourceTree = "<group>"; };
+		BABBC8CF365FF6F32B42A38E /* PuzzlesInTheHighGrass.m4a */ = {isa = PBXFileReference; path = PuzzlesInTheHighGrass.m4a; sourceTree = "<group>"; };
+		BB60AABF4D78D7050F8BD1FB /* NeonFireDrill.caf */ = {isa = PBXFileReference; path = NeonFireDrill.caf; sourceTree = "<group>"; };
+		BBDFF6CB72D4854FBE974952 /* BarrageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarrageView.swift; sourceTree = "<group>"; };
+		BE7E6DCB1A14C6EF32FE4E74 /* RiseTrack072.caf */ = {isa = PBXFileReference; path = RiseTrack072.caf; sourceTree = "<group>"; };
+		BFBE6064DDB6E65C7C8D6305 /* Motivational-053_hard_work_wins.m4a */ = {isa = PBXFileReference; path = "Motivational-053_hard_work_wins.m4a"; sourceTree = "<group>"; };
+		C1BC1FAE459CC46F0CF5B437 /* Motivational-081_own_your_life.m4a */ = {isa = PBXFileReference; path = "Motivational-081_own_your_life.m4a"; sourceTree = "<group>"; };
+		C25F87EB2835E180E92CAF3B /* Motivational-013_own_your_morning.m4a */ = {isa = PBXFileReference; path = "Motivational-013_own_your_morning.m4a"; sourceTree = "<group>"; };
+		C28B180B70EE0C75C778B1EC /* Motivational-091_execute_and_repeat.m4a */ = {isa = PBXFileReference; path = "Motivational-091_execute_and_repeat.m4a"; sourceTree = "<group>"; };
+		C28D6D7F028F9BFAA5678F4A /* RiseTrack093.caf */ = {isa = PBXFileReference; path = RiseTrack093.caf; sourceTree = "<group>"; };
+		C3408898C01B46608E93A291 /* RiseTrack084.caf */ = {isa = PBXFileReference; path = RiseTrack084.caf; sourceTree = "<group>"; };
+		C53FAFB2CCAE1F234BC86EA8 /* RiseTrack097.caf */ = {isa = PBXFileReference; path = RiseTrack097.caf; sourceTree = "<group>"; };
+		C627D1A91CEF87CA2F0EB2CF /* Motivational-060_grit_over_comfort.m4a */ = {isa = PBXFileReference; path = "Motivational-060_grit_over_comfort.m4a"; sourceTree = "<group>"; };
+		C646AA508B4ED656A0A3CC06 /* RiseTrack059.caf */ = {isa = PBXFileReference; path = RiseTrack059.caf; sourceTree = "<group>"; };
+		C67645E059392853421C28CA /* RiseTrack075.caf */ = {isa = PBXFileReference; path = RiseTrack075.caf; sourceTree = "<group>"; };
+		C817B0630951E79E7A7AE905 /* EmergencyRave.caf */ = {isa = PBXFileReference; path = EmergencyRave.caf; sourceTree = "<group>"; };
+		C946341A7BDCFADF6C04FC1F /* Motivational-099_keep_grinding_forward.m4a */ = {isa = PBXFileReference; path = "Motivational-099_keep_grinding_forward.m4a"; sourceTree = "<group>"; };
+		CA17B4E836A7DF7B9C30C536 /* RiseTrack026.caf */ = {isa = PBXFileReference; path = RiseTrack026.caf; sourceTree = "<group>"; };
+		CA28150641398DA863883B5D /* Motivational-016_sweat_now_flex_later.m4a */ = {isa = PBXFileReference; path = "Motivational-016_sweat_now_flex_later.m4a"; sourceTree = "<group>"; };
+		CBBF86C30D798F8CFDBABB37 /* PercussionOverload.caf */ = {isa = PBXFileReference; path = PercussionOverload.caf; sourceTree = "<group>"; };
+		CCBFF72FAA352C94E0D9E2D9 /* Motivational-009_go_get_it.m4a */ = {isa = PBXFileReference; path = "Motivational-009_go_get_it.m4a"; sourceTree = "<group>"; };
+		CDA315E0E5BA9B2D58DAD730 /* Motivational-066_habits_build_destiny.m4a */ = {isa = PBXFileReference; path = "Motivational-066_habits_build_destiny.m4a"; sourceTree = "<group>"; };
+		CE1EEF6C13FFCAF653697C5A /* Motivational-039_show_up_anyway.m4a */ = {isa = PBXFileReference; path = "Motivational-039_show_up_anyway.m4a"; sourceTree = "<group>"; };
+		CEA047F504B492720BD72FDE /* Motivational-032_adversity_builds_greatness.m4a */ = {isa = PBXFileReference; path = "Motivational-032_adversity_builds_greatness.m4a"; sourceTree = "<group>"; };
+		CF2CF873093A960EA3A18CDE /* RiseTrack057.caf */ = {isa = PBXFileReference; path = RiseTrack057.caf; sourceTree = "<group>"; };
+		D06A93B3C8428BE791277AAC /* RiseTrack039.caf */ = {isa = PBXFileReference; path = RiseTrack039.caf; sourceTree = "<group>"; };
+		D0F3B54A6B2DE98850866A62 /* Motivational-047_create_your_luck.m4a */ = {isa = PBXFileReference; path = "Motivational-047_create_your_luck.m4a"; sourceTree = "<group>"; };
+		D1A139E836D37EEFDC8C420C /* RiseTrack091.caf */ = {isa = PBXFileReference; path = RiseTrack091.caf; sourceTree = "<group>"; };
+		D2BE31CB4CD4CD68BA28B217 /* ElectricShock.caf */ = {isa = PBXFileReference; path = ElectricShock.caf; sourceTree = "<group>"; };
+		D3157FFB309AF918E455BCED /* RiseTrack058.caf */ = {isa = PBXFileReference; path = RiseTrack058.caf; sourceTree = "<group>"; };
+		D3E169418C279B18568A2A2E /* Motivational-010_level_up_now.m4a */ = {isa = PBXFileReference; path = "Motivational-010_level_up_now.m4a"; sourceTree = "<group>"; };
+		D45F1003F67E8AE4522C6A06 /* RiseTrack038.caf */ = {isa = PBXFileReference; path = RiseTrack038.caf; sourceTree = "<group>"; };
+		D6A6A484E61CBD037167E425 /* RiseTrack076.caf */ = {isa = PBXFileReference; path = RiseTrack076.caf; sourceTree = "<group>"; };
+		D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		D7CFA2F202C43D143E622533 /* CircuitBreaker.caf */ = {isa = PBXFileReference; path = CircuitBreaker.caf; sourceTree = "<group>"; };
+		D9BAB3F16203B6A120971926 /* RiseTrack040.caf */ = {isa = PBXFileReference; path = RiseTrack040.caf; sourceTree = "<group>"; };
+		D9BFAB7439EBF86C3A6A9A45 /* Motivational-076_don_t_ever_quit.m4a */ = {isa = PBXFileReference; path = "Motivational-076_don_t_ever_quit.m4a"; sourceTree = "<group>"; };
+		DAA893DF039DA0FFB63604E7 /* Motivational-083_beat_complacency_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-083_beat_complacency_daily.m4a"; sourceTree = "<group>"; };
+		DAB21839847E4F5CB1F263A9 /* Motivational-058_1_better_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-058_1_better_daily.m4a"; sourceTree = "<group>"; };
+		DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatCalibrationView.swift; sourceTree = "<group>"; };
+		DBA37C3E9349D0575D2F6825 /* BoilerRoomBarrage.caf */ = {isa = PBXFileReference; path = BoilerRoomBarrage.caf; sourceTree = "<group>"; };
+		DBCB8335EC6285C386ABC3AF /* RiseAndGrind.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RiseAndGrind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC28AFC3092AAFDFEECD2D3C /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		DDE88C1EFCD36DDB24AF0CA6 /* RiseTrack027.caf */ = {isa = PBXFileReference; path = RiseTrack027.caf; sourceTree = "<group>"; };
+		E136CC4B544285F568419C9B /* RiseTrack045.caf */ = {isa = PBXFileReference; path = RiseTrack045.caf; sourceTree = "<group>"; };
+		E13C31043C82704E285CA82A /* AlarmBellAssault.caf */ = {isa = PBXFileReference; path = AlarmBellAssault.caf; sourceTree = "<group>"; };
+		E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundLibrary.swift; sourceTree = "<group>"; };
+		E3F7CB8E92C767165A2BA6DE /* RiseTrack067.caf */ = {isa = PBXFileReference; path = RiseTrack067.caf; sourceTree = "<group>"; };
+		E440B049BC04CC33D6DB378E /* WakeUpWarpath.caf */ = {isa = PBXFileReference; path = WakeUpWarpath.caf; sourceTree = "<group>"; };
+		E859CE26ECB6E3C9A1F74E67 /* Motivational-046_earned_in_darkness.m4a */ = {isa = PBXFileReference; path = "Motivational-046_earned_in_darkness.m4a"; sourceTree = "<group>"; };
+		E919D71787DB06F6D5276052 /* RiseTrack077.caf */ = {isa = PBXFileReference; path = RiseTrack077.caf; sourceTree = "<group>"; };
+		EC54CDB4B44EF17E19331196 /* Motivational-044_every_rep_counts.m4a */ = {isa = PBXFileReference; path = "Motivational-044_every_rep_counts.m4a"; sourceTree = "<group>"; };
+		EDB8D7BF2761E5CB849AFD3A /* RiseTrack062.caf */ = {isa = PBXFileReference; path = RiseTrack062.caf; sourceTree = "<group>"; };
+		EE4F02292F28366F86CB3A92 /* ShortcutSetupDemo.mp4 */ = {isa = PBXFileReference; path = ShortcutSetupDemo.mp4; sourceTree = "<group>"; };
+		EE733E1933EE8031A701A30A /* Motivational-033_sacrifice_now_win_later.m4a */ = {isa = PBXFileReference; path = "Motivational-033_sacrifice_now_win_later.m4a"; sourceTree = "<group>"; };
+		F14623DCA9B1203D197C7C7C /* SubwayScreech.caf */ = {isa = PBXFileReference; path = SubwayScreech.caf; sourceTree = "<group>"; };
+		F1AD28FD23FFBAABB1E61DB5 /* RiseTrack080.caf */ = {isa = PBXFileReference; path = RiseTrack080.caf; sourceTree = "<group>"; };
+		F1EC2B7DD1683D197CEF8BB8 /* Motivational-027_stay_hungry_humble.m4a */ = {isa = PBXFileReference; path = "Motivational-027_stay_hungry_humble.m4a"; sourceTree = "<group>"; };
+		F2B79A9D2CA103E83FB7D873 /* RiseTrack060.caf */ = {isa = PBXFileReference; path = RiseTrack060.caf; sourceTree = "<group>"; };
+		F2BB384502911D7B20ABA590 /* RiseTrack043.caf */ = {isa = PBXFileReference; path = RiseTrack043.caf; sourceTree = "<group>"; };
+		F32D1305F64B870FD83B4DFB /* Motivational-069_win_the_morning.m4a */ = {isa = PBXFileReference; path = "Motivational-069_win_the_morning.m4a"; sourceTree = "<group>"; };
+		F4E53F040F6483F2868F8318 /* Motivational-084_fortune_favors_relentless.m4a */ = {isa = PBXFileReference; path = "Motivational-084_fortune_favors_relentless.m4a"; sourceTree = "<group>"; };
+		F64117266725337691E51168 /* Motivational-092_win_in_silence.m4a */ = {isa = PBXFileReference; path = "Motivational-092_win_in_silence.m4a"; sourceTree = "<group>"; };
+		F77BE2B03E74C44BE8E3C02E /* Motivational-080_do_more_always.m4a */ = {isa = PBXFileReference; path = "Motivational-080_do_more_always.m4a"; sourceTree = "<group>"; };
+		F8ED852B6FB2A30BAB1D9AFE /* Motivational-052_rest_when_rich.m4a */ = {isa = PBXFileReference; path = "Motivational-052_rest_when_rich.m4a"; sourceTree = "<group>"; };
+		FA66C1529C169BC2CBA2086B /* AlarmInteractionPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmInteractionPolicyTests.swift; sourceTree = "<group>"; };
+		FBC6CE02DFEA804A480E49C0 /* Motivational-035_do_it_scared.m4a */ = {isa = PBXFileReference; path = "Motivational-035_do_it_scared.m4a"; sourceTree = "<group>"; };
+		FBD5B76119A9CE0A1BCF6603 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		FBE9E4DACE6E25C47A0131B4 /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
+		FCA9F10E8AF9C6864540FD1A /* ShortcutSetupDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutSetupDemoView.swift; sourceTree = "<group>"; };
+		FD4D2129676086C7873B7528 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
+		FD994AD4316D648BCE54ED40 /* RiseTrack095.caf */ = {isa = PBXFileReference; path = RiseTrack095.caf; sourceTree = "<group>"; };
+		FEB59984AD9336043E29D797 /* RiseTrack085.caf */ = {isa = PBXFileReference; path = RiseTrack085.caf; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		06E4A8873A96EDF7CE184F6D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A40513D69D6E4C83E96599F /* RiseAndGrindCore in Frameworks */,
+				6C676E1A2EB70C45FA33119B /* AlarmKit.framework in Frameworks */,
+				1F7C09323C51ADD03294DD28 /* ActivityKit.framework in Frameworks */,
+				A8E3A875092E66C7B4309241 /* AppIntents.framework in Frameworks */,
+				FDCFFB9349962B89A5B648D6 /* EventKit.framework in Frameworks */,
+				31942D0F7BB27CC2934A238B /* CoreMotion.framework in Frameworks */,
+				2F24904DC67C6915859F3E7A /* CoreHaptics.framework in Frameworks */,
+				9A8A1DA940C9C9E1AB849395 /* AVFoundation.framework in Frameworks */,
+				21530CC9083188201259809C /* PhotosUI.framework in Frameworks */,
+				3F511B12B01B131A7EA2836C /* UserNotifications.framework in Frameworks */,
+				09AD15B98459DB883A41E0F7 /* UniformTypeIdentifiers.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4DB8C7BC12A5386F190B0D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5DD99FB3303AE4F33D7331A /* RiseAndGrindCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0140CDBB5736DF9803742EEC /* MotivationalLines */ = {
+			isa = PBXGroup;
+			children = (
+				2B114636612756B0303A5720 /* Motivational-001_no_days_off.m4a */,
+				30BDA6193325F67BB4347BAD /* Motivational-002_sleep_is_weak.m4a */,
+				5A48687B68170A2A309CDB24 /* Motivational-003_outwork_everyone_today.m4a */,
+				68D1A662798478BB27AA6763 /* Motivational-004_discipline_beats_motivation.m4a */,
+				0AC1590B54B0B1FE0147B0C5 /* Motivational-005_comfort_is_the_enemy.m4a */,
+				1ED9A6DC406BE6919B633672 /* Motivational-006_bet_on_yourself.m4a */,
+				2307EC189A37B496D5FB058D /* Motivational-007_build_the_empire.m4a */,
+				A5BB00BA54B54B698E85B4BA /* Motivational-008_stack_wins_daily.m4a */,
+				CCBFF72FAA352C94E0D9E2D9 /* Motivational-009_go_get_it.m4a */,
+				D3E169418C279B18568A2A2E /* Motivational-010_level_up_now.m4a */,
+				9E19A7B202329E8E60B194DD /* Motivational-011_execute_don_t_wait.m4a */,
+				B7A0B837BDC5F5CCA54511E3 /* Motivational-012_grind_now_shine_later.m4a */,
+				C25F87EB2835E180E92CAF3B /* Motivational-013_own_your_morning.m4a */,
+				834FFE4E2E038F0A2407E641 /* Motivational-014_save_yourself_first.m4a */,
+				05615E30EB18987FC08E925B /* Motivational-015_excuses_don_t_pay.m4a */,
+				CA28150641398DA863883B5D /* Motivational-016_sweat_now_flex_later.m4a */,
+				B2F243EA253D28DCED303262 /* Motivational-017_grind_never_stops.m4a */,
+				26EBEACA363EB8C347BF8F3D /* Motivational-018_find_a_way.m4a */,
+				AEC1681E5C66B0412806E917 /* Motivational-019_beat_your_competition.m4a */,
+				3960CC86996F3442257A771B /* Motivational-020_hustle_in_silence.m4a */,
+				227B017361E55F4CFAA4A6EB /* Motivational-021_build_or_fall_behind.m4a */,
+				6A97E59004F4145DE29E4BE5 /* Motivational-022_comfort_kills_dreams.m4a */,
+				6930B617BE532C47F2957F1C /* Motivational-023_nobody_cares_work.m4a */,
+				33C22E8FC3F3A5527F4E928E /* Motivational-024_relentless_always_relentless.m4a */,
+				5420DDBB05242F8C8C51D9F1 /* Motivational-025_discomfort_equals_growth.m4a */,
+				6EA0D2F745CCBF4907383553 /* Motivational-026_pain_fuels_progress.m4a */,
+				F1EC2B7DD1683D197CEF8BB8 /* Motivational-027_stay_hungry_humble.m4a */,
+				1F7575D5FC2036E26C59E3AE /* Motivational-028_play_the_long_game.m4a */,
+				2682C90D0F887F6332C77703 /* Motivational-029_consistency_compounds_daily.m4a */,
+				64E60FB3231D164EC9671C2D /* Motivational-030_beat_yesterday_s_you.m4a */,
+				59804DB20D84E14745B99CFA /* Motivational-031_wait_for_nothing.m4a */,
+				CEA047F504B492720BD72FDE /* Motivational-032_adversity_builds_greatness.m4a */,
+				EE733E1933EE8031A701A30A /* Motivational-033_sacrifice_now_win_later.m4a */,
+				6732923A68897B5130ACEAB4 /* Motivational-034_reject_average_today.m4a */,
+				FBC6CE02DFEA804A480E49C0 /* Motivational-035_do_it_scared.m4a */,
+				7D67D50118F8BE56424A3B39 /* Motivational-036_chase_vision_not_validation.m4a */,
+				2436B81483B190DF089F97BD /* Motivational-037_no_8_hour_excuses.m4a */,
+				3010E5057EBB863E3595E8AD /* Motivational-038_grind_is_equalizer.m4a */,
+				CE1EEF6C13FFCAF653697C5A /* Motivational-039_show_up_anyway.m4a */,
+				93837EECF6B6A1FF48EF10D2 /* Motivational-040_dreams_need_work.m4a */,
+				3CB4B0FC6A3D6B341102B52A /* Motivational-041_get_uncomfortable_now.m4a */,
+				7196EBDD20A7DE3DC642820B /* Motivational-042_take_the_stairs.m4a */,
+				3ADBA286A09F1D3A7ACDF946 /* Motivational-043_results_talk_loudest.m4a */,
+				EC54CDB4B44EF17E19331196 /* Motivational-044_every_rep_counts.m4a */,
+				798D335081649B0D59CAB4D4 /* Motivational-045_you_re_the_limit.m4a */,
+				E859CE26ECB6E3C9A1F74E67 /* Motivational-046_earned_in_darkness.m4a */,
+				D0F3B54A6B2DE98850866A62 /* Motivational-047_create_your_luck.m4a */,
+				AB179F200CDC94CE5125681D /* Motivational-048_stop_scrolling_build.m4a */,
+				4F9CE70145EEBD06E612301E /* Motivational-049_secure_the_future.m4a */,
+				51D91714A9F286392961C9F8 /* Motivational-050_grind_is_reward.m4a */,
+				89057A4739AE1B877F2B4556 /* Motivational-051_discipline_builds_bridges.m4a */,
+				F8ED852B6FB2A30BAB1D9AFE /* Motivational-052_rest_when_rich.m4a */,
+				BFBE6064DDB6E65C7C8D6305 /* Motivational-053_hard_work_wins.m4a */,
+				98CEBE05451DA8338A150456 /* Motivational-054_silence_your_haters.m4a */,
+				604CB7734C01D3A99D8CB695 /* Motivational-055_no_shortcuts_exist.m4a */,
+				1CFC8A4C2B930D7CF4AAECBD /* Motivational-056_just_don_t_quit.m4a */,
+				2733C9573ADD3E074B711F42 /* Motivational-057_obsess_don_t_wish.m4a */,
+				DAB21839847E4F5CB1F263A9 /* Motivational-058_1_better_daily.m4a */,
+				48716B33343049493DF829DE /* Motivational-059_do_it_now.m4a */,
+				C627D1A91CEF87CA2F0EB2CF /* Motivational-060_grit_over_comfort.m4a */,
+				497D5FF52B165B68F36C5404 /* Motivational-061_small_wins_compound.m4a */,
+				0E5DF155E278C2A6F25D7A63 /* Motivational-062_grind_today_always.m4a */,
+				03E1E64B51A32DEF05B2EC07 /* Motivational-063_speed_over_hesitation.m4a */,
+				991DF46A2E222EAED5FB6BD8 /* Motivational-064_market_rewards_obsession.m4a */,
+				3BA3B10030F05F5C80A691CA /* Motivational-065_work_hardest_always.m4a */,
+				CDA315E0E5BA9B2D58DAD730 /* Motivational-066_habits_build_destiny.m4a */,
+				ACCC83E7E6602B2B25A0166E /* Motivational-067_build_momentum_daily.m4a */,
+				B832A7CA17112E255E90A87B /* Motivational-068_focus_beats_motivation.m4a */,
+				F32D1305F64B870FD83B4DFB /* Motivational-069_win_the_morning.m4a */,
+				6C4E780FC03F90FBE7AA4137 /* Motivational-070_struggle_is_tuition.m4a */,
+				05A44D0D2DF0F047E255E190 /* Motivational-071_grind_ignores_feelings.m4a */,
+				29875B3D38AA6DA235502DB0 /* Motivational-072_show_up_anyway.m4a */,
+				866D6407595DB641E18228C1 /* Motivational-073_excuses_expire_today.m4a */,
+				AD05F274E366ABB0117C5E35 /* Motivational-074_get_after_it.m4a */,
+				0D4F00856527F08FC40732FD /* Motivational-075_discipline_equals_freedom.m4a */,
+				D9BFAB7439EBF86C3A6A9A45 /* Motivational-076_don_t_ever_quit.m4a */,
+				55B6B74F8069354EC61E9DCB /* Motivational-077_build_the_unimaginable.m4a */,
+				AB163F1B6C72FC7B7B41C704 /* Motivational-078_setbacks_fuel_comebacks.m4a */,
+				84FFA870A649B4A0B09FFA6A /* Motivational-079_stay_in_arena.m4a */,
+				F77BE2B03E74C44BE8E3C02E /* Motivational-080_do_more_always.m4a */,
+				C1BC1FAE459CC46F0CF5B437 /* Motivational-081_own_your_life.m4a */,
+				24A61138E92643163FAFF583 /* Motivational-082_no_finish_line.m4a */,
+				DAA893DF039DA0FFB63604E7 /* Motivational-083_beat_complacency_daily.m4a */,
+				F4E53F040F6483F2868F8318 /* Motivational-084_fortune_favors_relentless.m4a */,
+				4B7108E0E85E3225DB1B0A10 /* Motivational-085_sweat_equity_wins.m4a */,
+				A09CCF5C637D7259ECAD069F /* Motivational-086_trust_the_process.m4a */,
+				AC4A8B283773BD2BC00E7BDE /* Motivational-087_never_born_average.m4a */,
+				5EC46821207A3171F2F7FC1F /* Motivational-088_outwork_outlearn_outlast.m4a */,
+				32A36372EF98F8F22BCE8D9E /* Motivational-089_more_reps_always.m4a */,
+				2E00C17D687475E1FA5B2AAB /* Motivational-090_lock_in_now.m4a */,
+				C28B180B70EE0C75C778B1EC /* Motivational-091_execute_and_repeat.m4a */,
+				F64117266725337691E51168 /* Motivational-092_win_in_silence.m4a */,
+				5873030273DE6D02BBA5AA22 /* Motivational-093_push_past_limits.m4a */,
+				930342A64B758E36B1FB283F /* Motivational-094_grind_builds_character.m4a */,
+				49E31D1A3DAB1E69850E93AC /* Motivational-095_chase_greatness_daily.m4a */,
+				1769131116654292033027EB /* Motivational-096_no_excuses_allowed.m4a */,
+				9FDF6121B6797AD2A481DB01 /* Motivational-097_earn_it_daily.m4a */,
+				0125870AA374EFBE0B29BCF9 /* Motivational-098_stay_locked_in.m4a */,
+				C946341A7BDCFADF6C04FC1F /* Motivational-099_keep_grinding_forward.m4a */,
+				4EF856DBF0C650B5CFAE7F66 /* Motivational-100_rise_and_grind.m4a */,
+			);
+			path = MotivationalLines;
+			sourceTree = "<group>";
+		};
+		055FA02216360D374908F217 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				B6B9E3223E04B0CD3D629822 /* RiseAndGrindCoreTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		1696A5C75F1201FD8BCE4634 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				05C6E34FC312275496336E38 /* RiseAndGrind */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		2CACA532CDA73D5E9A10ED0C = {
+			isa = PBXGroup;
+			children = (
+				7A1953AB98AC5589B357A2F8 /* Core */,
+				1696A5C75F1201FD8BCE4634 /* Packages */,
+				809E26E103B1CBEA76C74595 /* RiseAndGrind */,
+				CA4A1F40828F4E477DA18F6B /* Frameworks */,
+				340DC6BFE120B61E9FA25B39 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2ED47F220378224179570B39 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				52FB1132B71929E0FEDDD47E /* AppModel.swift */,
+				7EB9F43BC9B2C2FCA7DE88A9 /* RiseAndGrindApp.swift */,
+				5D5B59733AA609B40617C969 /* Theme.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		2FDB323A95C09B299EA5F0C3 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				9EFECD77781655AA691FF884 /* AlarmSoundsView.swift */,
+				BBDFF6CB72D4854FBE974952 /* BarrageView.swift */,
+				0467A5374B2E7371297BCA49 /* CalendarOverrideView.swift */,
+				DC28AFC3092AAFDFEECD2D3C /* Components.swift */,
+				67F78C2308B3C12020AEF065 /* ContentView.swift */,
+				D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */,
+				2FA004DE12777E6675646388 /* OnboardingView.swift */,
+				0B4677A17997B915E5881F34 /* SetupView.swift */,
+				FCA9F10E8AF9C6864540FD1A /* ShortcutSetupDemoView.swift */,
+				DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */,
+				1664DE490FD2D34573823681 /* WakeChallengeView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		30560EB7C903DF25B12738D2 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				4379E279989592501DE905F3 /* AirRaidArsenal.caf */,
+				E13C31043C82704E285CA82A /* AlarmBellAssault.caf */,
+				DBA37C3E9349D0575D2F6825 /* BoilerRoomBarrage.caf */,
+				1D7BC9C6AADA74E45B83BF33 /* BrassKnuckleMarch.caf */,
+				091AAB241CFDCCF5F967CC50 /* BuzzsawBreakbeat.caf */,
+				D7CFA2F202C43D143E622533 /* CircuitBreaker.caf */,
+				50862C725A8FAB1DA723EB38 /* CymbalCrashCourse.caf */,
+				97FF6A1EF12695AD9707EB6B /* DieselDrumline.caf */,
+				D2BE31CB4CD4CD68BA28B217 /* ElectricShock.caf */,
+				C817B0630951E79E7A7AE905 /* EmergencyRave.caf */,
+				87920972C4DA6F21189AA715 /* FactoryFloorFrenzy.caf */,
+				10F753F5A33F54D6C3E1DBAB /* FirehouseFanfare.caf */,
+				3769BB8B5C47467780EC10DA /* HornetNest.caf */,
+				39330C33D541D4C775345218 /* IndustrialPanic.caf */,
+				21E4FA4985095280642A88CA /* JackhammerJubilee.caf */,
+				FD4D2129676086C7873B7528 /* manifest.json */,
+				1A13673D7ED6F638B09FB57B /* MetallicMayhem.caf */,
+				BB60AABF4D78D7050F8BD1FB /* NeonFireDrill.caf */,
+				CBBF86C30D798F8CFDBABB37 /* PercussionOverload.caf */,
+				9AD964653B1114BF5B066AF5 /* PressureValve.caf */,
+				55877E700A16B165B080152D /* RiseTrack025.caf */,
+				CA17B4E836A7DF7B9C30C536 /* RiseTrack026.caf */,
+				DDE88C1EFCD36DDB24AF0CA6 /* RiseTrack027.caf */,
+				9E1B2CA40800FEEAE6746A62 /* RiseTrack028.caf */,
+				6393BA259A229FE6A771C2D2 /* RiseTrack029.caf */,
+				64503B0D5B4BC4EBCE407E1E /* RiseTrack030.caf */,
+				9C914BBD0BB958F92AD918DF /* RiseTrack031.caf */,
+				09DA4FBE946E96BD9E3A704E /* RiseTrack032.caf */,
+				6F95E65BC682E9EF83CB4671 /* RiseTrack033.caf */,
+				14729A9308AA85A894097C80 /* RiseTrack034.caf */,
+				B09B11125C0C4A4A72443401 /* RiseTrack035.caf */,
+				8417E2932855E3020D6D4C01 /* RiseTrack036.caf */,
+				94755003A927FB9B5D77A8E8 /* RiseTrack037.caf */,
+				D45F1003F67E8AE4522C6A06 /* RiseTrack038.caf */,
+				D06A93B3C8428BE791277AAC /* RiseTrack039.caf */,
+				D9BAB3F16203B6A120971926 /* RiseTrack040.caf */,
+				91305D6A078ABF448E8B1F53 /* RiseTrack041.caf */,
+				684BC66F41BB3F7805C594A9 /* RiseTrack042.caf */,
+				F2BB384502911D7B20ABA590 /* RiseTrack043.caf */,
+				9E171D8761A065F989FD5492 /* RiseTrack044.caf */,
+				E136CC4B544285F568419C9B /* RiseTrack045.caf */,
+				1C1CDB1991FAED1C0C118D23 /* RiseTrack046.caf */,
+				A891B65A94F9A1FA23BB0B34 /* RiseTrack047.caf */,
+				339E6FA7504BFE620DBBD093 /* RiseTrack048.caf */,
+				10F9EA574438C073C8B2939A /* RiseTrack049.caf */,
+				95BE9DC883BD50F8E0506008 /* RiseTrack050.caf */,
+				2FC2AE8E8BC94F7A0F2BA309 /* RiseTrack051.caf */,
+				634FED1233382FA2C877EC85 /* RiseTrack052.caf */,
+				AE522CA1F99554EBC0EC0D39 /* RiseTrack053.caf */,
+				31BB1361A9C66FC6A7BA0795 /* RiseTrack054.caf */,
+				60CB73999CF89A1AD7E765B3 /* RiseTrack055.caf */,
+				1A157C3EB6B8644CFDCDB606 /* RiseTrack056.caf */,
+				CF2CF873093A960EA3A18CDE /* RiseTrack057.caf */,
+				D3157FFB309AF918E455BCED /* RiseTrack058.caf */,
+				C646AA508B4ED656A0A3CC06 /* RiseTrack059.caf */,
+				F2B79A9D2CA103E83FB7D873 /* RiseTrack060.caf */,
+				5AC2FADB90A07788B6E99985 /* RiseTrack061.caf */,
+				EDB8D7BF2761E5CB849AFD3A /* RiseTrack062.caf */,
+				64DB2601C72739B4FE6E4CCA /* RiseTrack063.caf */,
+				ABA91F5E2913144961BB5B80 /* RiseTrack064.caf */,
+				8EC56C567192183352C549DB /* RiseTrack065.caf */,
+				5A214257E366339D4CC885C6 /* RiseTrack066.caf */,
+				E3F7CB8E92C767165A2BA6DE /* RiseTrack067.caf */,
+				888664EA37A2932347F9E1CA /* RiseTrack068.caf */,
+				8A2B66E7A2D889051FCD5601 /* RiseTrack069.caf */,
+				67C70D555A6B679378C66E03 /* RiseTrack070.caf */,
+				6664313160553538B4C297F0 /* RiseTrack071.caf */,
+				BE7E6DCB1A14C6EF32FE4E74 /* RiseTrack072.caf */,
+				6F893E71CE68D3B3688C5FD1 /* RiseTrack073.caf */,
+				526A1D3709E0269D048D2DCE /* RiseTrack074.caf */,
+				C67645E059392853421C28CA /* RiseTrack075.caf */,
+				D6A6A484E61CBD037167E425 /* RiseTrack076.caf */,
+				E919D71787DB06F6D5276052 /* RiseTrack077.caf */,
+				78D922A3AD893CE5C389D872 /* RiseTrack078.caf */,
+				8AFF132C55CEC7F32AD79987 /* RiseTrack079.caf */,
+				F1AD28FD23FFBAABB1E61DB5 /* RiseTrack080.caf */,
+				641B09932DF906DED90948B6 /* RiseTrack081.caf */,
+				98B78EEDBB5967FD925125B5 /* RiseTrack082.caf */,
+				ABDC1C6F148BE9C165EA600E /* RiseTrack083.caf */,
+				C3408898C01B46608E93A291 /* RiseTrack084.caf */,
+				FEB59984AD9336043E29D797 /* RiseTrack085.caf */,
+				96ACEBF6111AA9989C699EA1 /* RiseTrack086.caf */,
+				4190F5ED5A02DFA13F41C4A0 /* RiseTrack087.caf */,
+				89346C49A785103E4B4861C0 /* RiseTrack088.caf */,
+				635DC7C54D828F6B4FF170EB /* RiseTrack089.caf */,
+				8B08EB7C665A22D706C476E6 /* RiseTrack090.caf */,
+				D1A139E836D37EEFDC8C420C /* RiseTrack091.caf */,
+				934E344CA9FC2E57405CBBAB /* RiseTrack092.caf */,
+				C28D6D7F028F9BFAA5678F4A /* RiseTrack093.caf */,
+				5A2FD3865D5E825CD388AB92 /* RiseTrack094.caf */,
+				FD994AD4316D648BCE54ED40 /* RiseTrack095.caf */,
+				8DA19AE5B8A8DE0A2D6C4004 /* RiseTrack096.caf */,
+				C53FAFB2CCAE1F234BC86EA8 /* RiseTrack097.caf */,
+				1104C9F3601EB1E29E977220 /* RiseTrack098.caf */,
+				B0171652D1885B5DF19AF26D /* RiseTrack099.caf */,
+				5855E8E7665AA91D20D81097 /* RiseTrack100.caf */,
+				96E00748EC0242201FCBE8D9 /* SirenStorm.caf */,
+				4C1B1250A67E686EA25CC5E5 /* SonicDefibrillator.caf */,
+				F14623DCA9B1203D197C7C7C /* SubwayScreech.caf */,
+				E440B049BC04CC33D6DB378E /* WakeUpWarpath.caf */,
+				B9D32600DDE5E0F4A6FE17D6 /* WarningSignal.caf */,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		340DC6BFE120B61E9FA25B39 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DBCB8335EC6285C386ABC3AF /* RiseAndGrind.app */,
+				0859C7BD2C4C63DD71BE61A8 /* RiseAndGrindTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		64B6EC0BD52A760527D257C2 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1BA265C47D4A9FE4D500B713 /* Assets.xcassets */,
+				ECDA78B7FF12F5046648B885 /* ChallengeAudio */,
+				0140CDBB5736DF9803742EEC /* MotivationalLines */,
+				FECBD98ED47915638C28D2E6 /* ShortcutDemo */,
+				30560EB7C903DF25B12738D2 /* Sounds */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7A1953AB98AC5589B357A2F8 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				055FA02216360D374908F217 /* Tests */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		809E26E103B1CBEA76C74595 /* RiseAndGrind */ = {
+			isa = PBXGroup;
+			children = (
+				922732951817774E79831633 /* PrivacyInfo.xcprivacy */,
+				2ED47F220378224179570B39 /* App */,
+				E1527DA0ECBF6D83998B371B /* Intents */,
+				64B6EC0BD52A760527D257C2 /* Resources */,
+				AAEF859F477D482748BBA2B7 /* Services */,
+				2FDB323A95C09B299EA5F0C3 /* Views */,
+			);
+			path = RiseAndGrind;
+			sourceTree = "<group>";
+		};
+		AAEF859F477D482748BBA2B7 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */,
+				30F9F8D5B845617434B8B3A9 /* AlarmRetryState.swift */,
+				97A0D23A5DEEB185E661849F /* AlarmScheduler.swift */,
+				4B62ED628967133CA4028243 /* CalendarService.swift */,
+				503F7A5EC32D1F3EFFA75F5B /* MotionAuthorizationService.swift */,
+				50F6996F70B0E9B58765F9D6 /* NightlyCoordinator.swift */,
+				7964268A1528F9F2FDDE21AC /* NightlyNotificationService.swift */,
+				469191B595D6FDFE57496C58 /* SettingsStore.swift */,
+				E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */,
+				BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */,
+				A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B6B9E3223E04B0CD3D629822 /* RiseAndGrindCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				FA66C1529C169BC2CBA2086B /* AlarmInteractionPolicyTests.swift */,
+				9E5AFC001366028F5E2F44D0 /* SchedulePlannerTests.swift */,
+				7E4426C36A8C2DD2491FE1D7 /* SquatCalibrationTests.swift */,
+				5C101F439F85DE99B928086D /* SquatDetectorTests.swift */,
+			);
+			path = RiseAndGrindCoreTests;
+			sourceTree = "<group>";
+		};
+		CA4A1F40828F4E477DA18F6B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				386EB75AD594DCDFA3C58220 /* ActivityKit.framework */,
+				1E171F7003BF760ABD90BC93 /* AlarmKit.framework */,
+				26C97F928BE4070C82E761A4 /* AppIntents.framework */,
+				0ADFA7646121484A4176FDCC /* AVFoundation.framework */,
+				415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */,
+				A2E40200241D9A0663AD833B /* CoreMotion.framework */,
+				A0AFF1FCA8052DB4E6A29DD2 /* EventKit.framework */,
+				FBE9E4DACE6E25C47A0131B4 /* PhotosUI.framework */,
+				11725C954EE769A99B2C13EC /* UniformTypeIdentifiers.framework */,
+				FBD5B76119A9CE0A1BCF6603 /* UserNotifications.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E1527DA0ECBF6D83998B371B /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				A9260CEACEA751DFFFFBE049 /* RiseAndGrindIntents.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
+		ECDA78B7FF12F5046648B885 /* ChallengeAudio */ = {
+			isa = PBXGroup;
+			children = (
+				BABBC8CF365FF6F32B42A38E /* PuzzlesInTheHighGrass.m4a */,
+			);
+			path = ChallengeAudio;
+			sourceTree = "<group>";
+		};
+		FECBD98ED47915638C28D2E6 /* ShortcutDemo */ = {
+			isa = PBXGroup;
+			children = (
+				EE4F02292F28366F86CB3A92 /* ShortcutSetupDemo.mp4 */,
+			);
+			path = ShortcutDemo;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		046E38365DB86731D6095E7E /* RiseAndGrind */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D28E622E3F1A171E4C8A6EB /* Build configuration list for PBXNativeTarget "RiseAndGrind" */;
+			buildPhases = (
+				DDDD7DC32C5D244938B85FEE /* Sources */,
+				8E336665C1C3E1FAE0BADA0E /* Resources */,
+				06E4A8873A96EDF7CE184F6D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RiseAndGrind;
+			packageProductDependencies = (
+				7AB08C92EDDB02D63B26B14D /* RiseAndGrindCore */,
+			);
+			productName = RiseAndGrind;
+			productReference = DBCB8335EC6285C386ABC3AF /* RiseAndGrind.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EF4B7CC81621126C48581B0A /* RiseAndGrindTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 626993A7CAF1139905881902 /* Build configuration list for PBXNativeTarget "RiseAndGrindTests" */;
+			buildPhases = (
+				52748E2DC4F053AF71A97796 /* Sources */,
+				D4DB8C7BC12A5386F190B0D4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RiseAndGrindTests;
+			packageProductDependencies = (
+				A7FD9C5CB2592EFF6404F0CE /* RiseAndGrindCore */,
+			);
+			productName = RiseAndGrindTests;
+			productReference = 0859C7BD2C4C63DD71BE61A8 /* RiseAndGrindTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		81B4A6ADA73A6B154D7E8434 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					046E38365DB86731D6095E7E = {
+						DevelopmentTeam = J3BZJ3LKTQ;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = DCA035494B54F0E098855257 /* Build configuration list for PBXProject "RiseAndGrind" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 2CACA532CDA73D5E9A10ED0C;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E03C180D0EA9308B18B24254 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 340DC6BFE120B61E9FA25B39 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				046E38365DB86731D6095E7E /* RiseAndGrind */,
+				EF4B7CC81621126C48581B0A /* RiseAndGrindTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8E336665C1C3E1FAE0BADA0E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEE3C9C5A4319F0556D9EF96 /* AirRaidArsenal.caf in Resources */,
+				748E3B8BC98686EF42005555 /* AlarmBellAssault.caf in Resources */,
+				7EDE8899F92E9EA6A4300CC4 /* Assets.xcassets in Resources */,
+				ED9050C8E204841D303CB7E7 /* BoilerRoomBarrage.caf in Resources */,
+				8F1789ACF1CC0B08B028CD04 /* BrassKnuckleMarch.caf in Resources */,
+				1902796646387DA59179A669 /* BuzzsawBreakbeat.caf in Resources */,
+				03C9AC05686FCFF38698EF51 /* CircuitBreaker.caf in Resources */,
+				53384F5DF906C713B33298A1 /* CymbalCrashCourse.caf in Resources */,
+				165FA9909DD69F12B1D201D6 /* DieselDrumline.caf in Resources */,
+				AADEDEC631826048CF8E1258 /* ElectricShock.caf in Resources */,
+				C91976A6D3B08A7D31E92D51 /* EmergencyRave.caf in Resources */,
+				8AB1C750003D33EB37A9B200 /* FactoryFloorFrenzy.caf in Resources */,
+				F877729F22DF6220F6F2970D /* FirehouseFanfare.caf in Resources */,
+				3849C665815AC8BE04DD2287 /* HornetNest.caf in Resources */,
+				F2E97C4F19412B002E92F061 /* IndustrialPanic.caf in Resources */,
+				383CDC7782208E417D716B58 /* JackhammerJubilee.caf in Resources */,
+				0E3A616AECEAE9872020DA6B /* MetallicMayhem.caf in Resources */,
+				5E3E27DC29F21A6B65CF6388 /* Motivational-001_no_days_off.m4a in Resources */,
+				14E6D197F64649F3A66C12A7 /* Motivational-002_sleep_is_weak.m4a in Resources */,
+				893038AFDE9DAB5911A83F88 /* Motivational-003_outwork_everyone_today.m4a in Resources */,
+				1E886FA6F16ED4D26B18245C /* Motivational-004_discipline_beats_motivation.m4a in Resources */,
+				247EF70D11B3F86E36F30210 /* Motivational-005_comfort_is_the_enemy.m4a in Resources */,
+				622DC412C71538BBD3865442 /* Motivational-006_bet_on_yourself.m4a in Resources */,
+				396A90B3F1FE3D66EB932551 /* Motivational-007_build_the_empire.m4a in Resources */,
+				65E96EB4686CF3B4EEB39A1B /* Motivational-008_stack_wins_daily.m4a in Resources */,
+				B280C2F592ACCCE6E18CEDC6 /* Motivational-009_go_get_it.m4a in Resources */,
+				7D91C2EEE413099AD42F1DCD /* Motivational-010_level_up_now.m4a in Resources */,
+				8197ED886F907DA4A503BA69 /* Motivational-011_execute_don_t_wait.m4a in Resources */,
+				80E0C74ED00880CA6F8DEFBA /* Motivational-012_grind_now_shine_later.m4a in Resources */,
+				C38DFE9A8F326291B7BB613C /* Motivational-013_own_your_morning.m4a in Resources */,
+				11695F5AB2ABE6B3028C0F38 /* Motivational-014_save_yourself_first.m4a in Resources */,
+				C7018B05BDAD28A7E668F584 /* Motivational-015_excuses_don_t_pay.m4a in Resources */,
+				FA5EAF48C12EFF34F23BD323 /* Motivational-016_sweat_now_flex_later.m4a in Resources */,
+				78CC36E1A3831C98FF5F860E /* Motivational-017_grind_never_stops.m4a in Resources */,
+				BB55C92F461219A0237C00C8 /* Motivational-018_find_a_way.m4a in Resources */,
+				6A38B12346ED33B09EAB21E0 /* Motivational-019_beat_your_competition.m4a in Resources */,
+				D767C1EB836B39A412678762 /* Motivational-020_hustle_in_silence.m4a in Resources */,
+				D93A817F0E3A6404F200BB1A /* Motivational-021_build_or_fall_behind.m4a in Resources */,
+				957473DEA3544CE943427A66 /* Motivational-022_comfort_kills_dreams.m4a in Resources */,
+				CD2603C0E78B513C1CE5F9B2 /* Motivational-023_nobody_cares_work.m4a in Resources */,
+				CA854C339DDA26B4C55419C5 /* Motivational-024_relentless_always_relentless.m4a in Resources */,
+				9C46F0ADBA6784AEDD3CA822 /* Motivational-025_discomfort_equals_growth.m4a in Resources */,
+				882CF4E30507B95CB025329C /* Motivational-026_pain_fuels_progress.m4a in Resources */,
+				98390B2BC36C5A07AC11066F /* Motivational-027_stay_hungry_humble.m4a in Resources */,
+				80D50D8A8B4E321D3819A59A /* Motivational-028_play_the_long_game.m4a in Resources */,
+				A6A219FA8FEE18A08FF4E157 /* Motivational-029_consistency_compounds_daily.m4a in Resources */,
+				F976884C555F83E91B98D310 /* Motivational-030_beat_yesterday_s_you.m4a in Resources */,
+				8579FE0943EACBBAF4E84FCF /* Motivational-031_wait_for_nothing.m4a in Resources */,
+				E1012CDE02EED7BBD73D93AD /* Motivational-032_adversity_builds_greatness.m4a in Resources */,
+				183303F87E91B6576F9FAAD0 /* Motivational-033_sacrifice_now_win_later.m4a in Resources */,
+				ECAF049CA159380EA2A85D93 /* Motivational-034_reject_average_today.m4a in Resources */,
+				85C84A7D75B71B94BDC80700 /* Motivational-035_do_it_scared.m4a in Resources */,
+				9E49E0E761515338B0B7EB4D /* Motivational-036_chase_vision_not_validation.m4a in Resources */,
+				D80D3838E6CF15B34094FC34 /* Motivational-037_no_8_hour_excuses.m4a in Resources */,
+				80999B802008726CE5AFAB43 /* Motivational-038_grind_is_equalizer.m4a in Resources */,
+				D4FB1E47A367B1FA479AFDDF /* Motivational-039_show_up_anyway.m4a in Resources */,
+				C1F025129E029E16FAC3AD3E /* Motivational-040_dreams_need_work.m4a in Resources */,
+				85E6B2BF0155FCF8BEA5A234 /* Motivational-041_get_uncomfortable_now.m4a in Resources */,
+				B0228EF17E4F5590BF754409 /* Motivational-042_take_the_stairs.m4a in Resources */,
+				7822D34E48031F2EFA53480E /* Motivational-043_results_talk_loudest.m4a in Resources */,
+				B457220A61D7DF58DEA928CB /* Motivational-044_every_rep_counts.m4a in Resources */,
+				6B37EC64285B1586797E0D7A /* Motivational-045_you_re_the_limit.m4a in Resources */,
+				6E1A5770E10ADC648A4299F3 /* Motivational-046_earned_in_darkness.m4a in Resources */,
+				FBE5AC7FCAA06BB9D0C8C486 /* Motivational-047_create_your_luck.m4a in Resources */,
+				DF6869BC27F4176B9464ED6E /* Motivational-048_stop_scrolling_build.m4a in Resources */,
+				4C1218A5E577484761C3DC1C /* Motivational-049_secure_the_future.m4a in Resources */,
+				36C876A1BE450B69418BBFDF /* Motivational-050_grind_is_reward.m4a in Resources */,
+				6751476E562C223E8DB0F5C6 /* Motivational-051_discipline_builds_bridges.m4a in Resources */,
+				7DB15CB160FB8DAF8D7D02CF /* Motivational-052_rest_when_rich.m4a in Resources */,
+				BA1BDCA7B097BABDA50D9D83 /* Motivational-053_hard_work_wins.m4a in Resources */,
+				4959080798349E2CC14E58B9 /* Motivational-054_silence_your_haters.m4a in Resources */,
+				0DB1894DE07078FF7FD9A26F /* Motivational-055_no_shortcuts_exist.m4a in Resources */,
+				5EFFF06B57630201466529A8 /* Motivational-056_just_don_t_quit.m4a in Resources */,
+				89531C8F4EBE422139A4C464 /* Motivational-057_obsess_don_t_wish.m4a in Resources */,
+				9C6D2C736962371D72DDCE34 /* Motivational-058_1_better_daily.m4a in Resources */,
+				EA7BAEEB7DCC92DDAFA5B37C /* Motivational-059_do_it_now.m4a in Resources */,
+				48A1BE501B25289C5DAB0935 /* Motivational-060_grit_over_comfort.m4a in Resources */,
+				9391E51CD3B99AB8431AD3D6 /* Motivational-061_small_wins_compound.m4a in Resources */,
+				2C7ADCE0FE5BED94C7C795E4 /* Motivational-062_grind_today_always.m4a in Resources */,
+				AB5D7F53ED869A3CC5A3E15D /* Motivational-063_speed_over_hesitation.m4a in Resources */,
+				BE943E7775744DDB198E0035 /* Motivational-064_market_rewards_obsession.m4a in Resources */,
+				16E5F55E31368D2A296ED2BE /* Motivational-065_work_hardest_always.m4a in Resources */,
+				8D2AAAFB58019639326FB354 /* Motivational-066_habits_build_destiny.m4a in Resources */,
+				563B15B517949F46276914F0 /* Motivational-067_build_momentum_daily.m4a in Resources */,
+				C123302230D9BB21B9F0C4A6 /* Motivational-068_focus_beats_motivation.m4a in Resources */,
+				DCAF99D03C42C4AD771A9A2C /* Motivational-069_win_the_morning.m4a in Resources */,
+				F19BB0FC6B567016B2595DB0 /* Motivational-070_struggle_is_tuition.m4a in Resources */,
+				78C5AE1DDEF0EA70464B0DEF /* Motivational-071_grind_ignores_feelings.m4a in Resources */,
+				D26F0AF0CDCA92C30D4D0990 /* Motivational-072_show_up_anyway.m4a in Resources */,
+				1CE1B780714BB2F654551847 /* Motivational-073_excuses_expire_today.m4a in Resources */,
+				C7C6A98FD32A069476D2F1EE /* Motivational-074_get_after_it.m4a in Resources */,
+				03729B26E18C6FB163953830 /* Motivational-075_discipline_equals_freedom.m4a in Resources */,
+				3AD7626085961FF790BEAAB0 /* Motivational-076_don_t_ever_quit.m4a in Resources */,
+				9EAC0D8480508C7309E1F2FD /* Motivational-077_build_the_unimaginable.m4a in Resources */,
+				8539F46365BA33BDC6A07295 /* Motivational-078_setbacks_fuel_comebacks.m4a in Resources */,
+				00EC5DAAA4BE375AF3A0A189 /* Motivational-079_stay_in_arena.m4a in Resources */,
+				F7BB48E1D7D626B4066C043A /* Motivational-080_do_more_always.m4a in Resources */,
+				C87B28E2BD5C64B0C8244C5D /* Motivational-081_own_your_life.m4a in Resources */,
+				BDE5B55F04B1E383B5057014 /* Motivational-082_no_finish_line.m4a in Resources */,
+				F2306EB252F1A7EA06934888 /* Motivational-083_beat_complacency_daily.m4a in Resources */,
+				98D338D3AD8BEC8BDED55036 /* Motivational-084_fortune_favors_relentless.m4a in Resources */,
+				0A226DBDA698C462BD97323C /* Motivational-085_sweat_equity_wins.m4a in Resources */,
+				D7792389C31180031B372BA5 /* Motivational-086_trust_the_process.m4a in Resources */,
+				C3BAB2251C9179D57FDB92E3 /* Motivational-087_never_born_average.m4a in Resources */,
+				0778899B330BA6C7833D5DEF /* Motivational-088_outwork_outlearn_outlast.m4a in Resources */,
+				D87280239537C4E82967A9B5 /* Motivational-089_more_reps_always.m4a in Resources */,
+				9CF9DEB3840D6851EF6A20C9 /* Motivational-090_lock_in_now.m4a in Resources */,
+				086B5E714DF9A0A6B22DAF4F /* Motivational-091_execute_and_repeat.m4a in Resources */,
+				FFBEEC65C91CED484A118F50 /* Motivational-092_win_in_silence.m4a in Resources */,
+				DE01EE1B886CE41B549F4A31 /* Motivational-093_push_past_limits.m4a in Resources */,
+				7DD4926C5B52692819B174F4 /* Motivational-094_grind_builds_character.m4a in Resources */,
+				2D298FED09D4B02B8851C5D7 /* Motivational-095_chase_greatness_daily.m4a in Resources */,
+				FD61FC8C09D28B3253846504 /* Motivational-096_no_excuses_allowed.m4a in Resources */,
+				0A481060B7A17802F3E4A965 /* Motivational-097_earn_it_daily.m4a in Resources */,
+				06345A1093CC8C54C7C363C1 /* Motivational-098_stay_locked_in.m4a in Resources */,
+				44622A1F4E41F5E113765FC4 /* Motivational-099_keep_grinding_forward.m4a in Resources */,
+				D23C63E3A215140B887263AD /* Motivational-100_rise_and_grind.m4a in Resources */,
+				13ED7DF130A910048D1410CE /* NeonFireDrill.caf in Resources */,
+				6A3700233B03BDFB8E8986CF /* PercussionOverload.caf in Resources */,
+				12DA9C86192FCC09C5AFC44F /* PressureValve.caf in Resources */,
+				C56D7EA32ECE5EAE3EBB34B0 /* PrivacyInfo.xcprivacy in Resources */,
+				A4A08BFC2E79C113A8C6925B /* PuzzlesInTheHighGrass.m4a in Resources */,
+				7C1E09E737501E345B82F633 /* RiseTrack025.caf in Resources */,
+				E190EB7316749C1305575FD1 /* RiseTrack026.caf in Resources */,
+				097608E455F7D286DD24560B /* RiseTrack027.caf in Resources */,
+				BA30FF177C39941394D2A445 /* RiseTrack028.caf in Resources */,
+				A88A27AC27BEA936AC8B84F6 /* RiseTrack029.caf in Resources */,
+				B81F6057665AAD1308775AD7 /* RiseTrack030.caf in Resources */,
+				DA81F7C4230BF7C3AB82F053 /* RiseTrack031.caf in Resources */,
+				EF8C65ACC5A548745E8FC279 /* RiseTrack032.caf in Resources */,
+				C94077467754A95577C9E612 /* RiseTrack033.caf in Resources */,
+				BD2F7FB2C1FA011566209E08 /* RiseTrack034.caf in Resources */,
+				2C089F9117422D953D1551F4 /* RiseTrack035.caf in Resources */,
+				D4F6DB4083FB1D7D99A43263 /* RiseTrack036.caf in Resources */,
+				3DC510B89CC4276C93F40994 /* RiseTrack037.caf in Resources */,
+				C08E78D42A0BFCA872473935 /* RiseTrack038.caf in Resources */,
+				E2550781283EFD15A6E0FE5C /* RiseTrack039.caf in Resources */,
+				73B0D8F7FE261B338812BD8F /* RiseTrack040.caf in Resources */,
+				3D6FD3E2B646EF30655FEBC6 /* RiseTrack041.caf in Resources */,
+				F3DEA17472077FC54212F562 /* RiseTrack042.caf in Resources */,
+				084E9E040B587E74DE3A28CD /* RiseTrack043.caf in Resources */,
+				48244708FEC1EB7A4CD1BE44 /* RiseTrack044.caf in Resources */,
+				D16045831ABCF180A7188119 /* RiseTrack045.caf in Resources */,
+				33B18BDA189CE547D5CEEEEA /* RiseTrack046.caf in Resources */,
+				B8D5171EE394D38B98C8933E /* RiseTrack047.caf in Resources */,
+				2093B760550B3FA19E966C9C /* RiseTrack048.caf in Resources */,
+				C3108BC193C356359E9F92BF /* RiseTrack049.caf in Resources */,
+				29157AFD1A236F13C6C9D073 /* RiseTrack050.caf in Resources */,
+				B5A68014A9CED1A8B2D32001 /* RiseTrack051.caf in Resources */,
+				0FECA123385EF443281C9452 /* RiseTrack052.caf in Resources */,
+				9D06322BD0456411B06C0931 /* RiseTrack053.caf in Resources */,
+				03347D5EA65966F0E60608EF /* RiseTrack054.caf in Resources */,
+				CE3701F2503D32E2A4204CAB /* RiseTrack055.caf in Resources */,
+				E2E578191E3568006FDDFB63 /* RiseTrack056.caf in Resources */,
+				A01F6D5E65328B5932E2BE73 /* RiseTrack057.caf in Resources */,
+				C32E29AEA41809528E463953 /* RiseTrack058.caf in Resources */,
+				249778C65F6A42A7E073291E /* RiseTrack059.caf in Resources */,
+				E30157A6755C4BFCA3034C39 /* RiseTrack060.caf in Resources */,
+				F2DA673113B2BDC4BA77F66F /* RiseTrack061.caf in Resources */,
+				538F4D70F8CDB945861C514C /* RiseTrack062.caf in Resources */,
+				2F3EC06B476D9F7FDE1EBEC0 /* RiseTrack063.caf in Resources */,
+				652F06ACD8B4F8762B74B004 /* RiseTrack064.caf in Resources */,
+				11591F586620BC697B73409B /* RiseTrack065.caf in Resources */,
+				7DA95D52EA8A3EDB42185630 /* RiseTrack066.caf in Resources */,
+				F8A9937857944DC8478EDC76 /* RiseTrack067.caf in Resources */,
+				FCB9D9EFF6CBE32564BBAC2E /* RiseTrack068.caf in Resources */,
+				607146045238CFAF41BAAE73 /* RiseTrack069.caf in Resources */,
+				8103787BEBEE974DF7F2F03F /* RiseTrack070.caf in Resources */,
+				9A971EA74AE5A66955FEE7A4 /* RiseTrack071.caf in Resources */,
+				6B79951BEA3F1E1E756D70A8 /* RiseTrack072.caf in Resources */,
+				9D3FF219388835AA9E6DEA7D /* RiseTrack073.caf in Resources */,
+				6F413646F7F7133925FFCBD3 /* RiseTrack074.caf in Resources */,
+				0856640FC5D6A7F5101FCE0F /* RiseTrack075.caf in Resources */,
+				85A5B27C5D72F4155E14CC85 /* RiseTrack076.caf in Resources */,
+				0A9E3333A80990621E789E5E /* RiseTrack077.caf in Resources */,
+				602DD554040145FD7AC091E9 /* RiseTrack078.caf in Resources */,
+				051FFB7071796C57F1ED7893 /* RiseTrack079.caf in Resources */,
+				2E598BAC57EF288509780BFF /* RiseTrack080.caf in Resources */,
+				5D2B90C978C88D287BF4B22E /* RiseTrack081.caf in Resources */,
+				6F4A17B959262F124466921D /* RiseTrack082.caf in Resources */,
+				A54EE44DB7DFF14295AA07C3 /* RiseTrack083.caf in Resources */,
+				868D31F43761623B33853699 /* RiseTrack084.caf in Resources */,
+				AF678BA8DB8AA4B23E07E063 /* RiseTrack085.caf in Resources */,
+				351290C28FBC7F245D8B8B8A /* RiseTrack086.caf in Resources */,
+				790BC64009A92DA0BA1AE6C5 /* RiseTrack087.caf in Resources */,
+				E0468EC9CDC462224F87BD06 /* RiseTrack088.caf in Resources */,
+				5CC62051F2931DE87B00B4CF /* RiseTrack089.caf in Resources */,
+				2CE8F16C63B7F9A69DE0FFDC /* RiseTrack090.caf in Resources */,
+				CDFE5BB1AC969080A9653CFC /* RiseTrack091.caf in Resources */,
+				E8683D7607E798965F6F7380 /* RiseTrack092.caf in Resources */,
+				F546801F12F6B99C507A9A1F /* RiseTrack093.caf in Resources */,
+				8485192EBDFF592042ACB135 /* RiseTrack094.caf in Resources */,
+				37AB44DB19A2A1AB84738D9D /* RiseTrack095.caf in Resources */,
+				A24BE9C9A84C8320D2D16357 /* RiseTrack096.caf in Resources */,
+				B9B649A35DB76FC9EE65F37E /* RiseTrack097.caf in Resources */,
+				88CDCCCD692F6F88B6C2F0AD /* RiseTrack098.caf in Resources */,
+				DB4AEC6BC6D30A799CA91B60 /* RiseTrack099.caf in Resources */,
+				579A3B6D93292363522FB2DE /* RiseTrack100.caf in Resources */,
+				C004A0200737480E3428EC93 /* ShortcutSetupDemo.mp4 in Resources */,
+				8501510B9F92B93C87330D49 /* SirenStorm.caf in Resources */,
+				B4C6B60E077E6E2851A27EFF /* SonicDefibrillator.caf in Resources */,
+				3D1741E24D212A5FAF6590A0 /* SubwayScreech.caf in Resources */,
+				96BB58899E25A17749670756 /* WakeUpWarpath.caf in Resources */,
+				3F157E13DBCDDEB21432F250 /* WarningSignal.caf in Resources */,
+				EA661F2AD4B14F19EB070F24 /* manifest.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		52748E2DC4F053AF71A97796 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				405A5D0C7AC23E1182E7CF56 /* AlarmInteractionPolicyTests.swift in Sources */,
+				F18FA3E410326888704909ED /* SchedulePlannerTests.swift in Sources */,
+				0E47DBCB99130E08019E29E2 /* SquatCalibrationTests.swift in Sources */,
+				E05C37933C4A243D3958DF91 /* SquatDetectorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DDDD7DC32C5D244938B85FEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F7E30D7021413B6602C509D /* AlarmAudioTranscoder.swift in Sources */,
+				A973722042337012647D475C /* AlarmRetryState.swift in Sources */,
+				2B27CCB80895B1E278CCDD8E /* AlarmScheduler.swift in Sources */,
+				885E4F0E798281109847EFB2 /* AlarmSoundsView.swift in Sources */,
+				E63132B320BCC89BB1DB9C6D /* AppModel.swift in Sources */,
+				0A075C64D5CF94F5FD93BE9D /* BarrageView.swift in Sources */,
+				FAAAA79FF0FCD9B1044E452D /* CalendarOverrideView.swift in Sources */,
+				B7D86F84709E6B0BC5FA9534 /* CalendarService.swift in Sources */,
+				B0DB58616C3BD927CB65496E /* Components.swift in Sources */,
+				27DFA1A132692698167C299D /* ContentView.swift in Sources */,
+				781B2DC215CB17EA8AA2B5C2 /* DashboardView.swift in Sources */,
+				C39F664AE863676C97948F92 /* MotionAuthorizationService.swift in Sources */,
+				A678D197D0CDC046D8A1F551 /* NightlyCoordinator.swift in Sources */,
+				B887D21DFF5E0BABB474D743 /* NightlyNotificationService.swift in Sources */,
+				FC3F7AE9502B6F01F658142B /* OnboardingView.swift in Sources */,
+				9A358AEA0C4C33D6C997477C /* RiseAndGrindApp.swift in Sources */,
+				8654153447FE11949D4B6B7F /* RiseAndGrindIntents.swift in Sources */,
+				45C00228F39A63A675D9E8C6 /* SettingsStore.swift in Sources */,
+				4C7FA38387331C268AB8C273 /* SetupView.swift in Sources */,
+				32C0AD885D310E8E9847F498 /* ShortcutSetupDemoView.swift in Sources */,
+				65BD59E607DDF512F9F273ED /* SoundLibrary.swift in Sources */,
+				4C4F6EC76C2C507DD564DBDD /* SquatCalibrationDiagnosticRecorder.swift in Sources */,
+				CF623081E330405C1FE8587D /* SquatCalibrationView.swift in Sources */,
+				6EF5A9F64F798AE50EEA4746 /* Theme.swift in Sources */,
+				C1EA9615936B0B4886906AF8 /* WakeChallengeCoordinator.swift in Sources */,
+				2878F447DE98287D92C36443 /* WakeChallengeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2128044A28ED7512A8687399 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		85EABFE0B020C49570DE935A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C7615B4842713DBF48F96DDF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		E028671BCD1A49CD250C7C13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
+				PRODUCT_NAME = RiseAndGrind;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		E08FBB26C55FAEEEC123E814 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		FD25269F356444783306DAFB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
+				PRODUCT_NAME = RiseAndGrind;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1D28E622E3F1A171E4C8A6EB /* Build configuration list for PBXNativeTarget "RiseAndGrind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD25269F356444783306DAFB /* Debug */,
+				E028671BCD1A49CD250C7C13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		626993A7CAF1139905881902 /* Build configuration list for PBXNativeTarget "RiseAndGrindTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2128044A28ED7512A8687399 /* Debug */,
+				85EABFE0B020C49570DE935A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DCA035494B54F0E098855257 /* Build configuration list for PBXProject "RiseAndGrind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7615B4842713DBF48F96DDF /* Debug */,
+				E08FBB26C55FAEEEC123E814 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		E03C180D0EA9308B18B24254 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7AB08C92EDDB02D63B26B14D /* RiseAndGrindCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RiseAndGrindCore;
+		};
+		A7FD9C5CB2592EFF6404F0CE /* RiseAndGrindCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RiseAndGrindCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 81B4A6ADA73A6B154D7E8434 /* Project object */;
+}
