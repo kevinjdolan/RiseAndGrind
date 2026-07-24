@@ -311,7 +311,10 @@ final class WakeChallengeCoordinator {
 
       motivationalLinePlayer = player
       lastMotivationalLineURL = lineURL
-      challengePlayer?.setVolume(0.22, fadeDuration: 0.08)
+      challengePlayer?.setVolume(
+        ChallengeAudioLibrary.duckedVolume,
+        fadeDuration: 0.08
+      )
 
       motivationalLineRestoreTask = Task { @MainActor [weak self] in
         try? await Task.sleep(for: .seconds(player.duration + 0.12))
@@ -329,7 +332,10 @@ final class WakeChallengeCoordinator {
     motivationalLinePlayer?.stop()
     motivationalLinePlayer = nil
     if let challengePlayer {
-      challengePlayer.setVolume(1, fadeDuration: 0.10)
+      challengePlayer.setVolume(
+        ChallengeAudioLibrary.nominalVolume,
+        fadeDuration: 0.10
+      )
     } else {
       try? AVAudioSession.sharedInstance().setActive(
         false,
@@ -474,7 +480,10 @@ final class WakeChallengeCoordinator {
 
       let player = try AVAudioPlayer(contentsOf: soundURL)
       player.numberOfLoops = -1
-      player.volume = motivationalLinePlayer?.isPlaying == true ? 0.22 : 1
+      player.volume =
+        motivationalLinePlayer?.isPlaying == true
+        ? ChallengeAudioLibrary.duckedVolume
+        : ChallengeAudioLibrary.nominalVolume
       player.prepareToPlay()
       guard player.play() else {
         playbackError = "The challenge track could not start."
@@ -507,6 +516,8 @@ final class WakeChallengeCoordinator {
 
 private enum ChallengeAudioLibrary {
   static let playingID = "challenge-puzzles-in-the-high-grass"
+  static let nominalVolume: Float = 0.70
+  static let duckedVolume: Float = 0.154
 
   static let url =
     Bundle.main.url(

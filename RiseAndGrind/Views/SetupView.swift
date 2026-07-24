@@ -27,7 +27,6 @@ struct SetupView: View {
   @State private var isAwaitingResult = false
   @State private var isShowingFactoryResetConfirmation = false
   @State private var isShowingSquatCalibration = false
-  @State private var isShowingSquatDiagnostic = false
   @State private var squatPracticeRequest: WakeChallengeRequest?
   @State private var testAlarmCount = 3
 
@@ -126,11 +125,6 @@ struct SetupView: View {
       SquatCalibrationView { profile in
         model.saveSquatCalibration(profile)
       }
-    }
-    .fullScreenCover(isPresented: $isShowingSquatDiagnostic) {
-      SquatDiagnosticView(
-        calibrationProfile: model.settings.squatCalibration
-      )
     }
     .fullScreenCover(item: $squatPracticeRequest) { request in
       WakeChallengeView(
@@ -358,23 +352,6 @@ struct SetupView: View {
         }
         .buttonStyle(RGSecondaryButtonStyle())
         .disabled(isBusy)
-
-        Button {
-          isShowingSquatDiagnostic = true
-        } label: {
-          Label(
-            "RUN SQUAT DIAGNOSTIC",
-            systemImage: "waveform.path.ecg.rectangle"
-          )
-        }
-        .buttonStyle(RGSecondaryButtonStyle())
-        .disabled(isBusy)
-
-        Text(
-          "Captures a labeled three-minute motion session so squat detection can be measured instead of guessed."
-        )
-        .font(.caption)
-        .foregroundStyle(RGTheme.mutedCream)
 
         if let squatCalibration = model.settings.squatCalibration {
           HStack {

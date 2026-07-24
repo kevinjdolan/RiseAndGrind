@@ -30,12 +30,6 @@ struct AlarmSoundsView: View {
         LazyVStack(spacing: 14) {
           importButton
 
-          Text("SORTED BY VULGARITY · LEAST → MOST")
-            .font(.caption2.weight(.black))
-            .tracking(1)
-            .foregroundStyle(RGTheme.mutedCream)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
           ForEach(rankedSounds) { sound in
             soundRow(sound)
           }
@@ -117,12 +111,18 @@ struct AlarmSoundsView: View {
         return !leftIsImported
       }
 
-      let leftScore = SoundVulgarity.score(for: left)
-      let rightScore = SoundVulgarity.score(for: right)
-      if leftScore != rightScore {
-        return leftScore < rightScore
+      let leftLevel = SoundVulgarity.level(for: left)
+      let rightLevel = SoundVulgarity.level(for: right)
+      if leftLevel != rightLevel {
+        return leftLevel < rightLevel
       }
-      return left.displayName.localizedStandardCompare(right.displayName) == .orderedAscending
+
+      let leftRank = stableShuffleRank(for: left)
+      let rightRank = stableShuffleRank(for: right)
+      if leftRank != rightRank {
+        return leftRank < rightRank
+      }
+      return left.id < right.id
     }
   }
 
@@ -178,11 +178,18 @@ struct AlarmSoundsView: View {
 
   private func soundMetadata(for sound: AlarmSoundChoice, isImported: Bool) -> String {
     if isImported {
-      return "IMPORTED AUDIO · UNRATED"
+      return "IMPORTED AUDIO"
     }
     let artist = sound.artistName ?? "UNKNOWN ARTIST"
     let genre = sound.genreName ?? "WAKE ASSAULT"
-    return "\(artist) · \(genre.uppercased()) · \(SoundVulgarity.label(for: sound))"
+    return "\(artist) · \(genre.uppercased())"
+  }
+
+  private func stableShuffleRank(for sound: AlarmSoundChoice) -> UInt64 {
+    let saltedIdentifier = "rise-and-grind-sound-order:\(sound.id)"
+    return saltedIdentifier.utf8.reduce(14_695_981_039_346_656_037) {
+      ($0 ^ UInt64($1)) &* 1_099_511_628_211
+    }
   }
 
   @MainActor

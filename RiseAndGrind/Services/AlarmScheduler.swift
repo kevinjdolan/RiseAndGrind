@@ -28,8 +28,8 @@ enum AlarmSchedulerError: Error, LocalizedError {
     case .authorizationRequired: "Alarm access is required before Rise & Grind can arm alarms."
     case .cancellationFailed(let count):
       count == 1
-        ? "One alarm could not be cleared. Try Clear Alarms again."
-        : "\(count) alarms could not be cleared. Try Clear Alarms again."
+        ? "One alarm could not be cleared. Try the operation again."
+        : "\(count) alarms could not be cleared. Try the operation again."
     case .interactionInProgress:
       "An alarm interaction is in progress. The current attack stack was preserved."
     case .powerNapTimeMustBeFuture:

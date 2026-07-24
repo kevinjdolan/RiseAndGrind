@@ -389,16 +389,16 @@ enum SoundVulgarity {
     SoundLibrary.builtInVulgarityScores[sound.id] ?? 0
   }
 
-  static func label(for sound: AlarmSoundChoice) -> String {
+  static func level(for sound: AlarmSoundChoice) -> Int {
     switch score(for: sound) {
     case 0:
-      "CLEAN"
+      0
     case 1...2:
-      "MILD"
+      1
     case 3...5:
-      "EXPLICIT"
+      2
     default:
-      "VERY EXPLICIT"
+      3
     }
   }
 

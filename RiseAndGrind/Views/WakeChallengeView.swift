@@ -102,8 +102,6 @@ struct WakeChallengeView: View {
     GeometryReader { proxy in
       RGScreenBackground {
         ZStack {
-          moneyRain(in: proxy.size)
-
           ScrollView {
             VStack(spacing: 0) {
               challengeHeader
@@ -149,12 +147,19 @@ struct WakeChallengeView: View {
       }
     }
     .overlay {
-      if isShowingCompletionExperience {
-        ChallengeCompletionExperience {
-          finishCompletionExperience()
+      GeometryReader { proxy in
+        ZStack {
+          if isShowingCompletionExperience {
+            ChallengeCompletionExperience {
+              finishCompletionExperience()
+            }
+            .transition(.opacity)
+            .zIndex(100)
+          }
+
+          moneyRain(in: proxy.size)
+            .zIndex(200)
         }
-        .transition(.opacity)
-        .zIndex(100)
       }
     }
     .task(id: request.id) {
@@ -349,7 +354,7 @@ struct WakeChallengeView: View {
           endpointPulseID: session.gaugeEndpointPulseID,
           endpointIsTop: session.gaugeEndpointIsTop
         )
-        .frame(width: 50, height: 210)
+        .frame(width: 58, height: 210)
       }
 
       Text(
@@ -445,10 +450,6 @@ struct WakeChallengeView: View {
             ?? session.motionStatus
         )
 
-        if session.motionError == nil {
-          detectorTelemetry
-        }
-
         if session.motionError != nil {
           HStack(spacing: 10) {
             Button {
@@ -477,30 +478,6 @@ struct WakeChallengeView: View {
         #endif
       }
     }
-  }
-
-  private var detectorTelemetry: some View {
-    VStack(alignment: .leading, spacing: 3) {
-      Text(session.debugTelemetryText)
-        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-        .foregroundStyle(RGTheme.cream)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-      Text("log = \(session.diagnosticLogRelativePath ?? "starting…")")
-        .font(.system(size: 9, weight: .medium, design: .monospaced))
-        .foregroundStyle(RGTheme.mutedCream)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    .padding(10)
-    .background(RGTheme.ink.opacity(0.54), in: RoundedRectangle(cornerRadius: 10))
-    .overlay {
-      RoundedRectangle(cornerRadius: 10)
-        .stroke(RGTheme.gold.opacity(0.28), lineWidth: 1)
-    }
-    .padding(.top, 3)
-    .textSelection(.enabled)
-    .accessibilityElement(children: .combine)
   }
 
   private var settingsTestExitButton: some View {
@@ -653,6 +630,7 @@ private struct SquatCycleGauge: View {
   @State private var displayedPosition: Double
   @State private var flashIntensity: CGFloat = 0
   @State private var sparkProgress: CGFloat = 1
+  @State private var ringProgress: CGFloat = 1
   @State private var lastSampleTime: TimeInterval?
   @State private var isAnimatingEndpoint = false
 
@@ -674,10 +652,11 @@ private struct SquatCycleGauge: View {
   var body: some View {
     GeometryReader { proxy in
       let clampedPosition = min(1, max(0, displayedPosition))
-      let indicatorDiameter = min(22, max(12, proxy.size.width - 12))
+      let indicatorDiameter = min(30, max(14, proxy.size.width - 16))
       let indicatorY =
         (indicatorDiameter / 2)
         + ((1 - clampedPosition) * max(0, proxy.size.height - indicatorDiameter))
+      let endpointAccent = endpointIsTop ? RGTheme.mint : RGTheme.orange
 
       ZStack {
         Capsule()
@@ -702,12 +681,31 @@ private struct SquatCycleGauge: View {
           }
           .shadow(color: RGTheme.danger.opacity(0.22), radius: 10)
 
+        Circle()
+          .stroke(
+            LinearGradient(
+              colors: [Color.white, endpointAccent, RGTheme.danger],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: 3.5
+          )
+          .frame(
+            width: indicatorDiameter * 1.18,
+            height: indicatorDiameter * 1.18
+          )
+          .scaleEffect(1 + (ringProgress * 1.55))
+          .opacity(max(0, 1 - ringProgress))
+          .shadow(color: endpointAccent.opacity(0.92), radius: 7)
+          .blendMode(.plusLighter)
+          .position(x: proxy.size.width / 2, y: indicatorY)
+
         if !accessibilityReduceMotion {
-          ForEach(0..<12, id: \.self) { index in
+          ForEach(0..<16, id: \.self) { index in
             let angle =
-              (Double(index) / 12.0 * Double.pi * 2)
+              (Double(index) / 16.0 * Double.pi * 2)
               + (index.isMultiple(of: 2) ? 0.08 : -0.08)
-            let travel = CGFloat(22 + ((index * 7) % 13))
+            let travel = CGFloat(28 + ((index * 7) % 17))
 
             Capsule()
               .fill(
@@ -737,10 +735,10 @@ private struct SquatCycleGauge: View {
         Circle()
           .fill(Color.white.opacity(0.52))
           .frame(
-            width: indicatorDiameter * 1.55,
-            height: indicatorDiameter * 1.55
+            width: indicatorDiameter * 1.85,
+            height: indicatorDiameter * 1.85
           )
-          .blur(radius: 7)
+          .blur(radius: 9)
           .opacity(0.62 + (flashIntensity * 0.38))
           .blendMode(.plusLighter)
           .position(x: proxy.size.width / 2, y: indicatorY)
@@ -782,11 +780,11 @@ private struct SquatCycleGauge: View {
           }
           .shadow(
             color: flashIntensity > 0.01
-              ? RGTheme.gold.opacity(0.95)
+              ? endpointAccent.opacity(0.98)
               : Color.white.opacity(0.64),
-            radius: 7 + (flashIntensity * 9)
+            radius: 8 + (flashIntensity * 15)
           )
-          .scaleEffect(1 + (flashIntensity * 0.42))
+          .scaleEffect(1 + (flashIntensity * 0.62))
           .position(x: proxy.size.width / 2, y: indicatorY)
           .compositingGroup()
       }
@@ -802,17 +800,24 @@ private struct SquatCycleGauge: View {
       isAnimatingEndpoint = true
       flashIntensity = 1
       sparkProgress = accessibilityReduceMotion ? 1 : 0
+      ringProgress = accessibilityReduceMotion ? 1 : 0
+      if !accessibilityReduceMotion {
+        withAnimation(.easeOut(duration: 0.46)) {
+          sparkProgress = 1
+          ringProgress = 1
+        }
+      }
       withAnimation(
         .easeOut(duration: accessibilityReduceMotion ? 0.01 : 0.10)
       ) {
         displayedPosition = endpointIsTop ? 1 : 0
       }
-      try? await Task.sleep(for: .milliseconds(100))
+      try? await Task.sleep(for: .milliseconds(120))
       guard !Task.isCancelled else { return }
       isAnimatingEndpoint = false
-      withAnimation(.easeOut(duration: accessibilityReduceMotion ? 0.16 : 0.30)) {
+      lastSampleTime = nil
+      withAnimation(.easeOut(duration: accessibilityReduceMotion ? 0.16 : 0.42)) {
         flashIntensity = 0
-        sparkProgress = 1
       }
     }
     .accessibilityHidden(true)
@@ -823,7 +828,7 @@ private struct SquatCycleGauge: View {
     isReturning: Bool
   ) {
     guard !isAnimatingEndpoint else { return }
-    var target = min(1, max(0, newPosition))
+    let target = min(1, max(0, newPosition))
     guard !accessibilityReduceMotion else {
       displayedPosition = target
       return
@@ -838,18 +843,24 @@ private struct SquatCycleGauge: View {
     let response = 1 - exp(-deltaTime / responseTime)
     let filteredStep = delta * response
     let maximumStep = 4.5 * deltaTime
-    displayedPosition += min(
-      maximumStep,
-      max(-maximumStep, filteredStep)
-    )
+    let nextPosition =
+      displayedPosition
+      + min(
+        maximumStep,
+        max(-maximumStep, filteredStep)
+      )
+    withAnimation(.linear(duration: 0.055)) {
+      displayedPosition = nextPosition
+    }
   }
 }
 
 private struct ChallengeCompletionExperience: View {
   private static let messageRevealTime = 4.0
-  private static let blackFadeStartTime = 32.0
+  private static let rapidFadeStartTime = 32.0
   private static let blackFadeEndTime = 38.0
   private static let messageDimOpacity = 0.30
+  private static let rapidFadeStartOpacity = 0.50
 
   @Environment(\.scenePhase) private var scenePhase
 
@@ -1024,15 +1035,29 @@ private struct ChallengeCompletionExperience: View {
       revealMessage()
     }
 
-    guard seconds >= Self.blackFadeStartTime else { return }
-    let fadeDuration = Self.blackFadeEndTime - Self.blackFadeStartTime
-    let fadeProgress = min(
+    guard seconds >= Self.messageRevealTime else { return }
+    backgroundDimOpacity = Self.dimOpacity(at: seconds)
+  }
+
+  private static func dimOpacity(at seconds: Double) -> Double {
+    if seconds < rapidFadeStartTime {
+      let slowFadeDuration = rapidFadeStartTime - messageRevealTime
+      let slowFadeProgress = min(
+        1,
+        max(0, (seconds - messageRevealTime) / slowFadeDuration)
+      )
+      return messageDimOpacity
+        + ((rapidFadeStartOpacity - messageDimOpacity)
+          * slowFadeProgress)
+    }
+
+    let rapidFadeDuration = blackFadeEndTime - rapidFadeStartTime
+    let rapidFadeProgress = min(
       1,
-      max(0, (seconds - Self.blackFadeStartTime) / fadeDuration)
+      max(0, (seconds - rapidFadeStartTime) / rapidFadeDuration)
     )
-    backgroundDimOpacity =
-      Self.messageDimOpacity
-      + ((1 - Self.messageDimOpacity) * fadeProgress)
+    return rapidFadeStartOpacity
+      + ((1 - rapidFadeStartOpacity) * rapidFadeProgress)
   }
 
   private func revealMessage() {
@@ -1149,10 +1174,7 @@ private final class WakeChallengeSquatSession {
   private let guidanceHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
 
   @ObservationIgnored
-  private let endpointHapticGenerator = UIImpactFeedbackGenerator(style: .heavy)
-
-  @ObservationIgnored
-  private let completionHapticGenerator = UINotificationFeedbackGenerator()
+  private let endpointHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
 
   @ObservationIgnored
   private let diagnosticRecorder = SquatChallengeDiagnosticRecorder()
@@ -1205,7 +1227,6 @@ private final class WakeChallengeSquatSession {
     motionQueue = queue
     guidanceHapticGenerator.prepare()
     endpointHapticGenerator.prepare()
-    completionHapticGenerator.prepare()
   }
 
   var tiltLabel: String {
@@ -2274,14 +2295,9 @@ private final class WakeChallengeSquatSession {
     case .calibrated:
       guidanceHapticGenerator.impactOccurred(intensity: 0.80)
       guidanceHapticGenerator.prepare()
-    case .depth:
+    case .depth, .counted:
       endpointHapticGenerator.impactOccurred(intensity: 1)
       endpointHapticGenerator.prepare()
-    case .counted:
-      endpointHapticGenerator.impactOccurred(intensity: 1)
-      completionHapticGenerator.notificationOccurred(.success)
-      endpointHapticGenerator.prepare()
-      completionHapticGenerator.prepare()
     case .rejected:
       UINotificationFeedbackGenerator().notificationOccurred(.error)
     }
@@ -2291,7 +2307,6 @@ private final class WakeChallengeSquatSession {
     guard hapticsEnabled else { return }
     guidanceHapticGenerator.prepare()
     endpointHapticGenerator.prepare()
-    completionHapticGenerator.prepare()
   }
 
   private func bankMoneyDrop() {
@@ -2439,12 +2454,17 @@ private struct FallingMoneyView: View {
       systemName: event.sequence.isMultiple(of: 3)
         ? "banknote.fill" : "dollarsign.circle.fill"
     )
-    .font(.system(size: event.sequence.isMultiple(of: 3) ? 31 : 25, weight: .black))
+    .font(
+      .system(
+        size: event.sequence.isMultiple(of: 3) ? 52 : 44,
+        weight: .black
+      )
+    )
     .foregroundStyle(event.sequence.isMultiple(of: 2) ? RGTheme.mint : RGTheme.gold)
     .rotationEffect(.degrees(hasFallen ? endingRotation : -endingRotation * 0.25))
-    .position(x: horizontalPosition, y: hasFallen ? canvasSize.height + 65 : -55)
-    .opacity(hasFallen ? 0.15 : 1)
-    .shadow(color: RGTheme.gold.opacity(0.35), radius: 8)
+    .position(x: horizontalPosition, y: hasFallen ? canvasSize.height + 85 : -75)
+    .opacity(hasFallen ? 0.28 : 1)
+    .shadow(color: RGTheme.gold.opacity(0.55), radius: 12)
     .onAppear {
       withAnimation(.easeIn(duration: fallDuration)) {
         hasFallen = true
@@ -2453,9 +2473,9 @@ private struct FallingMoneyView: View {
   }
 
   private var horizontalPosition: CGFloat {
-    let usableWidth = max(1, canvasSize.width - 70)
+    let usableWidth = max(1, canvasSize.width - 104)
     let fraction = CGFloat((event.sequence * 67) % 101) / 100
-    return 35 + (usableWidth * fraction)
+    return 52 + (usableWidth * fraction)
   }
 
   private var endingRotation: Double {

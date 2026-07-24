@@ -119,24 +119,6 @@ struct ContentView: View {
       }
 
       NavigationStack {
-        CalendarOverrideView(
-          scheduledAlarms: model.scheduledAlarms,
-          scheduledTestAlarms: model.scheduledTestAlarms,
-          scheduledPowerNaps: model.scheduledPowerNaps,
-          mutedAlarms: model.mutedAlarms,
-          muteState: model.muteState,
-          isWorking: model.isWorking,
-          cancel: {
-            Task { await model.cancelAllAlarms() }
-          }
-        )
-      }
-      .tag(AppTab.calendar)
-      .tabItem {
-        Label("Alarms", systemImage: "calendar.badge.clock")
-      }
-
-      NavigationStack {
         BarrageView(
           settings: $model.settings
         )
@@ -162,6 +144,20 @@ struct ContentView: View {
       .tag(AppTab.sounds)
       .tabItem {
         Label("Sounds", systemImage: "speaker.wave.3.fill")
+      }
+
+      NavigationStack {
+        CalendarOverrideView(
+          scheduledAlarms: model.scheduledAlarms,
+          scheduledTestAlarms: model.scheduledTestAlarms,
+          scheduledPowerNaps: model.scheduledPowerNaps,
+          mutedAlarms: model.mutedAlarms,
+          muteState: model.muteState
+        )
+      }
+      .tag(AppTab.calendar)
+      .tabItem {
+        Label("Alarms", systemImage: "calendar.badge.clock")
       }
 
       NavigationStack {
@@ -381,8 +377,8 @@ private struct RGNowPlayingPill: View {
 
 private enum AppTab: Hashable {
   case grind
-  case calendar
   case barrage
   case sounds
+  case calendar
   case setup
 }

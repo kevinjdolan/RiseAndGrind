@@ -1,4 +1,4 @@
-// Lists upcoming app-owned attacks and provides alarm cleanup controls.
+// Lists upcoming app-owned attacks.
 
 import RiseAndGrindCore
 import SwiftUI
@@ -9,8 +9,6 @@ struct CalendarOverrideView: View {
   let scheduledPowerNaps: [ScheduledAlarmRecord]
   let mutedAlarms: [ScheduledAlarmRecord]
   let muteState: AlarmMuteState?
-  let isWorking: Bool
-  let cancel: () -> Void
 
   var body: some View {
     RGScreenBackground {
@@ -22,14 +20,6 @@ struct CalendarOverrideView: View {
               mutedAlarms: mutedAlarms,
               muteState: muteState
             )
-
-            if activeScheduledAlarms.isEmpty == false {
-              Button(role: .destructive, action: cancel) {
-                Label("Clear alarms", systemImage: "trash")
-              }
-              .buttonStyle(RGSecondaryButtonStyle())
-              .disabled(isWorking)
-            }
           }
         }
         .padding(.horizontal, 18)
@@ -45,5 +35,4 @@ struct CalendarOverrideView: View {
     (scheduledAlarms + scheduledTestAlarms + scheduledPowerNaps)
       .sorted { $0.fireDate < $1.fireDate }
   }
-
 }
