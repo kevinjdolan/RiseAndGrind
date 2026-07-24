@@ -21,6 +21,7 @@ struct OnboardingView: View {
 
   @State private var step = 0
   @State private var isShowingSquatCalibration = false
+  @State private var isShowingAutomationDeferralWarning = false
 
   var body: some View {
     RGScreenBackground {
@@ -53,14 +54,25 @@ struct OnboardingView: View {
         step = 2
       } else if onboardingCompleted, settings.squatCalibration?.isUsable != true {
         step = 3
-      } else if onboardingCompleted, !automationAcknowledged {
-        step = 4
       }
     }
     .fullScreenCover(isPresented: $isShowingSquatCalibration) {
       SquatCalibrationView { profile in
         settings.squatCalibration = profile
       }
+    }
+    .alert(
+      "Set Up the Automation Later?",
+      isPresented: $isShowingAutomationDeferralWarning
+    ) {
+      Button("Go Back", role: .cancel) {}
+      Button("Continue Anyway", role: .destructive) {
+        complete()
+      }
+    } message: {
+      Text(
+        "Without the nightly automation, Rise & Grind cannot reliably re-check tomorrow’s calendar while the app is closed. Open the app before bed or alarms may miss late calendar changes."
+      )
     }
   }
 
@@ -376,6 +388,13 @@ struct OnboardingView: View {
               Label("I SET IT UP", systemImage: "square.dashed.inset.filled")
             }
             .buttonStyle(RGPrimaryButtonStyle())
+
+            Button {
+              isShowingAutomationDeferralWarning = true
+            } label: {
+              Label("Later", systemImage: "clock.badge.questionmark")
+            }
+            .buttonStyle(RGSecondaryButtonStyle())
           }
         }
       }

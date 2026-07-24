@@ -1,69 +1,44 @@
 // Shortcuts handoff controls and the bundled nightly-automation walkthrough.
 
 import AVKit
-import AppIntents
 import SwiftUI
 
 struct RGShortcutAutomationLinks: View {
+  @Environment(\.openURL) private var openURL
   @State private var isShowingDemo = false
 
   var body: some View {
-    ViewThatFits(in: .horizontal) {
-      HStack(spacing: 10) {
-        shortcutsLink
-        demoButton
-      }
-
-      VStack(alignment: .leading, spacing: 10) {
-        shortcutsLink
-        demoButton
-      }
+    HStack(spacing: 10) {
+      shortcutsButton
+      helpButton
     }
     .sheet(isPresented: $isShowingDemo) {
       RGShortcutSetupDemoView()
     }
   }
 
-  private var shortcutsLink: some View {
-    ShortcutsLink()
-      .frame(minHeight: 52)
-      .accessibilityHint("Opens Shortcuts so you can add the nightly automation")
+  private var shortcutsButton: some View {
+    Button {
+      guard let shortcutsURL = URL(string: "shortcuts://") else { return }
+      openURL(shortcutsURL)
+    } label: {
+      Label("Add Shortcut", systemImage: "square.stack.3d.up.fill")
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+    }
+    .buttonStyle(RGPrimaryButtonStyle())
+    .accessibilityHint("Opens Shortcuts so you can add the nightly automation")
   }
 
-  private var demoButton: some View {
+  private var helpButton: some View {
     Button {
       isShowingDemo = true
     } label: {
-      HStack(spacing: 8) {
-        ZStack {
-          Image("ShortcutSetupDemoThumbnail")
-            .resizable()
-            .scaledToFill()
-            .frame(width: 42, height: 42)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-          Circle()
-            .fill(RGTheme.ink.opacity(0.82))
-            .frame(width: 25, height: 25)
-
-          Image(systemName: "play.fill")
-            .font(.caption2.weight(.black))
-            .foregroundStyle(RGTheme.cream)
-            .offset(x: 1)
-        }
-
-        Text("WATCH SETUP")
-          .font(.caption.weight(.black))
-          .foregroundStyle(RGTheme.ink)
-          .lineLimit(1)
-      }
-      .padding(.horizontal, 8)
-      .frame(minHeight: 52)
-      .background(RGTheme.cream, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+      Label("Help", systemImage: "questionmark.circle.fill")
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
     }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Watch Shortcuts setup")
+    .buttonStyle(RGSecondaryButtonStyle())
     .accessibilityHint("Plays a 31 second demonstration of creating the nightly automation")
   }
 }
@@ -107,7 +82,7 @@ private struct RGShortcutSetupDemoView: View {
         .padding(.top, 18)
         .padding(.bottom, 12)
       }
-      .navigationTitle("Watch Setup")
+      .navigationTitle("Help")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {

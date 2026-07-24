@@ -41,6 +41,7 @@
 		1F7C09323C51ADD03294DD28 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 386EB75AD594DCDFA3C58220 /* ActivityKit.framework */; };
 		2093B760550B3FA19E966C9C /* RiseTrack048.caf in Resources */ = {isa = PBXBuildFile; fileRef = 339E6FA7504BFE620DBBD093 /* RiseTrack048.caf */; };
 		21530CC9083188201259809C /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBE9E4DACE6E25C47A0131B4 /* PhotosUI.framework */; };
+		238DE0BC7A316C35EAD5D4B1 /* IntroPitch.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = B97F79178BE47B1A51F63243 /* IntroPitch.mp4 */; };
 		247EF70D11B3F86E36F30210 /* Motivational-005_comfort_is_the_enemy.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0AC1590B54B0B1FE0147B0C5 /* Motivational-005_comfort_is_the_enemy.m4a */; };
 		249778C65F6A42A7E073291E /* RiseTrack059.caf in Resources */ = {isa = PBXBuildFile; fileRef = C646AA508B4ED656A0A3CC06 /* RiseTrack059.caf */; };
 		27DFA1A132692698167C299D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F78C2308B3C12020AEF065 /* ContentView.swift */; };
@@ -75,9 +76,11 @@
 		48244708FEC1EB7A4CD1BE44 /* RiseTrack044.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9E171D8761A065F989FD5492 /* RiseTrack044.caf */; };
 		48A1BE501B25289C5DAB0935 /* Motivational-060_grit_over_comfort.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C627D1A91CEF87CA2F0EB2CF /* Motivational-060_grit_over_comfort.m4a */; };
 		4959080798349E2CC14E58B9 /* Motivational-054_silence_your_haters.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 98CEBE05451DA8338A150456 /* Motivational-054_silence_your_haters.m4a */; };
+		4AFA64AB1ED55931219A7DC1 /* ChallengeCompletion.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 450DEE99C97EFF908A0B05B8 /* ChallengeCompletion.mp4 */; };
 		4C1218A5E577484761C3DC1C /* Motivational-049_secure_the_future.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 4F9CE70145EEBD06E612301E /* Motivational-049_secure_the_future.m4a */; };
 		4C4F6EC76C2C507DD564DBDD /* SquatCalibrationDiagnosticRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */; };
 		4C7FA38387331C268AB8C273 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4677A17997B915E5881F34 /* SetupView.swift */; };
+		4CFC3429F109E2AB74AFB6A6 /* SquatChallengeDiagnosticRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370C424CD4D51F0434EDB41A /* SquatChallengeDiagnosticRecorder.swift */; };
 		53384F5DF906C713B33298A1 /* CymbalCrashCourse.caf in Resources */ = {isa = PBXBuildFile; fileRef = 50862C725A8FAB1DA723EB38 /* CymbalCrashCourse.caf */; };
 		538F4D70F8CDB945861C514C /* RiseTrack062.caf in Resources */ = {isa = PBXBuildFile; fileRef = EDB8D7BF2761E5CB849AFD3A /* RiseTrack062.caf */; };
 		563B15B517949F46276914F0 /* Motivational-067_build_momentum_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = ACCC83E7E6602B2B25A0166E /* Motivational-067_build_momentum_daily.m4a */; };
@@ -89,6 +92,7 @@
 		602DD554040145FD7AC091E9 /* RiseTrack078.caf in Resources */ = {isa = PBXBuildFile; fileRef = 78D922A3AD893CE5C389D872 /* RiseTrack078.caf */; };
 		607146045238CFAF41BAAE73 /* RiseTrack069.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8A2B66E7A2D889051FCD5601 /* RiseTrack069.caf */; };
 		622DC412C71538BBD3865442 /* Motivational-006_bet_on_yourself.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 1ED9A6DC406BE6919B633672 /* Motivational-006_bet_on_yourself.m4a */; };
+		62A7CB6A2BC1E241A83908CC /* SquatDiagnosticView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03890BA9A136E1E3090101B1 /* SquatDiagnosticView.swift */; };
 		652F06ACD8B4F8762B74B004 /* RiseTrack064.caf in Resources */ = {isa = PBXBuildFile; fileRef = ABA91F5E2913144961BB5B80 /* RiseTrack064.caf */; };
 		65BD59E607DDF512F9F273ED /* SoundLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */; };
 		65E96EB4686CF3B4EEB39A1B /* Motivational-008_stack_wins_daily.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A5BB00BA54B54B698E85B4BA /* Motivational-008_stack_wins_daily.m4a */; };
@@ -152,6 +156,7 @@
 		9D06322BD0456411B06C0931 /* RiseTrack053.caf in Resources */ = {isa = PBXBuildFile; fileRef = AE522CA1F99554EBC0EC0D39 /* RiseTrack053.caf */; };
 		9D3FF219388835AA9E6DEA7D /* RiseTrack073.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F893E71CE68D3B3688C5FD1 /* RiseTrack073.caf */; };
 		9E49E0E761515338B0B7EB4D /* Motivational-036_chase_vision_not_validation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 7D67D50118F8BE56424A3B39 /* Motivational-036_chase_vision_not_validation.m4a */; };
+		9E4C771BA02C8BE3FADF9590 /* IntroPitchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C3A2E909B23C79D30ED753 /* IntroPitchView.swift */; };
 		9EAC0D8480508C7309E1F2FD /* Motivational-077_build_the_unimaginable.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55B6B74F8069354EC61E9DCB /* Motivational-077_build_the_unimaginable.m4a */; };
 		9F7E30D7021413B6602C509D /* AlarmAudioTranscoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */; };
 		A01F6D5E65328B5932E2BE73 /* RiseTrack057.caf in Resources */ = {isa = PBXBuildFile; fileRef = CF2CF873093A960EA3A18CDE /* RiseTrack057.caf */; };
@@ -185,6 +190,7 @@
 		BE943E7775744DDB198E0035 /* Motivational-064_market_rewards_obsession.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 991DF46A2E222EAED5FB6BD8 /* Motivational-064_market_rewards_obsession.m4a */; };
 		C004A0200737480E3428EC93 /* ShortcutSetupDemo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = EE4F02292F28366F86CB3A92 /* ShortcutSetupDemo.mp4 */; };
 		C08E78D42A0BFCA872473935 /* RiseTrack038.caf in Resources */ = {isa = PBXBuildFile; fileRef = D45F1003F67E8AE4522C6A06 /* RiseTrack038.caf */; };
+		C1020EB8A2ED998F6577C1E1 /* BackgroundRefreshService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CC1E5BD007849AB6719631 /* BackgroundRefreshService.swift */; };
 		C123302230D9BB21B9F0C4A6 /* Motivational-068_focus_beats_motivation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B832A7CA17112E255E90A87B /* Motivational-068_focus_beats_motivation.m4a */; };
 		C1EA9615936B0B4886906AF8 /* WakeChallengeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */; };
 		C1F025129E029E16FAC3AD3E /* Motivational-040_dreams_need_work.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 93837EECF6B6A1FF48EF10D2 /* Motivational-040_dreams_need_work.m4a */; };
@@ -197,10 +203,12 @@
 		C7018B05BDAD28A7E668F584 /* Motivational-015_excuses_don_t_pay.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 05615E30EB18987FC08E925B /* Motivational-015_excuses_don_t_pay.m4a */; };
 		C7C6A98FD32A069476D2F1EE /* Motivational-074_get_after_it.m4a in Resources */ = {isa = PBXBuildFile; fileRef = AD05F274E366ABB0117C5E35 /* Motivational-074_get_after_it.m4a */; };
 		C87B28E2BD5C64B0C8244C5D /* Motivational-081_own_your_life.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C1BC1FAE459CC46F0CF5B437 /* Motivational-081_own_your_life.m4a */; };
+		C8A6157259C15F99B18C4407 /* DiagnosticAudioOnsetDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C323893B8CF7E98356100A4 /* DiagnosticAudioOnsetDetectorTests.swift */; };
 		C91976A6D3B08A7D31E92D51 /* EmergencyRave.caf in Resources */ = {isa = PBXBuildFile; fileRef = C817B0630951E79E7A7AE905 /* EmergencyRave.caf */; };
 		C94077467754A95577C9E612 /* RiseTrack033.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F95E65BC682E9EF83CB4671 /* RiseTrack033.caf */; };
 		CA854C339DDA26B4C55419C5 /* Motivational-024_relentless_always_relentless.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 33C22E8FC3F3A5527F4E928E /* Motivational-024_relentless_always_relentless.m4a */; };
 		CD2603C0E78B513C1CE5F9B2 /* Motivational-023_nobody_cares_work.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6930B617BE532C47F2957F1C /* Motivational-023_nobody_cares_work.m4a */; };
+		CD960C2AD8A927F4EEB71632 /* BackgroundTasks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7945BD292919271ED01B3D3E /* BackgroundTasks.framework */; };
 		CDFE5BB1AC969080A9653CFC /* RiseTrack091.caf in Resources */ = {isa = PBXBuildFile; fileRef = D1A139E836D37EEFDC8C420C /* RiseTrack091.caf */; };
 		CE3701F2503D32E2A4204CAB /* RiseTrack055.caf in Resources */ = {isa = PBXBuildFile; fileRef = 60CB73999CF89A1AD7E765B3 /* RiseTrack055.caf */; };
 		CEE3C9C5A4319F0556D9EF96 /* AirRaidArsenal.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4379E279989592501DE905F3 /* AirRaidArsenal.caf */; };
@@ -258,6 +266,7 @@
 
 /* Begin PBXFileReference section */
 		0125870AA374EFBE0B29BCF9 /* Motivational-098_stay_locked_in.m4a */ = {isa = PBXFileReference; path = "Motivational-098_stay_locked_in.m4a"; sourceTree = "<group>"; };
+		03890BA9A136E1E3090101B1 /* SquatDiagnosticView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatDiagnosticView.swift; sourceTree = "<group>"; };
 		03E1E64B51A32DEF05B2EC07 /* Motivational-063_speed_over_hesitation.m4a */ = {isa = PBXFileReference; path = "Motivational-063_speed_over_hesitation.m4a"; sourceTree = "<group>"; };
 		0467A5374B2E7371297BCA49 /* CalendarOverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarOverrideView.swift; sourceTree = "<group>"; };
 		05615E30EB18987FC08E925B /* Motivational-015_excuses_don_t_pay.m4a */ = {isa = PBXFileReference; path = "Motivational-015_excuses_don_t_pay.m4a"; sourceTree = "<group>"; };
@@ -308,6 +317,7 @@
 		32A36372EF98F8F22BCE8D9E /* Motivational-089_more_reps_always.m4a */ = {isa = PBXFileReference; path = "Motivational-089_more_reps_always.m4a"; sourceTree = "<group>"; };
 		339E6FA7504BFE620DBBD093 /* RiseTrack048.caf */ = {isa = PBXFileReference; path = RiseTrack048.caf; sourceTree = "<group>"; };
 		33C22E8FC3F3A5527F4E928E /* Motivational-024_relentless_always_relentless.m4a */ = {isa = PBXFileReference; path = "Motivational-024_relentless_always_relentless.m4a"; sourceTree = "<group>"; };
+		370C424CD4D51F0434EDB41A /* SquatChallengeDiagnosticRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatChallengeDiagnosticRecorder.swift; sourceTree = "<group>"; };
 		3769BB8B5C47467780EC10DA /* HornetNest.caf */ = {isa = PBXFileReference; path = HornetNest.caf; sourceTree = "<group>"; };
 		386EB75AD594DCDFA3C58220 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 		39330C33D541D4C775345218 /* IndustrialPanic.caf */ = {isa = PBXFileReference; path = IndustrialPanic.caf; sourceTree = "<group>"; };
@@ -318,6 +328,7 @@
 		415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		4190F5ED5A02DFA13F41C4A0 /* RiseTrack087.caf */ = {isa = PBXFileReference; path = RiseTrack087.caf; sourceTree = "<group>"; };
 		4379E279989592501DE905F3 /* AirRaidArsenal.caf */ = {isa = PBXFileReference; path = AirRaidArsenal.caf; sourceTree = "<group>"; };
+		450DEE99C97EFF908A0B05B8 /* ChallengeCompletion.mp4 */ = {isa = PBXFileReference; path = ChallengeCompletion.mp4; sourceTree = "<group>"; };
 		459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioTranscoder.swift; sourceTree = "<group>"; };
 		469191B595D6FDFE57496C58 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		48716B33343049493DF829DE /* Motivational-059_do_it_now.m4a */ = {isa = PBXFileReference; path = "Motivational-059_do_it_now.m4a"; sourceTree = "<group>"; };
@@ -326,6 +337,7 @@
 		4B62ED628967133CA4028243 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		4B7108E0E85E3225DB1B0A10 /* Motivational-085_sweat_equity_wins.m4a */ = {isa = PBXFileReference; path = "Motivational-085_sweat_equity_wins.m4a"; sourceTree = "<group>"; };
 		4C1B1250A67E686EA25CC5E5 /* SonicDefibrillator.caf */ = {isa = PBXFileReference; path = SonicDefibrillator.caf; sourceTree = "<group>"; };
+		4C323893B8CF7E98356100A4 /* DiagnosticAudioOnsetDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticAudioOnsetDetectorTests.swift; sourceTree = "<group>"; };
 		4EF856DBF0C650B5CFAE7F66 /* Motivational-100_rise_and_grind.m4a */ = {isa = PBXFileReference; path = "Motivational-100_rise_and_grind.m4a"; sourceTree = "<group>"; };
 		4F9CE70145EEBD06E612301E /* Motivational-049_secure_the_future.m4a */ = {isa = PBXFileReference; path = "Motivational-049_secure_the_future.m4a"; sourceTree = "<group>"; };
 		503F7A5EC32D1F3EFFA75F5B /* MotionAuthorizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionAuthorizationService.swift; sourceTree = "<group>"; };
@@ -370,6 +382,7 @@
 		6F95E65BC682E9EF83CB4671 /* RiseTrack033.caf */ = {isa = PBXFileReference; path = RiseTrack033.caf; sourceTree = "<group>"; };
 		7196EBDD20A7DE3DC642820B /* Motivational-042_take_the_stairs.m4a */ = {isa = PBXFileReference; path = "Motivational-042_take_the_stairs.m4a"; sourceTree = "<group>"; };
 		78D922A3AD893CE5C389D872 /* RiseTrack078.caf */ = {isa = PBXFileReference; path = RiseTrack078.caf; sourceTree = "<group>"; };
+		7945BD292919271ED01B3D3E /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		7964268A1528F9F2FDDE21AC /* NightlyNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightlyNotificationService.swift; sourceTree = "<group>"; };
 		798D335081649B0D59CAB4D4 /* Motivational-045_you_re_the_limit.m4a */ = {isa = PBXFileReference; path = "Motivational-045_you_re_the_limit.m4a"; sourceTree = "<group>"; };
 		7D67D50118F8BE56424A3B39 /* Motivational-036_chase_vision_not_validation.m4a */ = {isa = PBXFileReference; path = "Motivational-036_chase_vision_not_validation.m4a"; sourceTree = "<group>"; };
@@ -414,6 +427,7 @@
 		A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeChallengeCoordinator.swift; sourceTree = "<group>"; };
 		A0AFF1FCA8052DB4E6A29DD2 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		A2E40200241D9A0663AD833B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		A3CC1E5BD007849AB6719631 /* BackgroundRefreshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRefreshService.swift; sourceTree = "<group>"; };
 		A5BB00BA54B54B698E85B4BA /* Motivational-008_stack_wins_daily.m4a */ = {isa = PBXFileReference; path = "Motivational-008_stack_wins_daily.m4a"; sourceTree = "<group>"; };
 		A891B65A94F9A1FA23BB0B34 /* RiseTrack047.caf */ = {isa = PBXFileReference; path = RiseTrack047.caf; sourceTree = "<group>"; };
 		A9260CEACEA751DFFFFBE049 /* RiseAndGrindIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiseAndGrindIntents.swift; sourceTree = "<group>"; };
@@ -431,6 +445,7 @@
 		B2F243EA253D28DCED303262 /* Motivational-017_grind_never_stops.m4a */ = {isa = PBXFileReference; path = "Motivational-017_grind_never_stops.m4a"; sourceTree = "<group>"; };
 		B7A0B837BDC5F5CCA54511E3 /* Motivational-012_grind_now_shine_later.m4a */ = {isa = PBXFileReference; path = "Motivational-012_grind_now_shine_later.m4a"; sourceTree = "<group>"; };
 		B832A7CA17112E255E90A87B /* Motivational-068_focus_beats_motivation.m4a */ = {isa = PBXFileReference; path = "Motivational-068_focus_beats_motivation.m4a"; sourceTree = "<group>"; };
+		B97F79178BE47B1A51F63243 /* IntroPitch.mp4 */ = {isa = PBXFileReference; path = IntroPitch.mp4; sourceTree = "<group>"; };
 		B9D32600DDE5E0F4A6FE17D6 /* WarningSignal.caf */ = {isa = PBXFileReference; path = WarningSignal.caf; sourceTree = "<group>"; };
 		BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatCalibrationDiagnosticRecorder.swift; sourceTree = "<group>"; };
 		BABBC8CF365FF6F32B42A38E /* PuzzlesInTheHighGrass.m4a */ = {isa = PBXFileReference; path = PuzzlesInTheHighGrass.m4a; sourceTree = "<group>"; };
@@ -458,6 +473,7 @@
 		CEA047F504B492720BD72FDE /* Motivational-032_adversity_builds_greatness.m4a */ = {isa = PBXFileReference; path = "Motivational-032_adversity_builds_greatness.m4a"; sourceTree = "<group>"; };
 		CF2CF873093A960EA3A18CDE /* RiseTrack057.caf */ = {isa = PBXFileReference; path = RiseTrack057.caf; sourceTree = "<group>"; };
 		D06A93B3C8428BE791277AAC /* RiseTrack039.caf */ = {isa = PBXFileReference; path = RiseTrack039.caf; sourceTree = "<group>"; };
+		D0C3A2E909B23C79D30ED753 /* IntroPitchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroPitchView.swift; sourceTree = "<group>"; };
 		D0F3B54A6B2DE98850866A62 /* Motivational-047_create_your_luck.m4a */ = {isa = PBXFileReference; path = "Motivational-047_create_your_luck.m4a"; sourceTree = "<group>"; };
 		D1A139E836D37EEFDC8C420C /* RiseTrack091.caf */ = {isa = PBXFileReference; path = RiseTrack091.caf; sourceTree = "<group>"; };
 		D2BE31CB4CD4CD68BA28B217 /* ElectricShock.caf */ = {isa = PBXFileReference; path = ElectricShock.caf; sourceTree = "<group>"; };
@@ -516,6 +532,7 @@
 				6C676E1A2EB70C45FA33119B /* AlarmKit.framework in Frameworks */,
 				1F7C09323C51ADD03294DD28 /* ActivityKit.framework in Frameworks */,
 				A8E3A875092E66C7B4309241 /* AppIntents.framework in Frameworks */,
+				CD960C2AD8A927F4EEB71632 /* BackgroundTasks.framework in Frameworks */,
 				FDCFFB9349962B89A5B648D6 /* EventKit.framework in Frameworks */,
 				31942D0F7BB27CC2934A238B /* CoreMotion.framework in Frameworks */,
 				2F24904DC67C6915859F3E7A /* CoreHaptics.framework in Frameworks */,
@@ -690,10 +707,12 @@
 				DC28AFC3092AAFDFEECD2D3C /* Components.swift */,
 				67F78C2308B3C12020AEF065 /* ContentView.swift */,
 				D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */,
+				D0C3A2E909B23C79D30ED753 /* IntroPitchView.swift */,
 				2FA004DE12777E6675646388 /* OnboardingView.swift */,
 				0B4677A17997B915E5881F34 /* SetupView.swift */,
 				FCA9F10E8AF9C6864540FD1A /* ShortcutSetupDemoView.swift */,
 				DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */,
+				03890BA9A136E1E3090101B1 /* SquatDiagnosticView.swift */,
 				1664DE490FD2D34573823681 /* WakeChallengeView.swift */,
 			);
 			path = Views;
@@ -816,11 +835,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		434EDAAFE4D6429D4F8BE26B /* IntroPitch */ = {
+			isa = PBXGroup;
+			children = (
+				B97F79178BE47B1A51F63243 /* IntroPitch.mp4 */,
+			);
+			path = IntroPitch;
+			sourceTree = "<group>";
+		};
 		64B6EC0BD52A760527D257C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				1BA265C47D4A9FE4D500B713 /* Assets.xcassets */,
 				ECDA78B7FF12F5046648B885 /* ChallengeAudio */,
+				EA1684AAC51C2FF38AF59853 /* ChallengeCompletion */,
+				434EDAAFE4D6429D4F8BE26B /* IntroPitch */,
 				0140CDBB5736DF9803742EEC /* MotivationalLines */,
 				FECBD98ED47915638C28D2E6 /* ShortcutDemo */,
 				30560EB7C903DF25B12738D2 /* Sounds */,
@@ -855,6 +884,7 @@
 				459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */,
 				30F9F8D5B845617434B8B3A9 /* AlarmRetryState.swift */,
 				97A0D23A5DEEB185E661849F /* AlarmScheduler.swift */,
+				A3CC1E5BD007849AB6719631 /* BackgroundRefreshService.swift */,
 				4B62ED628967133CA4028243 /* CalendarService.swift */,
 				503F7A5EC32D1F3EFFA75F5B /* MotionAuthorizationService.swift */,
 				50F6996F70B0E9B58765F9D6 /* NightlyCoordinator.swift */,
@@ -862,6 +892,7 @@
 				469191B595D6FDFE57496C58 /* SettingsStore.swift */,
 				E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */,
 				BA906BF132411C1C93C069BC /* SquatCalibrationDiagnosticRecorder.swift */,
+				370C424CD4D51F0434EDB41A /* SquatChallengeDiagnosticRecorder.swift */,
 				A0A1CC4DDCAA5E9520451D0B /* WakeChallengeCoordinator.swift */,
 			);
 			path = Services;
@@ -871,6 +902,7 @@
 			isa = PBXGroup;
 			children = (
 				FA66C1529C169BC2CBA2086B /* AlarmInteractionPolicyTests.swift */,
+				4C323893B8CF7E98356100A4 /* DiagnosticAudioOnsetDetectorTests.swift */,
 				9E5AFC001366028F5E2F44D0 /* SchedulePlannerTests.swift */,
 				7E4426C36A8C2DD2491FE1D7 /* SquatCalibrationTests.swift */,
 				5C101F439F85DE99B928086D /* SquatDetectorTests.swift */,
@@ -885,6 +917,7 @@
 				1E171F7003BF760ABD90BC93 /* AlarmKit.framework */,
 				26C97F928BE4070C82E761A4 /* AppIntents.framework */,
 				0ADFA7646121484A4176FDCC /* AVFoundation.framework */,
+				7945BD292919271ED01B3D3E /* BackgroundTasks.framework */,
 				415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */,
 				A2E40200241D9A0663AD833B /* CoreMotion.framework */,
 				A0AFF1FCA8052DB4E6A29DD2 /* EventKit.framework */,
@@ -901,6 +934,14 @@
 				A9260CEACEA751DFFFFBE049 /* RiseAndGrindIntents.swift */,
 			);
 			path = Intents;
+			sourceTree = "<group>";
+		};
+		EA1684AAC51C2FF38AF59853 /* ChallengeCompletion */ = {
+			isa = PBXGroup;
+			children = (
+				450DEE99C97EFF908A0B05B8 /* ChallengeCompletion.mp4 */,
+			);
+			path = ChallengeCompletion;
 			sourceTree = "<group>";
 		};
 		ECDA78B7FF12F5046648B885 /* ChallengeAudio */ = {
@@ -1010,6 +1051,7 @@
 				ED9050C8E204841D303CB7E7 /* BoilerRoomBarrage.caf in Resources */,
 				8F1789ACF1CC0B08B028CD04 /* BrassKnuckleMarch.caf in Resources */,
 				1902796646387DA59179A669 /* BuzzsawBreakbeat.caf in Resources */,
+				4AFA64AB1ED55931219A7DC1 /* ChallengeCompletion.mp4 in Resources */,
 				03C9AC05686FCFF38698EF51 /* CircuitBreaker.caf in Resources */,
 				53384F5DF906C713B33298A1 /* CymbalCrashCourse.caf in Resources */,
 				165FA9909DD69F12B1D201D6 /* DieselDrumline.caf in Resources */,
@@ -1019,6 +1061,7 @@
 				F877729F22DF6220F6F2970D /* FirehouseFanfare.caf in Resources */,
 				3849C665815AC8BE04DD2287 /* HornetNest.caf in Resources */,
 				F2E97C4F19412B002E92F061 /* IndustrialPanic.caf in Resources */,
+				238DE0BC7A316C35EAD5D4B1 /* IntroPitch.mp4 in Resources */,
 				383CDC7782208E417D716B58 /* JackhammerJubilee.caf in Resources */,
 				0E3A616AECEAE9872020DA6B /* MetallicMayhem.caf in Resources */,
 				5E3E27DC29F21A6B65CF6388 /* Motivational-001_no_days_off.m4a in Resources */,
@@ -1220,6 +1263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				405A5D0C7AC23E1182E7CF56 /* AlarmInteractionPolicyTests.swift in Sources */,
+				C8A6157259C15F99B18C4407 /* DiagnosticAudioOnsetDetectorTests.swift in Sources */,
 				F18FA3E410326888704909ED /* SchedulePlannerTests.swift in Sources */,
 				0E47DBCB99130E08019E29E2 /* SquatCalibrationTests.swift in Sources */,
 				E05C37933C4A243D3958DF91 /* SquatDetectorTests.swift in Sources */,
@@ -1235,12 +1279,14 @@
 				2B27CCB80895B1E278CCDD8E /* AlarmScheduler.swift in Sources */,
 				885E4F0E798281109847EFB2 /* AlarmSoundsView.swift in Sources */,
 				E63132B320BCC89BB1DB9C6D /* AppModel.swift in Sources */,
+				C1020EB8A2ED998F6577C1E1 /* BackgroundRefreshService.swift in Sources */,
 				0A075C64D5CF94F5FD93BE9D /* BarrageView.swift in Sources */,
 				FAAAA79FF0FCD9B1044E452D /* CalendarOverrideView.swift in Sources */,
 				B7D86F84709E6B0BC5FA9534 /* CalendarService.swift in Sources */,
 				B0DB58616C3BD927CB65496E /* Components.swift in Sources */,
 				27DFA1A132692698167C299D /* ContentView.swift in Sources */,
 				781B2DC215CB17EA8AA2B5C2 /* DashboardView.swift in Sources */,
+				9E4C771BA02C8BE3FADF9590 /* IntroPitchView.swift in Sources */,
 				C39F664AE863676C97948F92 /* MotionAuthorizationService.swift in Sources */,
 				A678D197D0CDC046D8A1F551 /* NightlyCoordinator.swift in Sources */,
 				B887D21DFF5E0BABB474D743 /* NightlyNotificationService.swift in Sources */,
@@ -1253,6 +1299,8 @@
 				65BD59E607DDF512F9F273ED /* SoundLibrary.swift in Sources */,
 				4C4F6EC76C2C507DD564DBDD /* SquatCalibrationDiagnosticRecorder.swift in Sources */,
 				CF623081E330405C1FE8587D /* SquatCalibrationView.swift in Sources */,
+				4CFC3429F109E2AB74AFB6A6 /* SquatChallengeDiagnosticRecorder.swift in Sources */,
+				62A7CB6A2BC1E241A83908CC /* SquatDiagnosticView.swift in Sources */,
 				6EF5A9F64F798AE50EEA4746 /* Theme.swift in Sources */,
 				C1EA9615936B0B4886906AF8 /* WakeChallengeCoordinator.swift in Sources */,
 				2878F447DE98287D92C36443 /* WakeChallengeView.swift in Sources */,

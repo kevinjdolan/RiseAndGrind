@@ -28,6 +28,8 @@ struct ContentView: View {
             }
           )
           .id(request.id)
+        } else if !model.introPitchCompleted {
+          IntroPitchView(complete: model.completeIntroPitch)
         } else if model.isAppReady {
           appTabs(model: model)
         } else {
@@ -104,6 +106,9 @@ struct ContentView: View {
           muteState: model.muteState,
           riseTime: model.riseTime,
           isWorking: model.isWorking,
+          schedulePowerNap: { fireDate in
+            await model.schedulePowerNap(at: fireDate) != nil
+          },
           setMute: model.setMute,
           clearMute: model.clearMute
         )
@@ -117,6 +122,7 @@ struct ContentView: View {
         CalendarOverrideView(
           scheduledAlarms: model.scheduledAlarms,
           scheduledTestAlarms: model.scheduledTestAlarms,
+          scheduledPowerNaps: model.scheduledPowerNaps,
           mutedAlarms: model.mutedAlarms,
           muteState: model.muteState,
           isWorking: model.isWorking,
@@ -167,6 +173,7 @@ struct ContentView: View {
           motionAuthorization: model.motionAuthorization,
           automationAcknowledged: model.automationAcknowledged,
           lastNightlyRun: model.lastNightlyRun,
+          lastBackgroundRefresh: model.lastBackgroundRefresh,
           scheduledTestAlarms: model.scheduledTestAlarms,
           isWorking: model.isWorking,
           requestPermissions: {
@@ -189,6 +196,7 @@ struct ContentView: View {
               accent: RGTheme.mint
             )
           },
+          acknowledgeAutomation: model.acknowledgeAutomation,
           openSettings: model.openSystemSettings
         )
       }

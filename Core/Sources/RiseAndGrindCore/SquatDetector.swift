@@ -133,6 +133,53 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
   public var stationaryGravitySpreadDegrees: Double
   public var stationaryProjectedAccelerationThresholdG: Double
   public var stationaryBiasAdaptationTimeConstant: TimeInterval
+  public var guidedStartIntentAccelerationG: Double
+  public var guidedStartIntentDuration: TimeInterval
+  /// Number of 50 Hz samples in the guided gravity-axis boxcar filter.
+  public var guidedWaveformSmoothingSampleCount: Int
+  /// Signed, gravity-axis acceleration required to advance a guided waveform lobe.
+  public var guidedWaveformLobeThresholdG: Double
+  /// Fraction of the nominal cycle scale required before bottom braking can
+  /// confirm depth.
+  public var guidedMinimumTravelFraction: Double
+  /// Fraction of the nominal cycle scale required before top braking can
+  /// complete the return.
+  public var guidedMinimumReturnFraction: Double
+  /// Continuous signed acceleration evidence needed to accept a braking lobe.
+  public var guidedLobeEvidenceDuration: TimeInterval
+  /// Minimum duration of either half of a guided squat.
+  public var guidedMinimumHalfCycleDuration: TimeInterval
+  /// Minimum normalized upward gauge velocity after top braking is observed.
+  ///
+  /// This keeps a valid ordered ascent from stalling below the tolerant return
+  /// threshold when open-loop integration underestimates the physical rise.
+  public var guidedAscentAssistFractionPerSecond: Double
+  /// Minimum observed ascent position where a top-braking lobe may qualify.
+  ///
+  /// A qualified brake also arms ascent assistance. Capturing qualification at
+  /// the brake edge prevents a near-bottom bounce from manufacturing the
+  /// missing ascent through residual or assisted motion.
+  public var guidedQualifiedTopBrakeMinimumPosition: Double
+  /// Fraction of peak leg velocity allowed when inferring an endpoint.
+  public var guidedEndpointVelocityFraction: Double
+  /// Motion window that must look settled before a guided rep is banked.
+  public var guidedTopSettlingWindowDuration: TimeInterval
+  /// Post-count pause before a new guided descent can begin.
+  public var guidedCooldownDuration: TimeInterval
+  /// Maximum gravity-axis acceleration standard deviation in a settled window.
+  public var guidedSettlingAccelerationStandardDeviationG: Double
+  /// Maximum settled-window acceleration mean error from the learned top bias.
+  public var guidedSettlingMeanAccelerationToleranceG: Double
+  /// Maximum rotation-rate RMS in a settled top window.
+  public var guidedSettlingRotationRMS: Double
+  /// Corrected cycle travel, as a fraction of calibrated height, required to count.
+  public var guidedCycleValidationTravelFraction: Double
+  /// Maximum angle from the armed top orientation allowed during a guided cycle.
+  public var guidedMaximumTiltDegrees: Double
+  /// Maximum instantaneous rotation rate allowed in a validated guided cycle.
+  public var guidedMaximumRotationRate: Double
+  /// Maximum smoothed gravity-axis acceleration allowed in a validated cycle.
+  public var guidedMaximumFilteredAccelerationG: Double
   public var calibratedStandingGravity: SquatGravityVector?
   public var calibratedDepthGravity: SquatGravityVector?
   public var minimumCalibratedDepthDegrees: Double?
@@ -156,7 +203,7 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
     maximumCalibrationAcceleration: Double = 0.12,
     maximumCalibrationRotation: Double = 0.55,
     maximumCalibrationGravitySpreadDegrees: Double = 5,
-    minimumVerticalAccelerationG: Double = 0.018,
+    minimumVerticalAccelerationG: Double = 0.015,
     minimumDownwardVelocity: Double = 0.07,
     minimumUpwardVelocity: Double = 0.06,
     minimumVerticalDropMeters: Double = 0.15,
@@ -164,14 +211,14 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
     minimumDepthTiltDegrees: Double = 14,
     standingAngleDegrees: Double = 30,
     minimumRepDuration: TimeInterval = 1.0,
-    maximumRepDuration: TimeInterval = 10,
+    maximumRepDuration: TimeInterval = 15,
     cooldownDuration: TimeInterval = 0.35,
-    maximumTrackingAcceleration: Double = 1.20,
+    maximumTrackingAcceleration: Double = 1.60,
     maximumTrackingRotation: Double = 7,
     maximumSampleInterval: TimeInterval = 0.12,
-    accelerationSmoothingFactor: Double = 0.42,
+    accelerationSmoothingFactor: Double = 0.22,
     velocityDampingPerSecond: Double = 0.04,
-    verticalAccelerationDeadbandG: Double = 0.006,
+    verticalAccelerationDeadbandG: Double = 0.010,
     returnHeightToleranceMeters: Double = 0.10,
     maximumReturnHeightFraction: Double = 0.38,
     stationaryAnalysisWindowDuration: TimeInterval = 0.20,
@@ -181,6 +228,26 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
     stationaryGravitySpreadDegrees: Double = 3,
     stationaryProjectedAccelerationThresholdG: Double = 0.05,
     stationaryBiasAdaptationTimeConstant: TimeInterval = 1.5,
+    guidedStartIntentAccelerationG: Double = 0.015,
+    guidedStartIntentDuration: TimeInterval = 0.08,
+    guidedWaveformSmoothingSampleCount: Int = 7,
+    guidedWaveformLobeThresholdG: Double = 0.020,
+    guidedMinimumTravelFraction: Double = 0.16,
+    guidedMinimumReturnFraction: Double = 0.80,
+    guidedLobeEvidenceDuration: TimeInterval = 0.06,
+    guidedMinimumHalfCycleDuration: TimeInterval = 0.35,
+    guidedAscentAssistFractionPerSecond: Double = 0.16,
+    guidedQualifiedTopBrakeMinimumPosition: Double = 0.30,
+    guidedEndpointVelocityFraction: Double = 0.40,
+    guidedTopSettlingWindowDuration: TimeInterval = 0.14,
+    guidedCooldownDuration: TimeInterval = 0.15,
+    guidedSettlingAccelerationStandardDeviationG: Double = 0.025,
+    guidedSettlingMeanAccelerationToleranceG: Double = 0.045,
+    guidedSettlingRotationRMS: Double = 0.35,
+    guidedCycleValidationTravelFraction: Double = 0.30,
+    guidedMaximumTiltDegrees: Double = 65,
+    guidedMaximumRotationRate: Double = 6,
+    guidedMaximumFilteredAccelerationG: Double = 1.40,
     calibratedStandingGravity: SquatGravityVector? = nil,
     calibratedDepthGravity: SquatGravityVector? = nil,
     minimumCalibratedDepthDegrees: Double? = nil,
@@ -227,6 +294,78 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
       stationaryProjectedAccelerationThresholdG
     self.stationaryBiasAdaptationTimeConstant =
       stationaryBiasAdaptationTimeConstant
+    self.guidedStartIntentAccelerationG =
+      max(minimumVerticalAccelerationG, guidedStartIntentAccelerationG)
+    self.guidedStartIntentDuration = max(0, guidedStartIntentDuration)
+    self.guidedWaveformSmoothingSampleCount = max(
+      1,
+      guidedWaveformSmoothingSampleCount
+    )
+    self.guidedWaveformLobeThresholdG = max(
+      0.010,
+      guidedWaveformLobeThresholdG
+    )
+    self.guidedMinimumTravelFraction = min(
+      0.30,
+      max(0.10, guidedMinimumTravelFraction)
+    )
+    self.guidedMinimumReturnFraction = min(
+      1,
+      max(0.55, guidedMinimumReturnFraction)
+    )
+    self.guidedLobeEvidenceDuration = max(
+      0.04,
+      guidedLobeEvidenceDuration
+    )
+    self.guidedMinimumHalfCycleDuration = max(
+      0.25,
+      guidedMinimumHalfCycleDuration
+    )
+    self.guidedAscentAssistFractionPerSecond = min(
+      0.30,
+      max(0, guidedAscentAssistFractionPerSecond)
+    )
+    self.guidedQualifiedTopBrakeMinimumPosition = min(
+      0.60,
+      max(0.20, guidedQualifiedTopBrakeMinimumPosition)
+    )
+    self.guidedEndpointVelocityFraction = min(
+      0.50,
+      max(0.05, guidedEndpointVelocityFraction)
+    )
+    self.guidedTopSettlingWindowDuration = max(
+      0.10,
+      guidedTopSettlingWindowDuration
+    )
+    self.guidedCooldownDuration = max(0, guidedCooldownDuration)
+    self.guidedSettlingAccelerationStandardDeviationG = max(
+      0.005,
+      guidedSettlingAccelerationStandardDeviationG
+    )
+    self.guidedSettlingMeanAccelerationToleranceG = max(
+      0.010,
+      guidedSettlingMeanAccelerationToleranceG
+    )
+    self.guidedSettlingRotationRMS = max(
+      0.05,
+      guidedSettlingRotationRMS
+    )
+    self.guidedCycleValidationTravelFraction = min(
+      0.95,
+      max(0.30, guidedCycleValidationTravelFraction)
+    )
+    self.guidedMaximumTiltDegrees = min(
+      90,
+      max(5, guidedMaximumTiltDegrees)
+    )
+    self.guidedMaximumRotationRate = max(
+      0.50,
+      guidedMaximumRotationRate
+    )
+    self.guidedMaximumFilteredAccelerationG = max(
+      0.10,
+      guidedMaximumFilteredAccelerationG
+    )
     self.calibratedStandingGravity = calibratedStandingGravity
     self.calibratedDepthGravity = calibratedDepthGravity
     self.minimumCalibratedDepthDegrees =
@@ -330,41 +469,92 @@ public enum SquatDetectorPhase: Equatable, Sendable {
   case cooldown
 }
 
+/// A one-sample semantic event emitted by the squat recognizer.
+///
+/// UI feedback must be driven by these typed edges rather than by parsing
+/// persistent, user-facing status text.
+public enum SquatDetectorEvent: Equatable, Sendable {
+  case attemptBegan
+  case bottomReached
+  case repCounted
+  case attemptRejected
+}
+
 public struct SquatDetectorUpdate: Equatable, Sendable {
   public let phase: SquatDetectorPhase
   public let repCount: Int
+  public let event: SquatDetectorEvent?
   public let didCountRep: Bool
   public let tiltDegrees: Double?
+  /// Nominal bottom-to-top cycle scale, in meters (`H`).
+  ///
+  /// This scales the phase gauge; it is not a continuously observed altitude.
+  public let verticalRangeMeters: Double
   public let maximumVerticalDropMeters: Double
   public let requiredVerticalDropMeters: Double
+  /// Current bounded cycle coordinate, in nominal meters (`Y`).
   public let currentVerticalHeightMeters: Double
   public let currentVerticalDropMeters: Double
+  /// Current normalized height (`y = Y / H`), clamped to `0...1`.
   public let verticalPosition: Double
+  /// Signed, short-window cycle velocity (`V = dY/dt`) in meters per second.
+  ///
+  /// Positive values move toward the calibrated top; negative values move
+  /// toward the calibrated bottom. It is cleared at each recognized endpoint
+  /// and is never carried from one squat leg or repetition into the next.
+  public let currentVerticalVelocityMetersPerSecond: Double
+  /// Signed normalized height velocity (`v = V / H`), clamped to `-1...1`.
+  public let normalizedVerticalVelocity: Double
+  /// Bias-corrected acceleration projected onto the live gravity axis.
+  public let projectedVerticalAccelerationG: Double
+  /// Current bias estimate projected onto the live gravity axis.
+  public let verticalAccelerationBiasG: Double
+  /// Whether the detector currently considers the phone stationary.
+  public let isStationary: Bool
+  /// Whether this update intentionally ignored a known haptic artifact.
+  public let isHapticQuarantined: Bool
   public let didReachBottom: Bool
   public let status: String
 
   public init(
     phase: SquatDetectorPhase,
     repCount: Int,
+    event: SquatDetectorEvent? = nil,
     didCountRep: Bool,
     tiltDegrees: Double?,
+    verticalRangeMeters: Double,
     maximumVerticalDropMeters: Double,
     requiredVerticalDropMeters: Double,
     currentVerticalHeightMeters: Double,
     currentVerticalDropMeters: Double,
     verticalPosition: Double,
+    currentVerticalVelocityMetersPerSecond: Double,
+    normalizedVerticalVelocity: Double,
+    projectedVerticalAccelerationG: Double = 0,
+    verticalAccelerationBiasG: Double = 0,
+    isStationary: Bool = false,
+    isHapticQuarantined: Bool = false,
     didReachBottom: Bool,
     status: String
   ) {
     self.phase = phase
     self.repCount = repCount
+    self.event = event
     self.didCountRep = didCountRep
     self.tiltDegrees = tiltDegrees
+    self.verticalRangeMeters = verticalRangeMeters
     self.maximumVerticalDropMeters = maximumVerticalDropMeters
     self.requiredVerticalDropMeters = requiredVerticalDropMeters
     self.currentVerticalHeightMeters = currentVerticalHeightMeters
     self.currentVerticalDropMeters = currentVerticalDropMeters
     self.verticalPosition = verticalPosition
+    self.currentVerticalVelocityMetersPerSecond =
+      currentVerticalVelocityMetersPerSecond
+    self.normalizedVerticalVelocity = normalizedVerticalVelocity
+    self.projectedVerticalAccelerationG = projectedVerticalAccelerationG
+    self.verticalAccelerationBiasG = verticalAccelerationBiasG
+    self.isStationary = isStationary
+    self.isHapticQuarantined = isHapticQuarantined
     self.didReachBottom = didReachBottom
     self.status = status
   }
@@ -376,13 +566,21 @@ private struct SquatDetectorStationaryFrame: Sendable {
   let rotationMagnitudeRadiansPerSecond: Double
   let projectedAccelerationG: Double
   let gravity: SquatGravityVector
+  let userAcceleration: SquatGravityVector
 }
 
 private struct SquatDetectorMotionFrame: Sendable {
   let accelerationG: Double
   let deltaTime: TimeInterval
   let tiltDegrees: Double
+  let rotationRateRadiansPerSecond: Double
   let directedDepthDegrees: Double?
+}
+
+private struct SquatGuidedCycleValidation: Sendable {
+  let correctedTravelMeters: Double
+  let maximumFilteredAccelerationG: Double
+  let maximumRotationRateRadiansPerSecond: Double
 }
 
 private struct SquatCorrectedCycle: Sendable {
@@ -391,6 +589,13 @@ private struct SquatCorrectedCycle: Sendable {
   let maximumDownwardVelocityMetersPerSecond: Double
   let maximumUpwardVelocityMetersPerSecond: Double
   let terminalVelocityCorrectionMetersPerSecond: Double
+}
+
+private enum SquatGuidedCycleState: Equatable, Sendable {
+  case descending
+  case shallowPartialReturn
+  case bottomWait
+  case ascending
 }
 
 struct SquatVerticalRangeTracker: Equatable, Sendable {
@@ -428,15 +633,12 @@ struct SquatVerticalRangeTracker: Equatable, Sendable {
     )
   }
 
-  func discardingOutwardComponent(_ downwardComponent: Double) -> Double {
-    guard downwardComponent.isFinite else { return 0 }
-    if heightMeters <= 0 {
-      return min(0, downwardComponent)
-    }
-    if heightMeters >= rangeMeters {
-      return max(0, downwardComponent)
-    }
-    return downwardComponent
+  mutating func snapToBottom() {
+    heightMeters = 0
+  }
+
+  mutating func snapToTop() {
+    heightMeters = rangeMeters
   }
 
   var downwardTravelMeters: Double {
@@ -470,8 +672,18 @@ public struct SquatDetector: Sendable {
   private var effectiveStationaryRotationThreshold = 0.30
   private var effectiveStationaryProjectedAccelerationThresholdG = 0.035
   private var filteredVerticalAccelerationG = 0.0
+  private var guidedAccelerationWindow: [Double] = []
+  private var guidedAccelerationWindowTotal = 0.0
+  private var latestProjectedVerticalAccelerationG = 0.0
+  private var latestVerticalAccelerationBiasG = 0.0
+  private var latestSampleWasHapticQuarantined = false
   private var lastSampleTimestamp: TimeInterval?
   private var cycleStartedAt: TimeInterval?
+  private var guidedLegStartedAt: TimeInterval?
+  private var guidedBottomReachedAt: TimeInterval?
+  private var guidedBottomCandidateReachedAt: TimeInterval?
+  private var guidedCompletedDescentDuration: TimeInterval?
+  private var guidedCycleState: SquatGuidedCycleState?
   private var cooldownEndsAt: TimeInterval?
   private var verticalVelocity = 0.0
   private var verticalRangeTracker: SquatVerticalRangeTracker
@@ -487,6 +699,22 @@ public struct SquatDetector: Sendable {
   private var sawTiltOnlyDepth = false
   private var usesGuidedThresholds = false
   private var didReachGuidedBottom = false
+  private var didObserveGuidedBottomBraking = false
+  private var didObserveGuidedTopBraking = false
+  private var guidedBottomBrakeEvidenceDuration = 0.0
+  private var guidedTopBrakeEvidenceDuration = 0.0
+  private var guidedBottomEndpointEvidenceSeen = false
+  private var guidedTopCandidateReached = false
+  private var guidedTopCandidateReachedAt: TimeInterval?
+  private var guidedAscentAssistIsEligible = false
+  private var guidedAscentBrakeWasPremature = false
+  private var hasConfirmedGuidedStanding = false
+  private var requiresQuietGuidedTop = false
+  private var guidedStartIntentDirection = 0.0
+  private var guidedStartIntentDuration = 0.0
+  private var guidedTopQuietEvidenceDuration = 0.0
+  private var mayRefineGuidedArmBias = false
+  private var hapticArtifactEndsAt: TimeInterval?
   private var stationaryFrames: [SquatDetectorStationaryFrame] = []
   private var stationaryCandidateStartedAt: TimeInterval?
   private var stationaryDuration = 0.0
@@ -539,19 +767,35 @@ public struct SquatDetector: Sendable {
     effectiveStationaryProjectedAccelerationThresholdG =
       configuration.stationaryProjectedAccelerationThresholdG
     filteredVerticalAccelerationG = 0
+    latestProjectedVerticalAccelerationG = 0
+    latestVerticalAccelerationBiasG = 0
+    latestSampleWasHapticQuarantined = false
     lastSampleTimestamp = nil
+    hapticArtifactEndsAt = nil
     usesGuidedThresholds = false
+    mayRefineGuidedArmBias = false
+    hasConfirmedGuidedStanding = false
+    requiresQuietGuidedTop = false
+    resetGuidedStartIntent()
     resetPartialRep()
+    verticalRangeTracker = SquatVerticalRangeTracker(
+      rangeMeters: configuration.verticalRangeMeters,
+      initialPosition: configuration.initialTopPosition
+    )
     resetStationaryWindow()
     displayedMaximumVerticalDrop = 0
     cooldownEndsAt = nil
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = nil
+    guidedCycleState = nil
     didReachGuidedBottom = false
   }
 
   /// Arms challenge tracking from an explicit user-confirmed upright position.
   @discardableResult
   public mutating func armGuidedTracking(
-    from sample: SquatMotionSample
+    from sample: SquatMotionSample,
+    standingWasStabilized: Bool = false
   ) -> SquatDetectorUpdate {
     guard let gravity = sample.gravity.normalized else {
       return update(status: "Hold the iPhone upright and press Start again.")
@@ -569,14 +813,41 @@ public struct SquatDetector: Sendable {
     resetStationaryWindow()
     filteredVerticalAccelerationG = 0
     lastSampleTimestamp = sample.timestamp
+    hapticArtifactEndsAt = nil
     cooldownEndsAt = nil
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = nil
+    guidedCycleState = nil
     phase = .standing
     usesGuidedThresholds = true
+    mayRefineGuidedArmBias = !standingWasStabilized
+    hasConfirmedGuidedStanding = standingWasStabilized
+    requiresQuietGuidedTop = false
+    resetGuidedStartIntent()
     didReachGuidedBottom = false
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
     return update(
       tiltDegrees: 0,
       status: "Top set. Lower smoothly; the haptics build toward the bottom."
     )
+  }
+
+  /// Excludes the short Core Motion ring-down after a known haptic pulse.
+  public mutating func quarantineHapticArtifact(
+    after motionTimestamp: TimeInterval,
+    duration: TimeInterval
+  ) {
+    guard usesGuidedThresholds, duration > 0 else { return }
+    let candidateEnd = motionTimestamp + duration
+    hapticArtifactEndsAt = max(
+      hapticArtifactEndsAt ?? candidateEnd,
+      candidateEnd
+    )
+    preRollFrames.removeAll(keepingCapacity: true)
+    filteredVerticalAccelerationG = 0
+    resetGuidedLobeEvidence()
+    resetStationaryWindow()
   }
 
   @discardableResult
@@ -594,34 +865,63 @@ public struct SquatDetector: Sendable {
       and: gravity
     )
     let directedDepthDegrees = directedDepthAngle(for: gravity)
-
-    guard
-      sample.userAccelerationMagnitude
-        <= configuration.maximumTrackingAcceleration,
-      sample.rotationRateMagnitude <= configuration.maximumTrackingRotation
-    else {
-      resetPartialRep()
-      resetStationaryWindow()
-      filteredVerticalAccelerationG = 0
-      phase = .standing
-      lastSampleTimestamp = sample.timestamp
-      return update(
-        tiltDegrees: tiltDegrees,
-        status: "Jostle ignored. Hold the phone steady and use one smooth squat."
-      )
-    }
-
-    guard let deltaTime = sampleInterval(endingAt: sample.timestamp) else {
-      return update(
-        tiltDegrees: tiltDegrees,
-        status: "Motion stream reset. Stand tall, then begin one smooth squat."
-      )
-    }
-
     let correctedAcceleration = sample.userAcceleration.subtracting(
       accelerationBias
     )
     let projectedAccelerationG = correctedAcceleration.dot(gravity)
+    latestProjectedVerticalAccelerationG = projectedAccelerationG
+    latestVerticalAccelerationBiasG = accelerationBias.dot(gravity)
+    latestSampleWasHapticQuarantined = false
+
+    if let hapticArtifactEndsAt {
+      if sample.timestamp <= hapticArtifactEndsAt {
+        latestSampleWasHapticQuarantined = true
+        return processHapticArtifact(
+          sample,
+          tiltDegrees: tiltDegrees,
+          directedDepthDegrees: directedDepthDegrees
+        )
+      }
+      self.hapticArtifactEndsAt = nil
+      preRollFrames.removeAll(keepingCapacity: true)
+      filteredVerticalAccelerationG = 0
+      resetGuidedLobeEvidence()
+      resetStationaryWindow()
+    }
+
+    let exceedsTrackingLimits =
+      sample.userAccelerationMagnitude
+      > configuration.maximumTrackingAcceleration
+      || sample.rotationRateMagnitude > configuration.maximumTrackingRotation
+    if exceedsTrackingLimits {
+      resetGuidedLobeEvidence()
+      resetStationaryWindow()
+      filteredVerticalAccelerationG = 0
+      lastSampleTimestamp = sample.timestamp
+      if !usesGuidedThresholds {
+        resetPartialRep()
+        phase = .standing
+      }
+      return update(
+        tiltDegrees: tiltDegrees,
+        status: usesGuidedThresholds
+          ? "Motion spike ignored. Keep the phone secure and continue the rep."
+          : "Jostle ignored. Hold the phone steady and use one smooth squat."
+      )
+    }
+
+    let hadActiveGuidedAttempt =
+      usesGuidedThresholds && cycleStartedAt != nil
+    guard let deltaTime = sampleInterval(endingAt: sample.timestamp) else {
+      return update(
+        event: hadActiveGuidedAttempt ? .attemptRejected : nil,
+        tiltDegrees: tiltDegrees,
+        status: hadActiveGuidedAttempt
+          ? "Motion stream reset. Settle at the top, then begin a new squat."
+          : "Motion stream reset. Settle at the top before starting."
+      )
+    }
+
     updateStationaryWindow(
       with: sample,
       gravity: gravity,
@@ -629,17 +929,9 @@ public struct SquatDetector: Sendable {
     )
 
     if let cooldownEndsAt {
-      if usesGuidedThresholds, cycleStartedAt != nil {
-        integrateCycleFrame(
-          SquatDetectorMotionFrame(
-            accelerationG: projectedAccelerationG,
-            deltaTime: deltaTime,
-            tiltDegrees: tiltDegrees,
-            directedDepthDegrees: directedDepthDegrees
-          )
-        )
-      }
-      if stationaryDuration >= configuration.stationaryHoldDuration {
+      if !usesGuidedThresholds,
+        stationaryDuration >= configuration.stationaryHoldDuration
+      {
         adaptAccelerationBias(toward: sample.userAcceleration, deltaTime: deltaTime)
       }
       if sample.timestamp < cooldownEndsAt {
@@ -654,7 +946,7 @@ public struct SquatDetector: Sendable {
         prepareNextGuidedCycle(at: sample.timestamp)
         return update(
           tiltDegrees: tiltDegrees,
-          status: "Top tracked. Lower smoothly for the next squat."
+          status: "Settle briefly at the top, then lower for the next squat."
         )
       }
       phase = .standing
@@ -664,9 +956,18 @@ public struct SquatDetector: Sendable {
     if let cycleStartedAt,
       sample.timestamp - cycleStartedAt > configuration.maximumRepDuration
     {
+      if usesGuidedThresholds {
+        abandonGuidedAttemptForRearm()
+        return update(
+          event: .attemptRejected,
+          tiltDegrees: tiltDegrees,
+          status: "That attempt timed out. Settle at the top, then begin again."
+        )
+      }
       resetPartialRep(preservingDisplayedDrop: true)
       phase = .standing
       return update(
+        event: .attemptRejected,
         tiltDegrees: tiltDegrees,
         status:
           "That motion timed out. Stand tall, settle, then use one smooth squat."
@@ -778,6 +1079,32 @@ public struct SquatDetector: Sendable {
     )
   }
 
+  private mutating func processHapticArtifact(
+    _ sample: SquatMotionSample,
+    tiltDegrees: Double,
+    directedDepthDegrees: Double?
+  ) -> SquatDetectorUpdate {
+    lastSampleTimestamp = sample.timestamp
+    resetStationaryWindow()
+    preRollFrames.removeAll(keepingCapacity: true)
+
+    filteredVerticalAccelerationG = 0
+
+    let status =
+      if cooldownEndsAt != nil {
+        "Rep banked. Stay tall while the completion pulse clears."
+      } else if guidedCycleState == .ascending {
+        "Keep driving up through the progress pulse."
+      } else if didReachGuidedBottom {
+        "Bottom locked. Drive straight back up."
+      } else if cycleStartedAt != nil {
+        "Keep following the marker through the haptic pulse."
+      } else {
+        "Top zero locked. Lower smoothly when you are ready."
+      }
+    return update(tiltDegrees: tiltDegrees, status: status)
+  }
+
   private mutating func processStanding(
     _ sample: SquatMotionSample,
     projectedAccelerationG: Double,
@@ -785,30 +1112,110 @@ public struct SquatDetector: Sendable {
     directedDepthDegrees: Double?,
     deltaTime: TimeInterval
   ) -> SquatDetectorUpdate {
-    if stationaryDuration >= configuration.stationaryHoldDuration {
-      adaptAccelerationBias(toward: sample.userAcceleration, deltaTime: deltaTime)
-    }
-
     let frame = SquatDetectorMotionFrame(
       accelerationG: projectedAccelerationG,
       deltaTime: deltaTime,
       tiltDegrees: tiltDegrees,
+      rotationRateRadiansPerSecond: sample.rotationRateMagnitude,
       directedDepthDegrees: directedDepthDegrees
     )
+    let requiresSustainedGuidedStart =
+      usesGuidedThresholds && hasConfirmedGuidedStanding
     appendPreRollFrame(frame)
 
     let triggerAccelerationG = deadband(
       projectedAccelerationG,
       threshold: configuration.verticalAccelerationDeadbandG
     )
-    let smoothing = min(1, max(0, configuration.accelerationSmoothingFactor))
-    filteredVerticalAccelerationG +=
-      (triggerAccelerationG - filteredVerticalAccelerationG) * smoothing
+    if usesGuidedThresholds {
+      _ = updateGuidedWaveformFilter(with: projectedAccelerationG)
+    } else {
+      let smoothing = min(1, max(0, configuration.accelerationSmoothingFactor))
+      filteredVerticalAccelerationG +=
+        (triggerAccelerationG - filteredVerticalAccelerationG) * smoothing
+    }
 
-    if reachesDepth(
-      tiltDegrees: tiltDegrees,
-      directedDepthDegrees: directedDepthDegrees
-    ) {
+    if usesGuidedThresholds, !hasConfirmedGuidedStanding {
+      let quietThreshold = max(
+        0.012,
+        configuration.verticalAccelerationDeadbandG * 1.2
+      )
+      if abs(filteredVerticalAccelerationG) <= quietThreshold {
+        guidedTopQuietEvidenceDuration += deltaTime
+      } else {
+        guidedTopQuietEvidenceDuration = 0
+      }
+      let hasStrictNeutralTop =
+        guidedTopQuietEvidenceDuration
+        >= configuration.stationaryHoldDuration
+      let hasTolerantStationaryTop =
+        stationaryDuration >= configuration.stationaryHoldDuration
+        && abs(filteredVerticalAccelerationG)
+          <= min(
+            0.030,
+            configuration.guidedSettlingMeanAccelerationToleranceG
+          )
+      if (hasStrictNeutralTop || hasTolerantStationaryTop)
+        && (!mayRefineGuidedArmBias
+          || stationaryDuration >= configuration.stationaryHoldDuration)
+      {
+        if mayRefineGuidedArmBias || hasTolerantStationaryTop {
+          recenterAccelerationBiasFromStationaryWindow()
+        }
+        hasConfirmedGuidedStanding = true
+        requiresQuietGuidedTop = false
+        resetGuidedStartIntent()
+        preRollFrames.removeAll(keepingCapacity: true)
+        resetGuidedWaveformFilter()
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Top zero locked. Lower smoothly when you are ready."
+        )
+      }
+
+      if requiresQuietGuidedTop {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Settle briefly at the top before the next squat."
+        )
+      }
+
+      guard
+        observesDeliberateGuidedStart(
+          projectedAccelerationG: filteredVerticalAccelerationG,
+          deltaTime: deltaTime
+        )
+      else {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Hold at the top briefly while motion settles."
+        )
+      }
+      hasConfirmedGuidedStanding = true
+    } else if !usesGuidedThresholds,
+      stationaryDuration >= configuration.stationaryHoldDuration
+    {
+      adaptAccelerationBias(toward: sample.userAcceleration, deltaTime: deltaTime)
+    }
+
+    if requiresSustainedGuidedStart,
+      !observesDeliberateGuidedStart(
+        projectedAccelerationG: filteredVerticalAccelerationG,
+        deltaTime: deltaTime
+      )
+    {
+      return update(
+        tiltDegrees: tiltDegrees,
+        status: "Top locked. Begin one deliberate downward movement."
+      )
+    }
+
+    if hasUsableTiltDepthConstraint,
+      reachesDepth(
+        tiltDegrees: tiltDegrees,
+        directedDepthDegrees: directedDepthDegrees
+      )
+    {
       sawTiltOnlyDepth = true
     }
 
@@ -849,6 +1256,7 @@ public struct SquatDetector: Sendable {
         ?? detectedDirection
     )
     return update(
+      event: .attemptBegan,
       tiltDegrees: tiltDegrees,
       status: "Vertical motion detected. Keep sitting your hips down."
     )
@@ -861,14 +1269,23 @@ public struct SquatDetector: Sendable {
     directedDepthDegrees: Double?,
     deltaTime: TimeInterval
   ) -> SquatDetectorUpdate {
-    integrateCycleFrame(
-      SquatDetectorMotionFrame(
-        accelerationG: projectedAccelerationG,
-        deltaTime: deltaTime,
-        tiltDegrees: tiltDegrees,
-        directedDepthDegrees: directedDepthDegrees
-      )
+    let frame = SquatDetectorMotionFrame(
+      accelerationG: projectedAccelerationG,
+      deltaTime: deltaTime,
+      tiltDegrees: tiltDegrees,
+      rotationRateRadiansPerSecond: sample.rotationRateMagnitude,
+      directedDepthDegrees: directedDepthDegrees
     )
+
+    if usesGuidedThresholds {
+      return processGuidedCycle(
+        sample,
+        frame: frame,
+        tiltDegrees: tiltDegrees
+      )
+    }
+
+    integrateCycleFrame(frame)
 
     if maximumVerticalDrop
       > configuration.maximumPlausibleDropMeters * 1.5
@@ -878,15 +1295,9 @@ public struct SquatDetector: Sendable {
       displayedMaximumVerticalDrop = rejectedDrop
       phase = .standing
       return update(
+        event: .attemptRejected,
         tiltDegrees: tiltDegrees,
         status: "Motion spike rejected. Hold the phone steady and squat smoothly."
-      )
-    }
-
-    if usesGuidedThresholds {
-      return processGuidedCycle(
-        sample,
-        tiltDegrees: tiltDegrees
       )
     }
 
@@ -979,79 +1390,448 @@ public struct SquatDetector: Sendable {
 
   private mutating func processGuidedCycle(
     _ sample: SquatMotionSample,
+    frame: SquatDetectorMotionFrame,
     tiltDegrees: Double
   ) -> SquatDetectorUpdate {
-    let position = currentVerticalPosition
-    let reachedBottomNow =
-      !didReachGuidedBottom
-      && position <= configuration.bottomCompletionPosition
-    if reachedBottomNow {
-      didReachGuidedBottom = true
-      sawBottomBrake = true
-      phase = .down
+    guard let guidedCycleState else {
+      abandonGuidedAttemptForRearm()
       return update(
-        didReachBottom: true,
+        event: .attemptRejected,
         tiltDegrees: tiltDegrees,
-        status: "Bottom locked. Drive straight back up."
+        status: "Tracking reset. Settle at the top, then begin again."
       )
     }
 
-    if didReachGuidedBottom {
-      if maximumUpwardVelocity >= configuration.minimumUpwardVelocity {
-        phase = .returning
-      } else {
-        phase = .down
+    let translatesPosition =
+      guidedCycleState != .bottomWait && !guidedTopCandidateReached
+    let directedAccelerationG = observeGuidedCycleFrame(
+      frame,
+      translatesPosition: translatesPosition
+    )
+
+    switch guidedCycleState {
+    case .descending:
+      phase = .descending
+      let hasMinimumDescentDuration =
+        guidedLegStartedAt.map {
+          sample.timestamp - $0
+            >= configuration.guidedMinimumHalfCycleDuration
+        } ?? false
+      let hasRequiredDescentEvidence =
+        maximumDownwardVelocity >= configuration.minimumDownwardVelocity
+      let hasMeaningfulLiveTravel =
+        maximumVerticalDrop >= minimumGuidedBottomTravelMeters
+      let endpointVelocityLimit = max(
+        0.025,
+        maximumDownwardVelocity
+          * configuration.guidedEndpointVelocityFraction
+      )
+      let hasReachedBottomVelocity =
+        verticalVelocity <= endpointVelocityLimit
+      let reachedConfiguredBottom =
+        verticalRangeTracker.normalizedPosition
+        <= configuration.bottomCompletionPosition
+          + configuration.positionHysteresis
+      // Debounce the brake edge without asking the user to hold the squat.
+      let requiredBottomConfirmationDuration = 0.12
+      if sawBottomBrake
+        || (
+          reachedConfiguredBottom
+            && directedAccelerationG
+              <= -configuration.guidedStartIntentAccelerationG
+        )
+      {
+        guidedBottomEndpointEvidenceSeen = true
+      }
+      let hasBottomEndpointEvidence =
+        hasReachedBottomVelocity
+        && guidedBottomEndpointEvidenceSeen
+      if hasBottomEndpointEvidence, guidedBottomCandidateReachedAt == nil {
+        guidedBottomCandidateReachedAt = sample.timestamp
+      }
+      let hasConfirmedBottomEndpoint =
+        guidedBottomCandidateReachedAt.map {
+          sample.timestamp - $0 >= requiredBottomConfirmationDuration
+        } ?? false
+      guard
+        hasMinimumDescentDuration,
+        hasConfirmedBottomEndpoint,
+        hasBottomEndpointEvidence,
+        hasMeaningfulLiveTravel
+      else {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Keep lowering until the marker reaches the bottom green zone."
+        )
       }
 
-      if phase == .returning,
-        position >= configuration.topCompletionPosition,
-        let cycleStartedAt,
-        sample.timestamp - cycleStartedAt >= configuration.minimumRepDuration
+      guard hasRequiredDescentEvidence else {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Keep lowering through one deliberate motion."
+        )
+      }
+      latchGuidedBottom(at: sample.timestamp)
+      return update(
+        event: .bottomReached,
+        didReachBottom: true,
+        tiltDegrees: tiltDegrees,
+        status: "Bottom inferred. Drive straight back up."
+      )
+
+    case .shallowPartialReturn:
+      phase = .returning
+      guard didObserveGuidedTopBraking else {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Return to the top; the next downward drive starts a fresh attempt."
+        )
+      }
+
+      beginGuidedDescentAfterPartial(at: sample.timestamp)
+      return update(
+        event: .attemptBegan,
+        tiltDegrees: tiltDegrees,
+        status: "Partial squat cleared. Keep lowering through the fresh attempt."
+      )
+
+    case .bottomWait:
+      pinGuidedBottom()
+      phase = .down
+      let hasFreshAscentDrive =
+        didObserveGuidedBottomBraking
+        || directedAccelerationG
+          <= -configuration.guidedStartIntentAccelerationG
+      guard hasFreshAscentDrive else {
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Bottom locked. Begin one deliberate upward drive."
+        )
+      }
+
+      let driveBeganAt = max(
+        guidedBottomReachedAt ?? sample.timestamp,
+        sample.timestamp - guidedBottomBrakeEvidenceDuration
+      )
+      beginGuidedAscent(at: driveBeganAt)
+      return update(
+        tiltDegrees: tiltDegrees,
+        status: "Upward drive locked. Continue to the top green zone."
+      )
+
+    case .ascending:
+      phase = .returning
+      if guidedAscentBrakeWasPremature,
+        !sawFinalBrake,
+        hasGuidedSettledMotion
       {
+        resetGuidedAscentToBottomWait(at: sample.timestamp)
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "That rise stopped early. Drive up again from the bottom marker."
+        )
+      }
+      if guidedTopCandidateReached {
+        pinGuidedTop()
+        let confirmationDuration = min(
+          0.15,
+          max(0.10, configuration.guidedTopSettlingWindowDuration)
+        )
+        let hasCompletedTolerantConfirmation =
+          sample.timestamp - (guidedTopCandidateReachedAt ?? sample.timestamp)
+          >= confirmationDuration
+        guard
+          hasGuidedSettledMotion || hasCompletedTolerantConfirmation
+        else {
+          return update(
+            tiltDegrees: tiltDegrees,
+            status: "Top reached. Settle briefly to bank the rep."
+          )
+        }
         return finishGuidedCycle(
           at: sample.timestamp,
           tiltDegrees: tiltDegrees
         )
       }
 
-      return update(
-        tiltDegrees: tiltDegrees,
-        status: phase == .returning
-          ? "Drive up until the marker reaches the top green zone."
-          : "Bottom locked. Reverse direction and drive up."
+      // A calibrated gauge can clamp before a slow physical leg finishes.
+      // Preserve phase order without forcing the ascent to match the descent.
+      let minimumTimedAscentDuration = max(
+        configuration.guidedMinimumHalfCycleDuration,
+        min(
+          3.0,
+          (guidedCompletedDescentDuration ?? 0) * 0.40
+        )
       )
-    }
+      let hasMinimumAscentDuration =
+        guidedLegStartedAt.map {
+          sample.timestamp - $0
+            >= minimumTimedAscentDuration
+        } ?? false
 
-    phase = .descending
-    if maximumUpwardVelocity >= configuration.minimumUpwardVelocity,
-      position
+      let hasRequiredAscentEvidence =
+        maximumUpwardVelocity >= configuration.minimumUpwardVelocity
+      let hasMinimumRepDuration =
+        cycleStartedAt.map {
+          sample.timestamp - $0 >= configuration.minimumRepDuration
+        } ?? false
+      let hasMeaningfulAscent =
+        verticalRangeTracker.heightMeters
+        >= minimumGuidedBottomTravelMeters
+      let endpointVelocityLimit = max(
+        0.025,
+        min(
+          0.12,
+          maximumUpwardVelocity
+            * configuration.guidedEndpointVelocityFraction
+        )
+      )
+      let reachedTolerantTop =
+        verticalRangeTracker.heightMeters
+        >= minimumGuidedTolerantTopHeightMeters
+      let reachedConfiguredTop =
+        verticalRangeTracker.normalizedPosition
         >= configuration.topCompletionPosition
-        - configuration.positionHysteresis,
-      maximumVerticalDrop
-        >= configuration.minimumVerticalDropMeters * 0.35
-    {
-      resetPartialRep(preservingDisplayedDrop: true)
-      phase = .standing
+      let hasReachedTopVelocity =
+        currentVerticalVelocity <= endpointVelocityLimit
+        || (
+          reachedConfiguredTop
+            && hasGuidedSettledMotion
+            && currentVerticalVelocity <= 0.45
+        )
+      let hasTopEndpointEvidence =
+        (
+          reachedConfiguredTop
+            && sawFinalBrake
+        )
+        || (
+          reachedTolerantTop
+            && sawFinalBrake
+            && currentVerticalVelocity <= endpointVelocityLimit
+        )
+      let topIsAlreadySettled = hasGuidedSettledMotion
+      if hasMinimumAscentDuration,
+        hasTopEndpointEvidence,
+        hasReachedTopVelocity,
+        hasMeaningfulAscent,
+        hasRequiredAscentEvidence,
+        hasMinimumRepDuration
+      {
+        guidedTopCandidateReached = true
+        guidedTopCandidateReachedAt = sample.timestamp
+        pinGuidedTop()
+        resetGuidedWaveformFilter()
+        if topIsAlreadySettled {
+          return finishGuidedCycle(
+            at: sample.timestamp,
+            tiltDegrees: tiltDegrees
+          )
+        }
+        resetStationaryWindow()
+        return update(
+          tiltDegrees: tiltDegrees,
+          status: "Top inferred. Settle briefly to bank the rep."
+        )
+      }
+
       return update(
         tiltDegrees: tiltDegrees,
-        status: "Not low enough. Start the next descent and reach the bottom zone."
+        status: "Drive up until the marker reaches the top green zone."
       )
     }
+  }
 
-    return update(
-      tiltDegrees: tiltDegrees,
-      status: "Keep lowering until the marker reaches the bottom green zone."
+  private mutating func latchGuidedBottom(
+    at timestamp: TimeInterval
+  ) {
+    guidedCompletedDescentDuration =
+      cycleStartedAt.map { max(0, timestamp - $0) }
+    guidedCycleState = .bottomWait
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = timestamp
+    guidedBottomCandidateReachedAt = nil
+    didReachGuidedBottom = true
+    sawBottomBrake = true
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    guidedBottomEndpointEvidenceSeen = false
+    guidedAscentBrakeWasPremature = false
+    maximumUpwardVelocity = 0
+    pinGuidedBottom()
+    filteredVerticalAccelerationG = 0
+    resetGuidedLobeEvidence()
+    resetStationaryWindow()
+    phase = .down
+  }
+
+  private mutating func pinGuidedBottom() {
+    verticalRangeTracker.snapToBottom()
+    verticalVelocity = 0
+  }
+
+  private mutating func pinGuidedTop() {
+    verticalRangeTracker.snapToTop()
+    verticalVelocity = 0
+  }
+
+  private mutating func beginGuidedAscent(
+    at timestamp: TimeInterval
+  ) {
+    guidedCycleState = .ascending
+    guidedLegStartedAt = timestamp
+    guidedAscentAssistIsEligible = false
+    guidedAscentBrakeWasPremature = false
+    sawFinalBrake = false
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    guidedBottomEndpointEvidenceSeen = false
+    maximumUpwardVelocity = 0
+    pinGuidedBottom()
+    filteredVerticalAccelerationG = 0
+    resetGuidedLobeEvidence()
+    resetStationaryWindow()
+    phase = .returning
+  }
+
+  private mutating func beginGuidedDescentAfterPartial(
+    at timestamp: TimeInterval
+  ) {
+    beginCycle(
+      at: timestamp,
+      verticalAccelerationDirection: verticalAccelerationDirection
     )
+    verticalRangeTracker.snapToTop()
+  }
+
+  private mutating func resetGuidedAscentToBottomWait(
+    at timestamp: TimeInterval
+  ) {
+    guidedCycleState = .bottomWait
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = timestamp
+    guidedAscentAssistIsEligible = false
+    guidedAscentBrakeWasPremature = false
+    sawFinalBrake = false
+    maximumUpwardVelocity = 0
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    guidedBottomEndpointEvidenceSeen = false
+    pinGuidedBottom()
+    filteredVerticalAccelerationG = 0
+    resetGuidedLobeEvidence()
+    resetStationaryWindow()
+    phase = .down
+  }
+
+  private mutating func resetGuidedLobeEvidence() {
+    guidedBottomBrakeEvidenceDuration = 0
+    guidedTopBrakeEvidenceDuration = 0
+    didObserveGuidedBottomBraking = false
+    didObserveGuidedTopBraking = false
+    resetGuidedWaveformFilter()
+  }
+
+  private mutating func abandonGuidedAttemptForRearm() {
+    resetPartialRep(preservingDisplayedDrop: true)
+    verticalRangeTracker.snapToTop()
+    verticalVelocity = 0
+    filteredVerticalAccelerationG = 0
+    resetGuidedLobeEvidence()
+    requireFreshGuidedTopRearm()
+    phase = .standing
+  }
+
+  private mutating func requireFreshGuidedTopRearm() {
+    hasConfirmedGuidedStanding = false
+    requiresQuietGuidedTop = true
+    resetGuidedStartIntent()
+    resetStationaryWindow()
+  }
+
+  private mutating func confirmGuidedTopRearm() {
+    hasConfirmedGuidedStanding = true
+    requiresQuietGuidedTop = false
+    resetGuidedStartIntent()
+    resetStationaryWindow()
   }
 
   private mutating func finishGuidedCycle(
     at timestamp: TimeInterval,
     tiltDegrees: Double
   ) -> SquatDetectorUpdate {
+    let validation = correctedGuidedCycle()
+    let boundedLiveTravel = min(
+      guidedValidationRangeMeters,
+      max(0, maximumVerticalDrop)
+    )
+    let supportedTravel = max(
+      boundedLiveTravel,
+      min(
+        guidedValidationRangeMeters,
+        max(0, validation.correctedTravelMeters)
+      )
+    )
+    displayedMaximumVerticalDrop = supportedTravel
+    let requiredTravel = minimumGuidedBottomTravelMeters
+    let maximumTravel = max(
+      configuration.maximumPlausibleDropMeters,
+      guidedValidationRangeMeters * 1.5
+    )
+    let hasValidTravel =
+      supportedTravel >= requiredTravel
+      && supportedTravel <= maximumTravel
+    let hasValidTilt =
+      maximumTiltDegrees <= configuration.guidedMaximumTiltDegrees
+    let hasValidRotation =
+      validation.maximumRotationRateRadiansPerSecond
+      <= configuration.guidedMaximumRotationRate
+    let hasValidAcceleration =
+      validation.maximumFilteredAccelerationG
+      <= configuration.guidedMaximumFilteredAccelerationG
+
+    guard
+      hasValidTravel,
+      hasValidTilt,
+      hasValidRotation,
+      hasValidAcceleration
+    else {
+      let status: String
+      if !hasValidTilt || !hasValidRotation {
+        status = "Phone movement was too rotational. Keep the same secure grip."
+      } else if !hasValidAcceleration {
+        status = "Motion spike rejected. Use one smooth down-and-up squat."
+      } else {
+        status = "That cycle was too shallow. Lower fully before returning."
+      }
+      resetPartialRep(preservingDisplayedDrop: true)
+      pinGuidedTop()
+      requireFreshGuidedTopRearm()
+      phase = .standing
+      return update(
+        event: .attemptRejected,
+        tiltDegrees: tiltDegrees,
+        status: status
+      )
+    }
+
+    pinGuidedTop()
+    filteredVerticalAccelerationG = 0
+    cycleStartedAt = nil
+    guidedCycleState = nil
+    guidedLegStartedAt = nil
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    guidedBottomEndpointEvidenceSeen = false
+    resetGuidedLobeEvidence()
+    if hasGuidedSettledMotion {
+      recenterAccelerationBiasFromStationaryWindow()
+    }
+    confirmGuidedTopRearm()
     repCount += 1
-    cooldownEndsAt = timestamp + configuration.cooldownDuration
+    cooldownEndsAt = timestamp + configuration.guidedCooldownDuration
     phase = .cooldown
     return update(
+      event: .repCounted,
       didCountRep: true,
       tiltDegrees: tiltDegrees,
       status: "Squat \(repCount) confirmed. Stay tall, then lower again."
@@ -1125,7 +1905,11 @@ public struct SquatDetector: Sendable {
       )
       resetPartialRep(preservingDisplayedDrop: true)
       phase = .standing
-      return update(tiltDegrees: tiltDegrees, status: message)
+      return update(
+        event: .attemptRejected,
+        tiltDegrees: tiltDegrees,
+        status: message
+      )
     }
 
     let completedDrop = displayedMaximumVerticalDrop
@@ -1135,6 +1919,7 @@ public struct SquatDetector: Sendable {
     cooldownEndsAt = timestamp + configuration.cooldownDuration
     phase = .cooldown
     return update(
+      event: .repCounted,
       didCountRep: true,
       tiltDegrees: tiltDegrees,
       status: "Squat \(repCount) confirmed. Stand tall before the next rep."
@@ -1146,6 +1931,15 @@ public struct SquatDetector: Sendable {
     verticalAccelerationDirection: Double
   ) {
     cycleStartedAt = timestamp
+    mayRefineGuidedArmBias = false
+    guidedLegStartedAt = usesGuidedThresholds ? timestamp : nil
+    guidedBottomReachedAt = nil
+    guidedBottomCandidateReachedAt = nil
+    guidedCompletedDescentDuration = nil
+    guidedBottomEndpointEvidenceSeen = false
+    guidedAscentAssistIsEligible = false
+    guidedAscentBrakeWasPremature = false
+    guidedCycleState = usesGuidedThresholds ? .descending : nil
     self.verticalAccelerationDirection =
       verticalAccelerationDirection >= 0 ? 1 : -1
     verticalVelocity = 0
@@ -1162,30 +1956,57 @@ public struct SquatDetector: Sendable {
     sawFinalBrake = false
     sawTiltOnlyDepth = false
     didReachGuidedBottom = false
-    cycleFrames = preRollFrames
-    preRollFrames.removeAll(keepingCapacity: true)
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    resetGuidedLobeEvidence()
     filteredVerticalAccelerationG = 0
-    for frame in cycleFrames {
-      integrateLiveFrame(frame)
+    if usesGuidedThresholds {
+      // Start bounded phase integration at the sustained intent edge. Banking
+      // pre-roll here exaggerates short, forceful partial motions and makes
+      // them look deeper than they were.
+      cycleFrames.removeAll(keepingCapacity: true)
+      preRollFrames.removeAll(keepingCapacity: true)
+    } else {
+      cycleFrames = preRollFrames
+      preRollFrames.removeAll(keepingCapacity: true)
+      for frame in cycleFrames {
+        integrateLiveFrame(frame)
+      }
     }
     phase = .descending
   }
 
   private mutating func prepareNextGuidedCycle(
-    at timestamp: TimeInterval
+    at _: TimeInterval
   ) {
-    cycleStartedAt = timestamp
-    maximumVerticalDrop = verticalRangeTracker.downwardTravelMeters
-    maximumDownwardVelocity = max(0, verticalVelocity)
-    maximumUpwardVelocity = max(0, -verticalVelocity)
+    cycleStartedAt = nil
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = nil
+    guidedBottomCandidateReachedAt = nil
+    guidedCompletedDescentDuration = nil
+    guidedBottomEndpointEvidenceSeen = false
+    guidedAscentAssistIsEligible = false
+    guidedAscentBrakeWasPremature = false
+    guidedCycleState = nil
+    verticalRangeTracker.snapToTop()
+    verticalVelocity = 0
+    maximumVerticalDrop = 0
+    maximumDownwardVelocity = 0
+    maximumUpwardVelocity = 0
     maximumTiltDegrees = 0
     maximumDirectedDepthDegrees = 0
     sawBottomBrake = false
     sawFinalBrake = false
     sawTiltOnlyDepth = false
     didReachGuidedBottom = false
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    resetGuidedLobeEvidence()
     preRollFrames.removeAll(keepingCapacity: true)
     cycleFrames.removeAll(keepingCapacity: true)
+    filteredVerticalAccelerationG = 0
+    resetGuidedStartIntent()
+    confirmGuidedTopRearm()
     phase = .standing
   }
 
@@ -1196,42 +2017,191 @@ public struct SquatDetector: Sendable {
     integrateLiveFrame(frame)
   }
 
+  @discardableResult
+  private mutating func observeGuidedCycleFrame(
+    _ frame: SquatDetectorMotionFrame,
+    translatesPosition: Bool
+  ) -> Double {
+    cycleFrames.append(frame)
+    let directedAccelerationG = updateFilteredVerticalAcceleration(
+      for: frame
+    )
+    observeGuidedEndpointBraking(
+      directedAccelerationG: directedAccelerationG,
+      deltaTime: frame.deltaTime
+    )
+    if translatesPosition {
+      integratePosition(
+        frame,
+        directedAccelerationG: directedAccelerationG
+      )
+    } else {
+      maximumTiltDegrees = max(maximumTiltDegrees, frame.tiltDegrees)
+      if let directedDepthDegrees = frame.directedDepthDegrees {
+        maximumDirectedDepthDegrees = max(
+          maximumDirectedDepthDegrees,
+          directedDepthDegrees
+        )
+      }
+    }
+    return directedAccelerationG
+  }
+
   private mutating func integrateLiveFrame(
     _ frame: SquatDetectorMotionFrame
   ) {
+    let directedAccelerationG = updateFilteredVerticalAcceleration(
+      for: frame
+    )
+    observeGuidedEndpointBraking(
+      directedAccelerationG: directedAccelerationG,
+      deltaTime: frame.deltaTime
+    )
+    integratePosition(
+      frame,
+      directedAccelerationG: directedAccelerationG
+    )
+  }
+
+  private mutating func updateFilteredVerticalAcceleration(
+    for frame: SquatDetectorMotionFrame
+  ) -> Double {
+    if usesGuidedThresholds {
+      let filteredAccelerationG = updateGuidedWaveformFilter(
+        with: frame.accelerationG
+      )
+      return filteredAccelerationG * verticalAccelerationDirection
+    }
+
     let smoothing = min(1, max(0, configuration.accelerationSmoothingFactor))
-    filteredVerticalAccelerationG =
-      verticalRangeTracker.discardingOutwardComponent(
-        filteredVerticalAccelerationG * verticalAccelerationDirection
-      ) * verticalAccelerationDirection
+    let integrationAccelerationG = deadband(
+      frame.accelerationG,
+      threshold: configuration.verticalAccelerationDeadbandG
+    )
     filteredVerticalAccelerationG +=
-      (frame.accelerationG - filteredVerticalAccelerationG) * smoothing
+      (integrationAccelerationG - filteredVerticalAccelerationG) * smoothing
+    return filteredVerticalAccelerationG * verticalAccelerationDirection
+  }
+
+  private mutating func updateGuidedWaveformFilter(
+    with accelerationG: Double
+  ) -> Double {
+    guidedAccelerationWindow.append(accelerationG)
+    guidedAccelerationWindowTotal += accelerationG
+    let sampleCount = configuration.guidedWaveformSmoothingSampleCount
+    if guidedAccelerationWindow.count > sampleCount {
+      guidedAccelerationWindowTotal -= guidedAccelerationWindow.removeFirst()
+    }
+    filteredVerticalAccelerationG =
+      guidedAccelerationWindowTotal
+      / Double(guidedAccelerationWindow.count)
+    return filteredVerticalAccelerationG
+  }
+
+  private mutating func resetGuidedWaveformFilter() {
+    guidedAccelerationWindow.removeAll(keepingCapacity: true)
+    guidedAccelerationWindowTotal = 0
+    filteredVerticalAccelerationG = 0
+  }
+
+  private mutating func integratePosition(
+    _ frame: SquatDetectorMotionFrame,
+    directedAccelerationG: Double
+  ) {
     let acceleration =
-      filteredVerticalAccelerationG * verticalAccelerationDirection
-      * Self.metersPerSecondSquaredPerG
+      directedAccelerationG * Self.metersPerSecondSquaredPerG
+    if verticalRangeTracker.heightMeters <= 0, verticalVelocity > 0 {
+      verticalVelocity = 0
+    } else if
+      verticalRangeTracker.heightMeters >= verticalRangeTracker.rangeMeters,
+      verticalVelocity < 0
+    {
+      verticalVelocity = 0
+    }
     let previousVelocity = verticalVelocity
-    verticalVelocity += acceleration * frame.deltaTime
+    let acceleratesPastBottom =
+      verticalRangeTracker.heightMeters <= 0
+      && previousVelocity >= 0
+      && acceleration > 0
+    let acceleratesPastTop =
+      verticalRangeTracker.heightMeters >= verticalRangeTracker.rangeMeters
+      && previousVelocity <= 0
+      && acceleration < 0
+    if !acceleratesPastBottom, !acceleratesPastTop {
+      verticalVelocity += acceleration * frame.deltaTime
+    }
     verticalVelocity *= exp(
       -configuration.velocityDampingPerSecond * frame.deltaTime
     )
+
+    if usesGuidedThresholds {
+      switch guidedCycleState {
+      case .descending:
+        if verticalVelocity < 0 {
+          verticalVelocity = 0
+        }
+      case .ascending:
+        if verticalVelocity > 0 {
+          verticalVelocity = 0
+        }
+        if guidedAscentAssistIsEligible,
+          maximumUpwardVelocity >= configuration.minimumUpwardVelocity,
+          verticalRangeTracker.heightMeters
+            >= minimumGuidedBottomTravelMeters,
+          verticalRangeTracker.heightMeters
+            < minimumGuidedTolerantTopHeightMeters
+        {
+          let assistedUpwardVelocity =
+            verticalRangeTracker.rangeMeters
+            * configuration.guidedAscentAssistFractionPerSecond
+          verticalVelocity = min(
+            verticalVelocity,
+            -assistedUpwardVelocity
+          )
+        }
+      case .bottomWait:
+        verticalVelocity = 0
+      case .shallowPartialReturn, nil:
+        break
+      }
+      let maximumGuidedSpeed = max(
+        0.60,
+        min(
+          1.0,
+          guidedValidationRangeMeters
+            / configuration.guidedMinimumHalfCycleDuration
+        )
+      )
+      verticalVelocity = min(
+        maximumGuidedSpeed,
+        max(-maximumGuidedSpeed, verticalVelocity)
+      )
+    }
+
     let downwardDisplacement =
       ((previousVelocity + verticalVelocity) * 0.5) * frame.deltaTime
+    let previousHeight = verticalRangeTracker.heightMeters
     verticalRangeTracker.move(downwardBy: downwardDisplacement)
-    verticalVelocity = verticalRangeTracker.discardingOutwardComponent(
-      verticalVelocity
-    )
-    filteredVerticalAccelerationG =
-      verticalRangeTracker.discardingOutwardComponent(
-        filteredVerticalAccelerationG * verticalAccelerationDirection
-      ) * verticalAccelerationDirection
-    maximumVerticalDrop = max(
-      maximumVerticalDrop,
-      verticalRangeTracker.downwardTravelMeters
-    )
-    displayedMaximumVerticalDrop = max(
-      displayedMaximumVerticalDrop,
-      maximumVerticalDrop
-    )
+    if usesGuidedThresholds {
+      let reachedBottomBoundary =
+        previousHeight > 0 && verticalRangeTracker.heightMeters <= 0
+      let reachedTopBoundary =
+        previousHeight < verticalRangeTracker.rangeMeters
+        && verticalRangeTracker.heightMeters >= verticalRangeTracker.rangeMeters
+      if reachedBottomBoundary || reachedTopBoundary {
+        resetStationaryWindow()
+      }
+    }
+    if !usesGuidedThresholds || guidedCycleState == .descending {
+      maximumVerticalDrop = max(
+        maximumVerticalDrop,
+        verticalRangeTracker.downwardTravelMeters
+      )
+      displayedMaximumVerticalDrop = max(
+        displayedMaximumVerticalDrop,
+        maximumVerticalDrop
+      )
+    }
     maximumDownwardVelocity = max(maximumDownwardVelocity, verticalVelocity)
     maximumUpwardVelocity = max(maximumUpwardVelocity, -verticalVelocity)
     maximumTiltDegrees = max(maximumTiltDegrees, frame.tiltDegrees)
@@ -1240,6 +2210,55 @@ public struct SquatDetector: Sendable {
         maximumDirectedDepthDegrees,
         directedDepthDegrees
       )
+    }
+  }
+
+  private mutating func observeGuidedEndpointBraking(
+    directedAccelerationG: Double,
+    deltaTime: TimeInterval
+  ) {
+    guard usesGuidedThresholds else { return }
+    let threshold = configuration.guidedWaveformLobeThresholdG
+    if directedAccelerationG < -threshold {
+      guidedBottomBrakeEvidenceDuration += deltaTime
+      didObserveGuidedBottomBraking =
+        guidedBottomBrakeEvidenceDuration
+        >= configuration.guidedLobeEvidenceDuration
+      if didObserveGuidedBottomBraking,
+        guidedCycleState == .descending
+      {
+        sawBottomBrake = true
+      }
+    } else {
+      guidedBottomBrakeEvidenceDuration = 0
+      didObserveGuidedBottomBraking = false
+    }
+
+    if directedAccelerationG > threshold {
+      let wasObservingTopBraking = didObserveGuidedTopBraking
+      guidedTopBrakeEvidenceDuration += deltaTime
+      didObserveGuidedTopBraking =
+        guidedTopBrakeEvidenceDuration
+        >= configuration.guidedLobeEvidenceDuration
+      if didObserveGuidedTopBraking,
+        guidedCycleState == .ascending
+      {
+        if !wasObservingTopBraking {
+          let brakePosition = verticalRangeTracker.normalizedPosition
+          if brakePosition
+            >= configuration.guidedQualifiedTopBrakeMinimumPosition
+          {
+            guidedAscentAssistIsEligible = true
+            guidedAscentBrakeWasPremature = false
+            sawFinalBrake = true
+          } else {
+            guidedAscentBrakeWasPremature = true
+          }
+        }
+      }
+    } else {
+      guidedTopBrakeEvidenceDuration = 0
+      didObserveGuidedTopBraking = false
     }
   }
 
@@ -1329,6 +2348,141 @@ public struct SquatDetector: Sendable {
     )
   }
 
+  /// Reconstructs a completed guided cycle without carrying integration drift
+  /// into the validation decision.
+  ///
+  /// An affine acceleration correction is solved so the reconstructed cycle
+  /// has both zero terminal velocity and zero terminal displacement. The
+  /// resulting peak-to-peak excursion is used only after the ordered waveform
+  /// and settled top have already been observed.
+  private func correctedGuidedCycle() -> SquatGuidedCycleValidation {
+    guard cycleFrames.count >= 3 else {
+      return SquatGuidedCycleValidation(
+        correctedTravelMeters: 0,
+        maximumFilteredAccelerationG: 0,
+        maximumRotationRateRadiansPerSecond: 0
+      )
+    }
+
+    let boxcarSampleCount = configuration.guidedWaveformSmoothingSampleCount
+    var accelerationWindow: [Double] = []
+    var accelerationWindowTotal = 0.0
+    var elapsed = 0.0
+    var accelerations: [Double] = []
+    var deltaTimes: [TimeInterval] = []
+    var sampleTimes: [TimeInterval] = []
+    var maximumFilteredAccelerationG = 0.0
+    var maximumRotationRate = 0.0
+    accelerations.reserveCapacity(cycleFrames.count)
+    deltaTimes.reserveCapacity(cycleFrames.count)
+    sampleTimes.reserveCapacity(cycleFrames.count)
+
+    for frame in cycleFrames {
+      accelerationWindow.append(frame.accelerationG)
+      accelerationWindowTotal += frame.accelerationG
+      if accelerationWindow.count > boxcarSampleCount {
+        accelerationWindowTotal -= accelerationWindow.removeFirst()
+      }
+      let filteredAccelerationG =
+        accelerationWindowTotal / Double(accelerationWindow.count)
+      elapsed += frame.deltaTime
+      accelerations.append(
+        filteredAccelerationG
+          * verticalAccelerationDirection
+          * Self.metersPerSecondSquaredPerG
+      )
+      deltaTimes.append(frame.deltaTime)
+      sampleTimes.append(elapsed)
+      maximumFilteredAccelerationG = max(
+        maximumFilteredAccelerationG,
+        filteredAccelerationG
+      )
+      maximumRotationRate = max(
+        maximumRotationRate,
+        frame.rotationRateRadiansPerSecond
+      )
+    }
+
+    func terminalState(
+      initialAcceleration: Double,
+      accelerationAt: (Int) -> Double
+    ) -> (velocity: Double, displacement: Double) {
+      var velocity = 0.0
+      var displacement = 0.0
+      var previousAcceleration = initialAcceleration
+      for index in accelerations.indices {
+        let acceleration = accelerationAt(index)
+        let nextVelocity =
+          velocity
+          + ((previousAcceleration + acceleration)
+            * 0.5
+            * deltaTimes[index])
+        displacement +=
+          ((velocity + nextVelocity) * 0.5) * deltaTimes[index]
+        velocity = nextVelocity
+        previousAcceleration = acceleration
+      }
+      return (velocity, displacement)
+    }
+
+    let rawTerminal = terminalState(initialAcceleration: 0) {
+      accelerations[$0]
+    }
+    let constantBasis = terminalState(initialAcceleration: 1) { _ in 1 }
+    let linearBasis = terminalState(initialAcceleration: 0) {
+      sampleTimes[$0]
+    }
+    let determinant =
+      (constantBasis.velocity * linearBasis.displacement)
+      - (linearBasis.velocity * constantBasis.displacement)
+    guard abs(determinant) > 0.000_000_001 else {
+      return SquatGuidedCycleValidation(
+        correctedTravelMeters: 0,
+        maximumFilteredAccelerationG: maximumFilteredAccelerationG,
+        maximumRotationRateRadiansPerSecond: maximumRotationRate
+      )
+    }
+
+    let constantCorrection =
+      ((rawTerminal.velocity * linearBasis.displacement)
+        - (linearBasis.velocity * rawTerminal.displacement))
+      / determinant
+    let linearCorrection =
+      ((constantBasis.velocity * rawTerminal.displacement)
+        - (rawTerminal.velocity * constantBasis.displacement))
+      / determinant
+
+    var velocity = 0.0
+    var displacement = 0.0
+    var minimumDisplacement = 0.0
+    var maximumDisplacement = 0.0
+    var previousCorrectedAcceleration =
+      -constantCorrection
+    for index in accelerations.indices {
+      let correctedAcceleration =
+        accelerations[index]
+        - constantCorrection
+        - (linearCorrection * sampleTimes[index])
+      let nextVelocity =
+        velocity
+        + ((previousCorrectedAcceleration + correctedAcceleration)
+          * 0.5
+          * deltaTimes[index])
+      displacement +=
+        ((velocity + nextVelocity) * 0.5) * deltaTimes[index]
+      minimumDisplacement = min(minimumDisplacement, displacement)
+      maximumDisplacement = max(maximumDisplacement, displacement)
+      velocity = nextVelocity
+      previousCorrectedAcceleration = correctedAcceleration
+    }
+
+    return SquatGuidedCycleValidation(
+      correctedTravelMeters: maximumDisplacement - minimumDisplacement,
+      maximumFilteredAccelerationG: maximumFilteredAccelerationG,
+      maximumRotationRateRadiansPerSecond: maximumRotationRate
+    )
+  }
+
   private mutating func appendPreRollFrame(
     _ frame: SquatDetectorMotionFrame
   ) {
@@ -1352,12 +2506,18 @@ public struct SquatDetector: Sendable {
         specificForceMagnitudeG: sample.specificForceMagnitude,
         rotationMagnitudeRadiansPerSecond: sample.rotationRateMagnitude,
         projectedAccelerationG: projectedAccelerationG,
-        gravity: gravity
+        gravity: gravity,
+        userAcceleration: sample.userAcceleration
       )
     )
     let windowDuration = max(
       0.08,
-      configuration.stationaryAnalysisWindowDuration
+      max(
+        configuration.stationaryAnalysisWindowDuration,
+        usesGuidedThresholds
+          ? configuration.guidedTopSettlingWindowDuration
+          : 0
+      )
     )
     stationaryFrames.removeAll {
       $0.timestamp < sample.timestamp - windowDuration
@@ -1426,6 +2586,53 @@ public struct SquatDetector: Sendable {
     )
   }
 
+  private var hasGuidedSettledMotion: Bool {
+    guard
+      usesGuidedThresholds,
+      let first = stationaryFrames.first,
+      let last = stationaryFrames.last,
+      last.timestamp - first.timestamp
+        >= configuration.guidedTopSettlingWindowDuration * 0.85,
+      !stationaryFrames.isEmpty
+    else {
+      return false
+    }
+
+    let sampleCount = Double(stationaryFrames.count)
+    let accelerationMean =
+      stationaryFrames.reduce(0) {
+        $0 + $1.projectedAccelerationG
+      } / sampleCount
+    let accelerationVariance =
+      stationaryFrames.reduce(0) {
+        let residual = $1.projectedAccelerationG - accelerationMean
+        return $0 + (residual * residual)
+      } / sampleCount
+    let accelerationStandardDeviation = sqrt(
+      max(0, accelerationVariance)
+    )
+    let rotationRMS = sqrt(
+      stationaryFrames.reduce(0) {
+        $0
+          + ($1.rotationMagnitudeRadiansPerSecond
+            * $1.rotationMagnitudeRadiansPerSecond)
+      } / sampleCount
+    )
+    let neutralMeanToleranceG = min(
+      configuration.guidedSettlingMeanAccelerationToleranceG,
+      max(
+        0.012,
+        configuration.guidedWaveformLobeThresholdG * 0.75
+      )
+    )
+    return
+      accelerationStandardDeviation
+      <= configuration.guidedSettlingAccelerationStandardDeviationG
+      && abs(accelerationMean)
+        <= neutralMeanToleranceG
+      && rotationRMS <= configuration.guidedSettlingRotationRMS
+  }
+
   private mutating func configureStationaryThresholds() {
     let forceVariance = variance(calibrationSpecificForceMagnitudes)
     effectiveStationarySpecificForceVarianceG2 = min(
@@ -1470,6 +2677,56 @@ public struct SquatDetector: Sendable {
     accelerationBias = accelerationBias.adding(
       sample.subtracting(accelerationBias).scaled(by: factor)
     )
+  }
+
+  private mutating func recenterAccelerationBiasFromStationaryWindow() {
+    guard
+      let averageAcceleration = averageVector(
+        stationaryFrames.map(\.userAcceleration)
+      )
+    else {
+      return
+    }
+    accelerationBias = averageAcceleration
+  }
+
+  private mutating func observesDeliberateGuidedStart(
+    projectedAccelerationG: Double,
+    deltaTime: TimeInterval
+  ) -> Bool {
+    let threshold =
+      mayRefineGuidedArmBias
+      ? max(
+        configuration.guidedWaveformLobeThresholdG * 1.5,
+        configuration.guidedStartIntentAccelerationG
+      )
+      : configuration.guidedStartIntentAccelerationG
+    guard abs(projectedAccelerationG) >= threshold else {
+      resetGuidedStartIntent()
+      return false
+    }
+
+    let direction = projectedAccelerationG >= 0 ? 1.0 : -1.0
+    if let calibratedDirection = configuration.calibratedDescentDirection,
+      direction != calibratedDirection.multiplier
+    {
+      resetGuidedStartIntent()
+      return false
+    }
+    if guidedStartIntentDirection == direction {
+      guidedStartIntentDuration += deltaTime
+    } else {
+      guidedStartIntentDirection = direction
+      guidedStartIntentDuration = deltaTime
+    }
+    return guidedStartIntentDuration
+      >= configuration.guidedStartIntentDuration
+  }
+
+  private mutating func resetGuidedStartIntent() {
+    guidedStartIntentDirection = 0
+    guidedStartIntentDuration = 0
+    guidedTopQuietEvidenceDuration = 0
   }
 
   private func makeExpectedDepthDirection(
@@ -1522,12 +2779,57 @@ public struct SquatDetector: Sendable {
       || tiltDegrees >= configuration.minimumDepthTiltDegrees
   }
 
+  private var hasUsableTiltDepthConstraint: Bool {
+    configuration.minimumCalibratedDepthDegrees != nil
+      || configuration.minimumDepthTiltDegrees > 0
+  }
+
   private var reachedDepthDuringCycle: Bool {
     if let required = configuration.minimumCalibratedDepthDegrees {
       return maximumDirectedDepthDegrees >= required
     }
     return configuration.minimumDepthTiltDegrees <= 0
       || maximumTiltDegrees >= configuration.minimumDepthTiltDegrees
+  }
+
+  /// Scale used for tolerant depth validation while the gauge keeps measured H.
+  private var guidedValidationRangeMeters: Double {
+    min(
+      SquatDetectorConfiguration.defaultVerticalRangeMeters,
+      configuration.verticalRangeMeters
+    )
+  }
+
+  /// Small but meaningful live travel required before a bottom can latch.
+  ///
+  /// The bounded 7.5–9 cm gate rejects hand bounces without demanding that
+  /// open-loop IMU integration reproduce the user's full calibrated depth.
+  private var minimumGuidedBottomTravelMeters: Double {
+    max(
+      0.075,
+      min(
+        0.09,
+        guidedValidationRangeMeters
+          * configuration.guidedMinimumTravelFraction
+      )
+    )
+  }
+
+  /// Return travel needed when a brake or quiet window infers the live top.
+  private var minimumGuidedReturnTravelMeters: Double {
+    max(
+      minimumGuidedBottomTravelMeters,
+      min(guidedValidationRangeMeters, maximumVerticalDrop)
+        * configuration.guidedMinimumReturnFraction
+    )
+  }
+
+  /// Tolerant top height supported by either phase or measured return travel.
+  private var minimumGuidedTolerantTopHeightMeters: Double {
+    min(
+      verticalRangeTracker.rangeMeters * 0.72,
+      minimumGuidedReturnTravelMeters
+    )
   }
 
   private mutating func sampleInterval(
@@ -1543,10 +2845,14 @@ public struct SquatDetector: Sendable {
       deltaTime > 0,
       deltaTime <= configuration.maximumSampleInterval
     else {
-      resetPartialRep(preservingDisplayedDrop: true)
+      if usesGuidedThresholds {
+        abandonGuidedAttemptForRearm()
+      } else {
+        resetPartialRep(preservingDisplayedDrop: true)
+        phase = .standing
+      }
       resetStationaryWindow()
       filteredVerticalAccelerationG = 0
-      phase = .standing
       return nil
     }
     return deltaTime
@@ -1606,6 +2912,14 @@ public struct SquatDetector: Sendable {
     preservingDisplayedDrop: Bool = false
   ) {
     cycleStartedAt = nil
+    guidedLegStartedAt = nil
+    guidedBottomReachedAt = nil
+    guidedBottomCandidateReachedAt = nil
+    guidedCompletedDescentDuration = nil
+    guidedBottomEndpointEvidenceSeen = false
+    guidedAscentAssistIsEligible = false
+    guidedAscentBrakeWasPremature = false
+    guidedCycleState = nil
     verticalVelocity = 0
     if !usesGuidedThresholds {
       verticalRangeTracker.reset()
@@ -1620,6 +2934,9 @@ public struct SquatDetector: Sendable {
     sawFinalBrake = false
     sawTiltOnlyDepth = false
     didReachGuidedBottom = false
+    guidedTopCandidateReached = false
+    guidedTopCandidateReachedAt = nil
+    resetGuidedLobeEvidence()
     preRollFrames.removeAll(keepingCapacity: true)
     cycleFrames.removeAll(keepingCapacity: true)
     filteredVerticalAccelerationG = 0
@@ -1692,22 +3009,44 @@ public struct SquatDetector: Sendable {
     return verticalRangeTracker.normalizedPosition
   }
 
+  private var currentVerticalVelocity: Double {
+    let heightVelocity = -verticalVelocity
+    guard heightVelocity.isFinite else { return 0 }
+    return heightVelocity
+  }
+
+  private var currentNormalizedVerticalVelocity: Double {
+    let rangeMeters = verticalRangeTracker.rangeMeters
+    guard rangeMeters.isFinite, rangeMeters > 0 else { return 0 }
+    return min(1, max(-1, currentVerticalVelocity / rangeMeters))
+  }
+
   private func update(
+    event: SquatDetectorEvent? = nil,
     didCountRep: Bool = false,
     didReachBottom: Bool = false,
     tiltDegrees: Double? = nil,
     status: String
   ) -> SquatDetectorUpdate {
-    SquatDetectorUpdate(
+    return SquatDetectorUpdate(
       phase: phase,
       repCount: repCount,
+      event: event,
       didCountRep: didCountRep,
       tiltDegrees: tiltDegrees,
+      verticalRangeMeters: verticalRangeTracker.rangeMeters,
       maximumVerticalDropMeters: displayedMaximumVerticalDrop,
       requiredVerticalDropMeters: configuration.minimumVerticalDropMeters,
       currentVerticalHeightMeters: verticalRangeTracker.heightMeters,
       currentVerticalDropMeters: currentVerticalDrop,
       verticalPosition: currentVerticalPosition,
+      currentVerticalVelocityMetersPerSecond: currentVerticalVelocity,
+      normalizedVerticalVelocity: currentNormalizedVerticalVelocity,
+      projectedVerticalAccelerationG: latestProjectedVerticalAccelerationG,
+      verticalAccelerationBiasG: latestVerticalAccelerationBiasG,
+      isStationary:
+        stationaryDuration >= configuration.stationaryHoldDuration,
+      isHapticQuarantined: latestSampleWasHapticQuarantined,
       didReachBottom: didReachBottom,
       status: status
     )

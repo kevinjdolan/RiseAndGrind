@@ -46,13 +46,35 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
   var instruction: String {
     switch self {
     case .standing:
-      "Move to your normal starting position, then press and hold the center button for 2 seconds."
+      "Begin by standing in an upright position, legs shoulder width apart, knees slightly bent, and hold your phone about six inches in front of your heart. Then press the button and hold for two seconds."
     case .depth:
-      "Squat to your normal lower position, then press and hold the center button for 2 seconds."
+      "Now bring your body down to the ground as low as you can, keeping your phone right there in front of your heart. I mean it, bust it down real low. Then press the button and hold for two seconds."
     case .returned:
-      "Return to your top position, then press and hold the center button for 2 seconds."
+      "Return back to your original upright position, and once again, press the button and hold for two seconds."
     case .complete:
-      "Rise & Grind captured your personal standing, depth, and return positions."
+      "Standing, depth, and return positions captured."
+    }
+  }
+
+  var poseImageName: String {
+    switch self {
+    case .depth:
+      "CalibrationChadDown"
+    case .standing, .returned, .complete:
+      "CalibrationChadUp"
+    }
+  }
+
+  var audioAssetName: String? {
+    switch self {
+    case .standing:
+      "CalibrationInstruction1"
+    case .depth:
+      "CalibrationInstruction2"
+    case .returned:
+      "CalibrationInstruction3"
+    case .complete:
+      nil
     }
   }
 
@@ -271,7 +293,6 @@ struct SquatCalibrationView: View {
   let onComplete: @MainActor (SquatCalibrationProfile) -> Void
 
   @State private var session = SquatCalibrationViewSession()
-  @State private var isShowingHelp = true
 
   init(
     onComplete: @escaping @MainActor (SquatCalibrationProfile) -> Void = { _ in }
@@ -286,7 +307,6 @@ struct SquatCalibrationView: View {
 
         ScrollView {
           VStack(spacing: 16) {
-            placementCard
             stageCard
             if let result = session.completedResult {
               resultCard(result)
@@ -318,13 +338,6 @@ struct SquatCalibrationView: View {
       guard let result else { return }
       onComplete(result)
     }
-    .alert("HOW TO CALIBRATE", isPresented: $isShowingHelp) {
-      Button("GOT IT") {}
-    } message: {
-      Text(
-        "Go to your normal upright starting position and hold the iPhone the same way you will during the challenge. Press and hold the center button until the circle fills for 2 seconds. Repeat at your normal squat bottom, then once more after returning upright. Releasing early resets that sample to zero."
-      )
-    }
   }
 
   private var header: some View {
@@ -341,17 +354,6 @@ struct SquatCalibrationView: View {
         }
 
         Spacer()
-
-        Button {
-          isShowingHelp = true
-        } label: {
-          Image(systemName: "questionmark")
-            .font(.subheadline.weight(.black))
-            .foregroundStyle(RGTheme.gold)
-            .frame(width: 40, height: 40)
-            .background(RGTheme.graphite.opacity(0.72), in: Circle())
-        }
-        .accessibilityLabel("Calibration help")
 
         Button {
           dismiss()
@@ -675,50 +677,10 @@ struct SquatCalibrationView: View {
     )
   }
 
-  private var placementCard: some View {
-    RGCard(accent: RGTheme.orange) {
-      HStack(alignment: .top, spacing: 13) {
-        Image(systemName: "iphone.gen3")
-          .font(.title2.weight(.bold))
-          .foregroundStyle(RGTheme.orange)
-          .frame(width: 42, height: 42)
-          .background(RGTheme.orange.opacity(0.12), in: Circle())
-
-        VStack(alignment: .leading, spacing: 4) {
-          Text("Hold it like a kettlebell.")
-            .font(.headline.weight(.black))
-            .foregroundStyle(RGTheme.cream)
-          Text(
-            "Hold the iPhone upright in both hands in front of your chest, screen facing you. Keep the same grip and let it travel down and up with your squat."
-          )
-          .font(.caption)
-          .foregroundStyle(RGTheme.mutedCream)
-          .fixedSize(horizontal: false, vertical: true)
-        }
-      }
-    }
-  }
-
   private var stageCard: some View {
     RGCard(accent: session.stage == .complete ? RGTheme.mint : RGTheme.magenta) {
       VStack(spacing: 16) {
-        VStack(spacing: 6) {
-          Text(session.stage.eyebrow.uppercased())
-            .font(.caption.weight(.black))
-            .tracking(1.5)
-            .foregroundStyle(RGTheme.gold)
-
-          Text(session.stage.title)
-            .font(.title2.weight(.black))
-            .foregroundStyle(RGTheme.cream)
-            .multilineTextAlignment(.center)
-
-          Text(session.stage.instruction)
-            .font(.subheadline)
-            .foregroundStyle(RGTheme.mutedCream)
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-        }
+        poseGuidance
 
         ZStack {
           Circle()
@@ -817,6 +779,75 @@ struct SquatCalibrationView: View {
     }
   }
 
+  private var poseGuidance: some View {
+    HStack(alignment: .center, spacing: 14) {
+      ZStack(alignment: .bottom) {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+          .fill(
+            LinearGradient(
+              colors: [
+                RGTheme.graphite.opacity(0.18),
+                RGTheme.magenta.opacity(0.12),
+              ],
+              startPoint: .top,
+              endPoint: .bottom
+            )
+          )
+
+        Image(session.stage.poseImageName)
+          .resizable()
+          .scaledToFit()
+          .padding(.horizontal, 5)
+          .padding(.top, 5)
+      }
+      .frame(width: 106, height: 170)
+      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+      .overlay {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+          .stroke(RGTheme.gold.opacity(0.18), lineWidth: 1)
+      }
+      .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 7) {
+        Text(session.stage.eyebrow.uppercased())
+          .font(.caption2.weight(.black))
+          .tracking(1.25)
+          .foregroundStyle(RGTheme.gold)
+
+        Text(session.stage.title)
+          .font(.title3.weight(.black))
+          .foregroundStyle(RGTheme.cream)
+          .fixedSize(horizontal: false, vertical: true)
+
+        Text(session.stage.instruction)
+          .font(.caption)
+          .foregroundStyle(RGTheme.mutedCream)
+          .fixedSize(horizontal: false, vertical: true)
+
+        if session.stage.audioAssetName != nil {
+          Button {
+            session.playCurrentInstruction()
+          } label: {
+            Label("REPLAY VOICE", systemImage: "speaker.wave.2.fill")
+              .font(.caption2.weight(.black))
+              .tracking(0.7)
+              .foregroundStyle(RGTheme.gold)
+              .padding(.horizontal, 11)
+              .padding(.vertical, 8)
+              .background(RGTheme.gold.opacity(0.10), in: Capsule())
+              .overlay {
+                Capsule()
+                  .stroke(RGTheme.gold.opacity(0.32), lineWidth: 1)
+              }
+          }
+          .buttonStyle(.plain)
+          .accessibilityHint("Plays the spoken instruction for this position.")
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
   private func resultCard(_ result: SquatCalibrationProfile) -> some View {
     RGCard(accent: RGTheme.mint) {
       HStack {
@@ -896,7 +927,13 @@ private final class SquatCalibrationViewSession {
   private let motionManager = CMMotionManager()
 
   @ObservationIgnored
-  private let speaker = AVSpeechSynthesizer()
+  private let progressHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
+
+  @ObservationIgnored
+  private let completionHapticGenerator = UIImpactFeedbackGenerator(style: .heavy)
+
+  @ObservationIgnored
+  private var instructionPlayer: AVAudioPlayer?
 
   @ObservationIgnored
   private let motionQueue: OperationQueue
@@ -916,6 +953,9 @@ private final class SquatCalibrationViewSession {
   @ObservationIgnored
   private var simulatedCaptureTask: Task<Void, Never>?
 
+  @ObservationIgnored
+  private var completionHapticTask: Task<Void, Never>?
+
   private var calibration = RiseAndGrindCore.SquatCalibrationSession()
   private var isRunActive = false
   private var activeRunID = UUID()
@@ -933,6 +973,8 @@ private final class SquatCalibrationViewSession {
     queue.maxConcurrentOperationCount = 1
     queue.qualityOfService = .userInitiated
     motionQueue = queue
+    progressHapticGenerator.prepare()
+    completionHapticGenerator.prepare()
   }
 
   var isBusy: Bool {
@@ -969,7 +1011,10 @@ private final class SquatCalibrationViewSession {
 
   func start() {
     guard activeGeneration == nil else { return }
-    configureSpeechAudio()
+    progressHapticGenerator.prepare()
+    completionHapticGenerator.prepare()
+    configureInstructionAudio()
+    playCurrentInstruction()
     #if targetEnvironment(simulator)
       isMotionReady = true
       errorMessage = nil
@@ -1067,7 +1112,10 @@ private final class SquatCalibrationViewSession {
     recordEvent("calibration_paused")
     flushDiagnosticLog()
     cancelCapture()
-    speaker.stopSpeaking(at: .immediate)
+    completionHapticTask?.cancel()
+    completionHapticTask = nil
+    instructionPlayer?.stop()
+    instructionPlayer = nil
     stopMotion()
     try? AVAudioSession.sharedInstance().setActive(
       false,
@@ -1086,7 +1134,10 @@ private final class SquatCalibrationViewSession {
     diagnosticStartupTask?.cancel()
     diagnosticStartupTask = nil
     cancelCapture()
-    speaker.stopSpeaking(at: .immediate)
+    completionHapticTask?.cancel()
+    completionHapticTask = nil
+    instructionPlayer?.stop()
+    instructionPlayer = nil
     stopMotion()
     try? AVAudioSession.sharedInstance().setActive(
       false,
@@ -1104,7 +1155,8 @@ private final class SquatCalibrationViewSession {
   func restart() {
     recordEvent("calibration_restarted")
     cancelCapture()
-    speaker.stopSpeaking(at: .immediate)
+    instructionPlayer?.stop()
+    instructionPlayer = nil
     calibration.reset()
     activeRunID = UUID()
     stage = .standing
@@ -1113,7 +1165,25 @@ private final class SquatCalibrationViewSession {
     captureProgress = 0
     publishLatestDiagnostics()
     status = "Stand tall, then hold the center button continuously for 2 seconds."
+    playCurrentInstruction()
     start()
+  }
+
+  func playCurrentInstruction() {
+    guard let assetName = stage.audioAssetName else { return }
+    instructionPlayer?.stop()
+    configureInstructionAudio()
+    guard let audioAsset = NSDataAsset(name: assetName) else { return }
+
+    do {
+      let player = try AVAudioPlayer(data: audioAsset.data)
+      player.volume = 1
+      player.prepareToPlay()
+      player.play()
+      instructionPlayer = player
+    } catch {
+      instructionPlayer = nil
+    }
   }
 
   func beginCaptureHold() {
@@ -1142,7 +1212,8 @@ private final class SquatCalibrationViewSession {
     lastHapticProgressStep = 0
     isCapturePending = true
     status = "Keep holding while the circle samples this position."
-    UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.15)
+    progressHapticGenerator.impactOccurred(intensity: 0.55)
+    progressHapticGenerator.prepare()
   }
 
   func endCaptureHold() {
@@ -1380,8 +1451,7 @@ private final class SquatCalibrationViewSession {
       stage = .depth
       publishLatestDiagnostics()
       beginStage(
-        status: "Top captured. Squat to your normal bottom, then hold the center button.",
-        spokenPrompt: "Top captured. Squat down, then hold at the bottom."
+        status: "Top captured. Squat to your normal bottom, then hold the center button."
       )
     case .captured(.depth):
       completionHaptic()
@@ -1392,8 +1462,7 @@ private final class SquatCalibrationViewSession {
       stage = .returned
       publishLatestDiagnostics()
       beginStage(
-        status: "Bottom captured. Return upright, then hold the center button again.",
-        spokenPrompt: "Bottom captured. Return upright, then hold at the top."
+        status: "Bottom captured. Return upright, then hold the center button again."
       )
     case .captured(.returned):
       rejectCapture("Calibration did not finish correctly. Start the guided run again.")
@@ -1412,16 +1481,16 @@ private final class SquatCalibrationViewSession {
         completedProfile: profile
       )
       flushDiagnosticLog()
-      speaker.stopSpeaking(at: .immediate)
-      speak("Calibration complete.")
+      instructionPlayer?.stop()
+      instructionPlayer = nil
     }
   }
 
-  private func beginStage(status: String, spokenPrompt: String) {
+  private func beginStage(status: String) {
     resetCaptureState()
     errorMessage = nil
     self.status = status
-    speak(spokenPrompt)
+    playCurrentInstruction()
   }
 
   private func pulseCaptureProgressHapticIfNeeded() {
@@ -1430,16 +1499,22 @@ private final class SquatCalibrationViewSession {
     )
     guard step > lastHapticProgressStep, captureProgress < 1 else { return }
     lastHapticProgressStep = step
-    let intensity = min(0.92, max(0.2, captureProgress))
-    let generator = UIImpactFeedbackGenerator(style: .soft)
-    generator.prepare()
-    generator.impactOccurred(intensity: intensity)
+    let intensity = min(1, 0.45 + (captureProgress * 0.55))
+    progressHapticGenerator.impactOccurred(intensity: intensity)
+    progressHapticGenerator.prepare()
   }
 
   private func completionHaptic() {
-    let generator = UIImpactFeedbackGenerator(style: .heavy)
-    generator.prepare()
-    generator.impactOccurred(intensity: 1)
+    completionHapticTask?.cancel()
+    completionHapticGenerator.impactOccurred(intensity: 1)
+    completionHapticGenerator.prepare()
+    completionHapticTask = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .milliseconds(90))
+      guard !Task.isCancelled, let self else { return }
+      self.completionHapticGenerator.impactOccurred(intensity: 0.90)
+      self.completionHapticGenerator.prepare()
+      self.completionHapticTask = nil
+    }
   }
 
   private func cancelCaptureHaptics() {
@@ -1471,7 +1546,8 @@ private final class SquatCalibrationViewSession {
       ]
     )
     flushDiagnosticLog()
-    speaker.stopSpeaking(at: .immediate)
+    instructionPlayer?.stop()
+    instructionPlayer = nil
     UINotificationFeedbackGenerator().notificationOccurred(.error)
   }
 
@@ -1509,15 +1585,7 @@ private final class SquatCalibrationViewSession {
     isMotionReady = false
   }
 
-  private func speak(_ message: String) {
-    speaker.stopSpeaking(at: .immediate)
-    let utterance = AVSpeechUtterance(string: message)
-    utterance.rate = 0.47
-    utterance.volume = 1
-    speaker.speak(utterance)
-  }
-
-  private func configureSpeechAudio() {
+  private func configureInstructionAudio() {
     let audioSession = AVAudioSession.sharedInstance()
     try? audioSession.setCategory(
       .playback,

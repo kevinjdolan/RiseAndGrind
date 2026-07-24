@@ -1,9 +1,22 @@
 // Launches the SwiftUI app and rechecks mandatory access whenever it becomes active.
 
 import SwiftUI
+import UIKit
+
+final class RiseAndGrindAppDelegate: NSObject, UIApplicationDelegate {
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    BackgroundRefreshService.shared.register()
+    BackgroundRefreshService.shared.schedule()
+    return true
+  }
+}
 
 @main
 struct RiseAndGrindApp: App {
+  @UIApplicationDelegateAdaptor(RiseAndGrindAppDelegate.self) private var appDelegate
   @Environment(\.scenePhase) private var scenePhase
   @State private var model = AppModel()
 
@@ -37,6 +50,9 @@ struct RiseAndGrindApp: App {
           model.pruneExpiredAlarms()
         }
         .onChange(of: scenePhase) { _, newPhase in
+          if newPhase == .background {
+            BackgroundRefreshService.shared.schedule()
+          }
           guard newPhase == .active else {
             model.stopSoundPreview()
             return

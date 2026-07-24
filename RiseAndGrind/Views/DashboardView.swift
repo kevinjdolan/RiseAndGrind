@@ -9,10 +9,13 @@ struct DashboardView: View {
   let muteState: AlarmMuteState?
   let riseTime: Date?
   let isWorking: Bool
+  let schedulePowerNap: @MainActor (Date) async -> Bool
   let setMute: @MainActor (AlarmMuteChoice) async -> Void
   let clearMute: @MainActor () async -> Void
 
   @State private var presentsMuteSheet = false
+  @State private var presentsPowerNapSheet = false
+  @State private var powerNapTime = Date.now.addingTimeInterval(20 * 60)
 
   var body: some View {
     RGScreenBackground {
@@ -20,6 +23,15 @@ struct DashboardView: View {
         LazyVStack(spacing: 18) {
           grindTime
           grindDays
+
+          Button {
+            powerNapTime = Date.now.addingTimeInterval(20 * 60)
+            presentsPowerNapSheet = true
+          } label: {
+            Label("Power Nap", systemImage: "bed.double.fill")
+          }
+          .buttonStyle(RGSecondaryButtonStyle())
+          .disabled(isWorking)
 
           if let muteState {
             muteStatus(muteState)
@@ -58,6 +70,13 @@ struct DashboardView: View {
           await clearMute()
           presentsMuteSheet = false
         }
+      )
+    }
+    .sheet(isPresented: $presentsPowerNapSheet) {
+      RGPowerNapSheet(
+        fireDate: $powerNapTime,
+        isWorking: isWorking,
+        schedule: schedulePowerNap
       )
     }
   }
@@ -204,6 +223,76 @@ struct DashboardView: View {
       settings.enabledDays.remove(day)
     } else {
       settings.enabledDays.insert(day)
+    }
+  }
+}
+
+private struct RGPowerNapSheet: View {
+  @Environment(\.dismiss) private var dismiss
+
+  @Binding var fireDate: Date
+  let isWorking: Bool
+  let schedule: @MainActor (Date) async -> Bool
+
+  @State private var minimumFireDate = Date.now
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section {
+          DatePicker(
+            "Power Nap alarm time",
+            selection: $fireDate,
+            in: minimumFireDate...,
+            displayedComponents: .hourAndMinute
+          )
+          .datePickerStyle(.wheel)
+          .labelsHidden()
+          .frame(maxWidth: .infinity)
+          .accessibilityLabel("Power Nap alarm time")
+        } header: {
+          Text("Wake me at")
+        } footer: {
+          Text("There is no snooze. Completing your configured wake challenge is required.")
+        }
+      }
+      .navigationTitle("Power Nap")
+      .navigationBarTitleDisplayMode(.inline)
+      .safeAreaInset(edge: .bottom) {
+        Button {
+          Task {
+            guard await schedule(fireDate) else { return }
+            dismiss()
+          }
+        } label: {
+          if isWorking {
+            ProgressView()
+              .tint(RGTheme.ink)
+          } else {
+            Text("A Little Rest to Beat the Rest!")
+              .lineLimit(1)
+              .minimumScaleFactor(0.72)
+          }
+        }
+        .buttonStyle(RGPrimaryButtonStyle())
+        .disabled(isWorking || fireDate <= minimumFireDate)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(.bar)
+      }
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            dismiss()
+          }
+          .disabled(isWorking)
+        }
+      }
+    }
+    .presentationDetents([.medium])
+    .presentationDragIndicator(.visible)
+    .onAppear {
+      minimumFireDate = .now
     }
   }
 }

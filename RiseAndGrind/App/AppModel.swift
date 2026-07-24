@@ -40,6 +40,7 @@ final class AppModel {
 
   private(set) var scheduledAlarms: [ScheduledAlarmRecord]
   private(set) var scheduledTestAlarms: [ScheduledAlarmRecord]
+  private(set) var scheduledPowerNaps: [ScheduledAlarmRecord]
   private(set) var mutedAlarms: [ScheduledAlarmRecord]
   private(set) var muteState: AlarmMuteState?
   private(set) var riseTime: Date?
@@ -50,8 +51,10 @@ final class AppModel {
   private(set) var notificationAuthorization = "Checking…"
   private(set) var motionAuthorization = "Checking…"
   private(set) var onboardingCompleted: Bool
+  private(set) var introPitchCompleted: Bool
   private(set) var automationAcknowledged: Bool
   private(set) var lastNightlyRun: Date?
+  private(set) var lastBackgroundRefresh: Date?
   private(set) var isWorking = false
   private(set) var isImporting = false
   private(set) var previewingSoundID: String?
@@ -78,14 +81,17 @@ final class AppModel {
     settings = store.loadSettings()
     scheduledAlarms = Self.currentBarrage(from: store.loadScheduledAlarms())
     scheduledTestAlarms = Self.currentBarrage(from: store.loadScheduledTestAlarms())
+    scheduledPowerNaps = Self.currentBarrage(from: store.loadScheduledPowerNaps())
     mutedAlarms = []
     muteState = store.loadMuteState()
     riseTime = nil
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
+    introPitchCompleted = store.loadIntroPitchCompleted()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
+    lastBackgroundRefresh = store.loadLastBackgroundRefresh()
     soundPreviewPlayer.playbackStateDidChange = { [weak self] soundID in
       self?.previewingSoundID = soundID
     }
@@ -102,12 +108,11 @@ final class AppModel {
   }
 
   var isAppReady: Bool {
-    onboardingCompleted && automationAcknowledged && requiredPermissionsReady
-      && squatCalibrationReady
+    onboardingCompleted && requiredPermissionsReady && squatCalibrationReady
   }
 
   var nextAlarmFireDate: Date? {
-    (scheduledAlarms + scheduledTestAlarms)
+    (scheduledAlarms + scheduledTestAlarms + scheduledPowerNaps)
       .map(\.fireDate)
       .min()
   }
@@ -138,8 +143,10 @@ final class AppModel {
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
+    introPitchCompleted = store.loadIntroPitchCompleted()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
+    lastBackgroundRefresh = store.loadLastBackgroundRefresh()
     reloadMuteState()
     calendarAuthorization =
       await CalendarService.shared.hasFullAccess()
@@ -223,10 +230,16 @@ final class AppModel {
     automationAcknowledged = true
   }
 
+  func completeIntroPitch() {
+    guard !introPitchCompleted else { return }
+    store.saveIntroPitchCompleted(true)
+    introPitchCompleted = true
+  }
+
   func completeOnboarding() {
-    guard requiredPermissionsReady, squatCalibrationReady, automationAcknowledged else {
+    guard requiredPermissionsReady, squatCalibrationReady else {
       errorMessage =
-        "Alarm, Calendar, Notification, Motion & Fitness access, a completed squat calibration, and the nightly automation are required first."
+        "Alarm, Calendar, Notification, Motion & Fitness access, and a completed squat calibration are required first."
       return
     }
     store.saveOnboardingCompleted(true)
@@ -303,10 +316,11 @@ final class AppModel {
 
     do {
       try await SquatCalibrationDiagnosticRecorder.deleteAllLogs()
+      try await SquatChallengeDiagnosticRecorder.deleteAllLogs()
     } catch {
       reloadAndPruneScheduledAlarms()
       errorMessage =
-        "The alarms and imported audio were cleared, but factory reset could not remove calibration diagnostics. Your local settings were left intact. \(error.localizedDescription)"
+        "The alarms and imported audio were cleared, but factory reset could not remove squat diagnostics. Your local settings were left intact. \(error.localizedDescription)"
       return false
     }
 
@@ -321,14 +335,17 @@ final class AppModel {
     settings = .defaults
     scheduledAlarms = []
     scheduledTestAlarms = []
+    scheduledPowerNaps = []
     mutedAlarms = []
     muteState = nil
     riseTime = nil
     availableSounds = SoundLibrary().allSounds()
     lastSummary = nil
     onboardingCompleted = false
+    introPitchCompleted = false
     automationAcknowledged = false
     lastNightlyRun = nil
+    lastBackgroundRefresh = nil
     errorMessage = nil
     WakeChallengeCoordinator.shared.reload()
     return true
@@ -346,6 +363,34 @@ final class AppModel {
       )
       scheduledTestAlarms = records.sorted { $0.fireDate < $1.fireDate }
       return scheduledTestAlarms
+    } catch {
+      reloadAndPruneScheduledAlarms()
+      errorMessage = error.localizedDescription
+      return nil
+    }
+  }
+
+  func schedulePowerNap(at fireDate: Date) async -> ScheduledAlarmRecord? {
+    guard beginOperation() else { return nil }
+    defer { finishOperation() }
+
+    do {
+      let sound =
+        SoundLibrary().selectedSounds(for: settings).randomElement()
+        ?? .system
+      let record = try await AlarmScheduler.shared.replacePowerNap(
+        fireDate: fireDate,
+        soundChoice: sound
+      )
+      scheduledPowerNaps = [record]
+      let summary =
+        "Power Nap armed for "
+        + fireDate.formatted(date: .abbreviated, time: .shortened)
+        + ". The wake challenge is required to stop it."
+      store.saveLastSummary(summary)
+      lastSummary = summary
+      errorMessage = nil
+      return record
     } catch {
       reloadAndPruneScheduledAlarms()
       errorMessage = error.localizedDescription
@@ -377,6 +422,11 @@ final class AppModel {
     let activeTestAlarms = Self.currentBarrage(from: scheduledTestAlarms, now: now)
     if activeTestAlarms.count != scheduledTestAlarms.count {
       scheduledTestAlarms = activeTestAlarms
+    }
+
+    let activePowerNaps = Self.currentBarrage(from: scheduledPowerNaps, now: now)
+    if activePowerNaps.count != scheduledPowerNaps.count {
+      scheduledPowerNaps = activePowerNaps
     }
 
     mutedAlarms = Self.currentBarrage(from: mutedAlarms, now: now)
@@ -525,6 +575,9 @@ final class AppModel {
 
     let storedTestAlarms = store.loadScheduledTestAlarms()
     scheduledTestAlarms = Self.currentBarrage(from: storedTestAlarms, now: now)
+
+    let storedPowerNaps = store.loadScheduledPowerNaps()
+    scheduledPowerNaps = Self.currentBarrage(from: storedPowerNaps, now: now)
   }
 
   private func reloadMuteState(now: Date = .now) {

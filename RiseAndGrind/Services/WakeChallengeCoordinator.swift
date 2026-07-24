@@ -147,6 +147,9 @@ final class WakeChallengeCoordinator {
   @ObservationIgnored
   private var activeSessionRequestID: UUID?
 
+  @ObservationIgnored
+  private var isPracticeAudioActive = false
+
   init(store: SettingsStore = .shared) {
     self.store = store
     pending = store.loadWakeChallenge()
@@ -160,6 +163,12 @@ final class WakeChallengeCoordinator {
     alarmID: UUID,
     now: Date = .now
   ) -> Bool {
+    // Completion has already cancelled the stack and stopped its audio. Treat
+    // a racing wake handoff as handled without restarting sound over the video.
+    if didComplete {
+      return true
+    }
+
     let resolvedOwner = chain?.owner ?? fallbackOwner
     let settings = store.loadSettings()
     let sourceSound = challengeSound(for: chain, settings: settings)
@@ -220,6 +229,10 @@ final class WakeChallengeCoordinator {
   }
 
   func reload() {
+    // A completed request is deliberately kept in memory just long enough to
+    // present the celebration. Its persisted challenge has already been
+    // cleared, so an active-scene refresh must not dismiss that experience.
+    guard !didComplete else { return }
     pending = store.loadWakeChallenge()
     if pending?.id != activeSessionRequestID {
       activeSessionRequestID = nil
@@ -259,7 +272,26 @@ final class WakeChallengeCoordinator {
     ensureChallengeTrackIsLooping()
   }
 
+  /// Starts bundled challenge audio without creating a persisted wake request.
+  func beginPracticeAudio() {
+    guard pending == nil else { return }
+    isPracticeAudioActive = true
+    ensureChallengeTrackIsLooping()
+  }
+
+  /// Stops transient practice audio while preserving any real wake challenge.
+  func endPracticeAudio() {
+    guard isPracticeAudioActive else { return }
+    isPracticeAudioActive = false
+    if pending == nil {
+      stopSourceSound()
+    } else {
+      ensureChallengeTrackIsLooping()
+    }
+  }
+
   func playRandomMotivationalLine() {
+    guard pending != nil || isPracticeAudioActive else { return }
     let candidates =
       MotivationalLineLibrary.urls.count > 1
       ? MotivationalLineLibrary.urls.filter { $0 != lastMotivationalLineURL }
@@ -313,21 +345,27 @@ final class WakeChallengeCoordinator {
     completionError = nil
     defer {
       isCompleting = false
-      didComplete = false
     }
 
     do {
       try await NightlyCoordinator.shared.completeWakeChallenge(pending)
       store.clearWakeChallenge()
       activeSessionRequestID = nil
-      self.pending = nil
-      stopSourceSound(allowMotivationalLineToFinish: true)
+      stopSourceSound()
       didComplete = true
       return true
     } catch {
       completionError = error.localizedDescription
       return false
     }
+  }
+
+  func dismissCompletedChallenge() {
+    guard didComplete else { return }
+    pending = nil
+    didComplete = false
+    completionError = nil
+    playbackError = nil
   }
 
   func clearCompletionError() {
@@ -349,6 +387,7 @@ final class WakeChallengeCoordinator {
   }
 
   func resetForFactoryReset() {
+    isPracticeAudioActive = false
     stopSourceSound()
     store.clearWakeChallenge()
     store.clearWakeCompletionSuppression()
@@ -398,7 +437,7 @@ final class WakeChallengeCoordinator {
   }
 
   private func ensureChallengeTrackIsLooping() {
-    guard pending != nil else {
+    guard pending != nil || isPracticeAudioActive else {
       stopSourceSound(allowMotivationalLineToFinish: true)
       playbackError = nil
       return

@@ -6,6 +6,7 @@ import SwiftUI
 struct CalendarOverrideView: View {
   let scheduledAlarms: [ScheduledAlarmRecord]
   let scheduledTestAlarms: [ScheduledAlarmRecord]
+  let scheduledPowerNaps: [ScheduledAlarmRecord]
   let mutedAlarms: [ScheduledAlarmRecord]
   let muteState: AlarmMuteState?
   let isWorking: Bool
@@ -41,7 +42,7 @@ struct CalendarOverrideView: View {
   }
 
   private var activeScheduledAlarms: [ScheduledAlarmRecord] {
-    (scheduledAlarms + scheduledTestAlarms)
+    (scheduledAlarms + scheduledTestAlarms + scheduledPowerNaps)
       .sorted { $0.fireDate < $1.fireDate }
   }
 

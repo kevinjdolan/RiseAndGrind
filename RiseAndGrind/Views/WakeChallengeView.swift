@@ -1,5 +1,6 @@
 // Presents the squat challenge that clears future attacks.
 
+import AVFoundation
 import CoreMotion
 import OSLog
 import Observation
@@ -76,6 +77,7 @@ struct WakeChallengeView: View {
   @State private var session = WakeChallengeSquatSession()
   @State private var isShowingRecoveryConfirmation = false
   @State private var didCompleteSettingsTest = false
+  @State private var isShowingCompletionExperience = false
   @State private var previousIdleTimerState = false
 
   init(
@@ -146,6 +148,15 @@ struct WakeChallengeView: View {
         }
       }
     }
+    .overlay {
+      if isShowingCompletionExperience {
+        ChallengeCompletionExperience {
+          finishCompletionExperience()
+        }
+        .transition(.opacity)
+        .zIndex(100)
+      }
+    }
     .task(id: request.id) {
       guard scenePhase == .active else { return }
       session.start(
@@ -158,22 +169,35 @@ struct WakeChallengeView: View {
     .task(id: session.squats >= request.targetSquats) {
       guard session.squats >= request.targetSquats else { return }
       if isSettingsTest {
-        session.stop()
+        session.stop(reason: "practice_target_completed")
+        coordinator.endPracticeAudio()
         didCompleteSettingsTest = true
+        presentCompletionExperience()
       } else {
-        _ = await coordinator.complete()
+        session.stop(reason: "challenge_target_completed")
+        if await coordinator.complete() {
+          presentCompletionExperience()
+        }
       }
     }
     .onAppear {
       previousIdleTimerState = UIApplication.shared.isIdleTimerDisabled
       UIApplication.shared.isIdleTimerDisabled = true
-      if !isSettingsTest {
+      if isSettingsTest {
+        if scenePhase == .active {
+          coordinator.beginPracticeAudio()
+        }
+      } else {
         coordinator.beginActiveSession(for: request.id)
       }
     }
     .onChange(of: scenePhase) { _, newPhase in
       if newPhase == .active {
-        if !isSettingsTest {
+        guard !isShowingCompletionExperience else { return }
+        guard !(isSettingsTest && didCompleteSettingsTest) else { return }
+        if isSettingsTest {
+          coordinator.beginPracticeAudio()
+        } else {
           coordinator.beginActiveSession(for: request.id)
         }
         session.resume(
@@ -183,17 +207,23 @@ struct WakeChallengeView: View {
           onSquatCompleted: playMotivationalLine
         )
       } else {
-        session.pauseForInactivity()
-        if !isSettingsTest {
+        if !isShowingCompletionExperience {
+          session.pauseForInactivity()
+        }
+        if isSettingsTest {
+          coordinator.endPracticeAudio()
+        } else {
           coordinator.pauseActiveSession(for: request.id)
           coordinator.stopMotivationalLine()
         }
       }
     }
     .onDisappear {
-      session.stop()
+      session.stop(reason: "challenge_view_disappeared")
       UIApplication.shared.isIdleTimerDisabled = previousIdleTimerState
-      if !isSettingsTest {
+      if isSettingsTest {
+        coordinator.endPracticeAudio()
+      } else {
         if coordinator.pending != nil {
           coordinator.stopMotivationalLine()
         }
@@ -264,17 +294,29 @@ struct WakeChallengeView: View {
             .padding(23)
 
           if session.isGuidanceStarted {
-            VStack(spacing: 2) {
-              Text("\(session.squats)")
-                .font(.system(size: 52, weight: .black, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(RGTheme.cream)
-                .contentTransition(.numericText())
+            if session.isZeroingGuidance {
+              VStack(spacing: 9) {
+                ProgressView()
+                  .tint(RGTheme.gold)
+                  .scaleEffect(1.15)
+                Text("HOLD")
+                  .font(.headline.weight(.black))
+                  .tracking(1.3)
+                  .foregroundStyle(RGTheme.cream)
+              }
+            } else {
+              VStack(spacing: 2) {
+                Text("\(session.squats)")
+                  .font(.system(size: 52, weight: .black, design: .rounded))
+                  .monospacedDigit()
+                  .foregroundStyle(RGTheme.cream)
+                  .contentTransition(.numericText())
 
-              Text("OF \(request.targetSquats)")
-                .font(.caption.weight(.black))
-                .tracking(1.3)
-                .foregroundStyle(RGTheme.gold)
+                Text("OF \(request.targetSquats)")
+                  .font(.caption.weight(.black))
+                  .tracking(1.3)
+                  .foregroundStyle(RGTheme.gold)
+              }
             }
           } else {
             Button {
@@ -301,14 +343,21 @@ struct WakeChallengeView: View {
         }
         .frame(width: 210, height: 210)
 
-        SquatCycleGauge(position: session.verticalPosition)
-          .frame(width: 50, height: 210)
+        SquatCycleGauge(
+          position: session.verticalPosition,
+          isReturning: session.gaugeIsReturning,
+          endpointPulseID: session.gaugeEndpointPulseID,
+          endpointIsTop: session.gaugeEndpointIsTop
+        )
+        .frame(width: 50, height: 210)
       }
 
       Text(
-        session.isGuidanceStarted
-          ? "Follow the marker: down to 10%, then back up to 90%."
-          : "Press START when you’re in your upward position."
+        session.isZeroingGuidance
+          ? "Hold at the top while the Start pulse clears and zero velocity is measured."
+          : session.isGuidanceStarted
+            ? "Follow the marker through the bottom green zone, then back to the top green zone."
+            : "Press START when you’re in your upward position."
       )
       .font(.caption.weight(.bold))
       .foregroundStyle(RGTheme.mutedCream)
@@ -396,7 +445,7 @@ struct WakeChallengeView: View {
             ?? session.motionStatus
         )
 
-        if isSettingsTest, session.motionError == nil {
+        if session.motionError == nil {
           detectorTelemetry
         }
 
@@ -431,35 +480,27 @@ struct WakeChallengeView: View {
   }
 
   private var detectorTelemetry: some View {
-    LazyVGrid(
-      columns: [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-      ],
-      spacing: 10
-    ) {
-      telemetryValue(label: "DETECTOR PHASE", value: session.phaseLabel)
-      telemetryValue(label: "MAX VERTICAL DROP", value: session.dropLabel)
-      telemetryValue(label: "PHONE TILT", value: session.tiltLabel)
-      telemetryValue(label: "LAST TRY", value: session.lastAttemptLabel)
-    }
-    .padding(.top, 2)
-    .accessibilityElement(children: .combine)
-  }
-
-  private func telemetryValue(label: String, value: String) -> some View {
-    VStack(spacing: 3) {
-      Text(label)
-        .font(.system(size: 9, weight: .black))
-        .tracking(1.1)
-        .foregroundStyle(RGTheme.gold)
-      Text(value)
-        .font(.caption.monospacedDigit().weight(.black))
+    VStack(alignment: .leading, spacing: 3) {
+      Text(session.debugTelemetryText)
+        .font(.system(size: 11, weight: .semibold, design: .monospaced))
         .foregroundStyle(RGTheme.cream)
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      Text("log = \(session.diagnosticLogRelativePath ?? "starting…")")
+        .font(.system(size: 9, weight: .medium, design: .monospaced))
+        .foregroundStyle(RGTheme.mutedCream)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
     }
-    .frame(maxWidth: .infinity)
+    .padding(10)
+    .background(RGTheme.ink.opacity(0.54), in: RoundedRectangle(cornerRadius: 10))
+    .overlay {
+      RoundedRectangle(cornerRadius: 10)
+        .stroke(RGTheme.gold.opacity(0.28), lineWidth: 1)
+    }
+    .padding(.top, 3)
+    .textSelection(.enabled)
+    .accessibilityElement(children: .combine)
   }
 
   private var settingsTestExitButton: some View {
@@ -481,7 +522,7 @@ struct WakeChallengeView: View {
 
   private var cannotRightNowButton: some View {
     Button {
-      session.stop()
+      session.stop(reason: "take_the_l")
       showCannotRightNowOverlay()
       coordinator.exitChallengeKeepingAlarmsArmed()
     } label: {
@@ -520,7 +561,6 @@ struct WakeChallengeView: View {
   }
 
   private var playMotivationalLine: () -> Void {
-    guard !isSettingsTest else { return {} }
     return { coordinator.playRandomMotivationalLine() }
   }
 
@@ -536,8 +576,23 @@ struct WakeChallengeView: View {
   }
 
   private func exitTest() {
-    session.stop()
+    session.stop(reason: "practice_exited")
+    coordinator.endPracticeAudio()
     exitSettingsTest()
+  }
+
+  private func presentCompletionExperience() {
+    withAnimation(.easeOut(duration: 0.20)) {
+      isShowingCompletionExperience = true
+    }
+  }
+
+  private func finishCompletionExperience() {
+    if isSettingsTest {
+      exitTest()
+    } else {
+      coordinator.dismissCompletedChallenge()
+    }
   }
 
   private func statusCard<Content: View>(
@@ -588,11 +643,37 @@ struct WakeChallengeView: View {
 }
 
 private struct SquatCycleGauge: View {
+  @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+
   let position: Double
+  let isReturning: Bool
+  let endpointPulseID: Int
+  let endpointIsTop: Bool
+
+  @State private var displayedPosition: Double
+  @State private var flashIntensity: CGFloat = 0
+  @State private var sparkProgress: CGFloat = 1
+  @State private var lastSampleTime: TimeInterval?
+  @State private var isAnimatingEndpoint = false
+
+  init(
+    position: Double,
+    isReturning: Bool,
+    endpointPulseID: Int,
+    endpointIsTop: Bool
+  ) {
+    self.position = position
+    self.isReturning = isReturning
+    self.endpointPulseID = endpointPulseID
+    self.endpointIsTop = endpointIsTop
+    _displayedPosition = State(
+      initialValue: min(1, max(0, position))
+    )
+  }
 
   var body: some View {
     GeometryReader { proxy in
-      let clampedPosition = min(1, max(0, position))
+      let clampedPosition = min(1, max(0, displayedPosition))
       let indicatorDiameter = min(22, max(12, proxy.size.width - 12))
       let indicatorY =
         (indicatorDiameter / 2)
@@ -621,19 +702,390 @@ private struct SquatCycleGauge: View {
           }
           .shadow(color: RGTheme.danger.opacity(0.22), radius: 10)
 
+        if !accessibilityReduceMotion {
+          ForEach(0..<12, id: \.self) { index in
+            let angle =
+              (Double(index) / 12.0 * Double.pi * 2)
+              + (index.isMultiple(of: 2) ? 0.08 : -0.08)
+            let travel = CGFloat(22 + ((index * 7) % 13))
+
+            Capsule()
+              .fill(
+                LinearGradient(
+                  colors: [Color.white, RGTheme.gold, RGTheme.orange],
+                  startPoint: .top,
+                  endPoint: .bottom
+                )
+              )
+              .frame(
+                width: index.isMultiple(of: 3) ? 3.5 : 2.5,
+                height: index.isMultiple(of: 3) ? 9 : 6
+              )
+              .rotationEffect(.radians(angle + (.pi / 2)))
+              .position(
+                x: (proxy.size.width / 2)
+                  + (CGFloat(cos(angle)) * travel * sparkProgress),
+                y: indicatorY
+                  + (CGFloat(sin(angle)) * travel * sparkProgress)
+              )
+              .opacity(max(0, 1 - sparkProgress))
+              .shadow(color: RGTheme.gold, radius: 4)
+              .blendMode(.plusLighter)
+          }
+        }
+
         Circle()
-          .fill(Color.white)
+          .fill(Color.white.opacity(0.52))
+          .frame(
+            width: indicatorDiameter * 1.55,
+            height: indicatorDiameter * 1.55
+          )
+          .blur(radius: 7)
+          .opacity(0.62 + (flashIntensity * 0.38))
+          .blendMode(.plusLighter)
+          .position(x: proxy.size.width / 2, y: indicatorY)
+
+        Circle()
+          .fill(
+            RadialGradient(
+              stops: [
+                .init(color: Color.white.opacity(0.96), location: 0),
+                .init(color: Color.white.opacity(0.72), location: 0.24),
+                .init(color: RGTheme.mint.opacity(0.42), location: 0.58),
+                .init(color: Color.white.opacity(0.10), location: 1),
+              ],
+              center: .topLeading,
+              startRadius: 0,
+              endRadius: indicatorDiameter * 0.74
+            )
+          )
           .frame(width: indicatorDiameter, height: indicatorDiameter)
           .overlay {
             Circle()
-              .stroke(RGTheme.ink.opacity(0.9), lineWidth: 2)
+              .fill(
+                RadialGradient(
+                  colors: [
+                    Color.white,
+                    RGTheme.gold,
+                    RGTheme.orange.opacity(0),
+                  ],
+                  center: .center,
+                  startRadius: 0,
+                  endRadius: indicatorDiameter * 0.62
+                )
+              )
+              .opacity(flashIntensity)
+              .blendMode(.plusLighter)
+
+            Circle()
+              .stroke(Color.white.opacity(0.66), lineWidth: 1)
           }
-          .shadow(color: RGTheme.ink.opacity(0.7), radius: 4, y: 2)
+          .shadow(
+            color: flashIntensity > 0.01
+              ? RGTheme.gold.opacity(0.95)
+              : Color.white.opacity(0.64),
+            radius: 7 + (flashIntensity * 9)
+          )
+          .scaleEffect(1 + (flashIntensity * 0.42))
           .position(x: proxy.size.width / 2, y: indicatorY)
-          .animation(.linear(duration: 0.08), value: clampedPosition)
+          .compositingGroup()
+      }
+    }
+    .onChange(of: position) { _, newPosition in
+      smoothPosition(
+        toward: newPosition,
+        isReturning: isReturning
+      )
+    }
+    .task(id: endpointPulseID) {
+      guard endpointPulseID > 0 else { return }
+      isAnimatingEndpoint = true
+      flashIntensity = 1
+      sparkProgress = accessibilityReduceMotion ? 1 : 0
+      withAnimation(
+        .easeOut(duration: accessibilityReduceMotion ? 0.01 : 0.10)
+      ) {
+        displayedPosition = endpointIsTop ? 1 : 0
+      }
+      try? await Task.sleep(for: .milliseconds(100))
+      guard !Task.isCancelled else { return }
+      isAnimatingEndpoint = false
+      withAnimation(.easeOut(duration: accessibilityReduceMotion ? 0.16 : 0.30)) {
+        flashIntensity = 0
+        sparkProgress = 1
       }
     }
     .accessibilityHidden(true)
+  }
+
+  private func smoothPosition(
+    toward newPosition: Double,
+    isReturning: Bool
+  ) {
+    guard !isAnimatingEndpoint else { return }
+    var target = min(1, max(0, newPosition))
+    guard !accessibilityReduceMotion else {
+      displayedPosition = target
+      return
+    }
+
+    let now = ProcessInfo.processInfo.systemUptime
+    let elapsed = lastSampleTime.map { now - $0 } ?? (1.0 / 50.0)
+    lastSampleTime = now
+    let deltaTime = min(0.06, max(1.0 / 120.0, elapsed))
+    let delta = target - displayedPosition
+    let responseTime = isReturning ? 0.055 : 0.065
+    let response = 1 - exp(-deltaTime / responseTime)
+    let filteredStep = delta * response
+    let maximumStep = 4.5 * deltaTime
+    displayedPosition += min(
+      maximumStep,
+      max(-maximumStep, filteredStep)
+    )
+  }
+}
+
+private struct ChallengeCompletionExperience: View {
+  private static let messageRevealTime = 4.0
+  private static let blackFadeStartTime = 32.0
+  private static let blackFadeEndTime = 38.0
+  private static let messageDimOpacity = 0.30
+
+  @Environment(\.scenePhase) private var scenePhase
+
+  let finish: () -> Void
+
+  @State private var player = AVPlayer()
+  @State private var currentItem: AVPlayerItem?
+  @State private var playbackTimeObserver: Any?
+  @State private var isShowingMessage = false
+  @State private var backgroundDimOpacity = 0.0
+  @State private var hasFinishedPlayback = false
+
+  var body: some View {
+    GeometryReader { proxy in
+      ZStack {
+        Color.black
+
+        ChallengeCompletionVideoPlayer(player: player)
+          .frame(width: proxy.size.width, height: proxy.size.height)
+          .accessibilityHidden(true)
+
+        Color.black
+          .opacity(backgroundDimOpacity)
+          .animation(.linear(duration: 0.12), value: backgroundDimOpacity)
+
+        completionMessage
+          .opacity(isShowingMessage ? 1 : 0)
+          .allowsHitTesting(isShowingMessage)
+      }
+      .frame(width: proxy.size.width, height: proxy.size.height)
+    }
+    .background(Color.black)
+    .ignoresSafeArea()
+    .onAppear {
+      loadAndPlay()
+    }
+    .onDisappear {
+      removePlaybackTimeObserver()
+      player.pause()
+      player.replaceCurrentItem(with: nil)
+      currentItem = nil
+    }
+    .onChange(of: scenePhase) { _, newPhase in
+      if newPhase == .active {
+        if !hasFinishedPlayback {
+          player.play()
+        }
+      } else {
+        player.pause()
+      }
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.didPlayToEndTimeNotification
+      )
+    ) { notification in
+      guard
+        let currentItem,
+        let finishedItem = notification.object as? AVPlayerItem,
+        finishedItem === currentItem
+      else {
+        return
+      }
+      finishPlayback()
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.failedToPlayToEndTimeNotification
+      )
+    ) { notification in
+      guard
+        let currentItem,
+        let failedItem = notification.object as? AVPlayerItem,
+        failedItem === currentItem
+      else {
+        return
+      }
+      finishPlayback()
+    }
+  }
+
+  private var completionMessage: some View {
+    VStack(spacing: 0) {
+      Spacer()
+
+      Text("Pain Fuels Progress.")
+        .font(.system(size: 44, weight: .black, design: .rounded))
+        .foregroundStyle(Color.white)
+        .multilineTextAlignment(.center)
+        .minimumScaleFactor(0.72)
+        .lineLimit(2)
+
+      Text("You're awake and already getting gains!")
+        .font(.title3.weight(.semibold))
+        .foregroundStyle(Color.white.opacity(0.72))
+        .multilineTextAlignment(.center)
+        .padding(.top, 14)
+
+      Spacer()
+
+      Button(action: finish) {
+        Text("Rest when rich.")
+          .font(.headline.weight(.black))
+          .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(RGPrimaryButtonStyle())
+      .padding(.bottom, 12)
+    }
+    .padding(.horizontal, 28)
+    .padding(.vertical, 42)
+    .accessibilityElement(children: .contain)
+  }
+
+  private func loadAndPlay() {
+    removePlaybackTimeObserver()
+    isShowingMessage = false
+    backgroundDimOpacity = 0
+    hasFinishedPlayback = false
+
+    guard
+      let url =
+        Bundle.main.url(
+          forResource: "ChallengeCompletion",
+          withExtension: "mp4",
+          subdirectory: "ChallengeCompletion"
+        )
+        ?? Bundle.main.url(
+          forResource: "ChallengeCompletion",
+          withExtension: "mp4"
+        )
+    else {
+      finishPlayback()
+      return
+    }
+
+    try? AVAudioSession.sharedInstance().setCategory(
+      .playback,
+      mode: .moviePlayback
+    )
+    try? AVAudioSession.sharedInstance().setActive(true)
+    let item = AVPlayerItem(url: url)
+    currentItem = item
+    player.replaceCurrentItem(with: item)
+    installPlaybackTimeObserver()
+    player.play()
+  }
+
+  private func installPlaybackTimeObserver() {
+    let interval = CMTime(seconds: 0.10, preferredTimescale: 600)
+    playbackTimeObserver = player.addPeriodicTimeObserver(
+      forInterval: interval,
+      queue: .main
+    ) { time in
+      Task { @MainActor in
+        updatePresentation(for: time)
+      }
+    }
+  }
+
+  private func removePlaybackTimeObserver() {
+    guard let playbackTimeObserver else { return }
+    player.removeTimeObserver(playbackTimeObserver)
+    self.playbackTimeObserver = nil
+  }
+
+  private func updatePresentation(for time: CMTime) {
+    guard !hasFinishedPlayback else { return }
+    let seconds = time.seconds
+    guard seconds.isFinite else { return }
+
+    if seconds >= Self.messageRevealTime {
+      revealMessage()
+    }
+
+    guard seconds >= Self.blackFadeStartTime else { return }
+    let fadeDuration = Self.blackFadeEndTime - Self.blackFadeStartTime
+    let fadeProgress = min(
+      1,
+      max(0, (seconds - Self.blackFadeStartTime) / fadeDuration)
+    )
+    backgroundDimOpacity =
+      Self.messageDimOpacity
+      + ((1 - Self.messageDimOpacity) * fadeProgress)
+  }
+
+  private func revealMessage() {
+    guard !isShowingMessage else { return }
+    withAnimation(.easeInOut(duration: 0.72)) {
+      backgroundDimOpacity = max(
+        backgroundDimOpacity,
+        Self.messageDimOpacity
+      )
+      isShowingMessage = true
+    }
+  }
+
+  private func finishPlayback() {
+    guard !hasFinishedPlayback else { return }
+    hasFinishedPlayback = true
+    removePlaybackTimeObserver()
+    player.pause()
+    withAnimation(.easeInOut(duration: 0.72)) {
+      backgroundDimOpacity = 1
+      isShowingMessage = true
+    }
+  }
+}
+
+private struct ChallengeCompletionVideoPlayer: UIViewRepresentable {
+  let player: AVPlayer
+
+  func makeUIView(context: Context) -> ChallengeCompletionPlayerUIView {
+    let view = ChallengeCompletionPlayerUIView()
+    view.playerLayer.player = player
+    return view
+  }
+
+  func updateUIView(
+    _ uiView: ChallengeCompletionPlayerUIView,
+    context: Context
+  ) {
+    uiView.playerLayer.player = player
+  }
+}
+
+private final class ChallengeCompletionPlayerUIView: UIView {
+  override class var layerClass: AnyClass {
+    AVPlayerLayer.self
+  }
+
+  var playerLayer: AVPlayerLayer {
+    guard let playerLayer = layer as? AVPlayerLayer else {
+      preconditionFailure("Challenge completion view requires an AVPlayerLayer.")
+    }
+    playerLayer.videoGravity = .resizeAspectFill
+    return playerLayer
   }
 }
 
@@ -649,7 +1101,11 @@ private enum SquatTestHaptic {
 private final class WakeChallengeSquatSession {
   private static let maximumVisibleMoneyDrops = 16
   private static let telemetryRefreshInterval = 0.10
-  private static let guidanceHapticStep = 0.125
+  private static let guidanceHapticStep = 0.25
+  private static let guidanceHapticMinimumInterval = 0.125
+  private static let detectorHapticQuarantineDuration = 0.10
+  private static let startHapticQuarantineDuration = 0.12
+  private static let topZeroSampleDuration = 0.20
   private static let guidanceConfiguration = SquatDetectorConfiguration.handheld
   private static let logger = Logger(
     subsystem: "com.kevin.riseandgrind.alarmkit",
@@ -664,15 +1120,42 @@ private final class WakeChallengeSquatSession {
   private(set) var phaseLabel = "CALIBRATE"
   private(set) var tiltDegrees: Double?
   private(set) var maximumDropMeters = 0.0
+  private(set) var verticalRangeMeters =
+    SquatDetectorConfiguration.defaultVerticalRangeMeters
+  private(set) var currentVerticalHeightMeters =
+    SquatDetectorConfiguration.defaultVerticalRangeMeters
   private(set) var verticalPosition =
     SquatDetectorConfiguration.handheld.initialTopPosition
+  private(set) var currentVerticalVelocityMetersPerSecond = 0.0
+  private(set) var normalizedVerticalVelocity = 0.0
+  private(set) var projectedVerticalAccelerationG = 0.0
+  private(set) var verticalAccelerationBiasG = 0.0
+  private(set) var detectorIsStationary = false
+  private(set) var isHapticQuarantined = false
   private(set) var isGuidanceStarted = false
+  private(set) var isZeroingGuidance = false
   private(set) var canStartGuidance = false
   private(set) var lastAttemptLabel = "—"
+  private(set) var diagnosticLogRelativePath: String?
   private(set) var moneyDrops: [MoneyDropEvent] = []
+  private(set) var gaugeIsReturning = false
+  private(set) var gaugeEndpointPulseID = 0
+  private(set) var gaugeEndpointIsTop = true
 
   @ObservationIgnored
   private let motionManager = CMMotionManager()
+
+  @ObservationIgnored
+  private let guidanceHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
+
+  @ObservationIgnored
+  private let endpointHapticGenerator = UIImpactFeedbackGenerator(style: .heavy)
+
+  @ObservationIgnored
+  private let completionHapticGenerator = UINotificationFeedbackGenerator()
+
+  @ObservationIgnored
+  private let diagnosticRecorder = SquatChallengeDiagnosticRecorder()
 
   @ObservationIgnored
   private let motionQueue: OperationQueue
@@ -689,7 +1172,12 @@ private final class WakeChallengeSquatSession {
   @ObservationIgnored
   private var moneyDropCleanupTask: Task<Void, Never>?
 
+  @ObservationIgnored
+  private var diagnosticTask: Task<Void, Never>?
+
   private var detector = SquatDetector()
+  private var diagnosticSessionID: UUID?
+  private var diagnosticSampleIndex = 0
   private var calibrationProfile: SquatCalibrationProfile?
   private var targetSquats = 1
   private var eventSequence = 0
@@ -702,9 +1190,11 @@ private final class WakeChallengeSquatSession {
   private var attemptPeakTiltDegrees = 0.0
   private var latestMotionSample: SquatMotionSample?
   private var startingPositionSamples: [SquatMotionSample] = []
+  private var guidanceZeroingNotBefore: TimeInterval?
   private var lastGuidancePosition =
     SquatDetectorConfiguration.handheld.initialTopPosition
   private var lastGuidanceHapticStep = 0
+  private var lastGuidanceHapticTimestamp: TimeInterval?
   private var isGuidingUpward = false
 
   init() {
@@ -713,6 +1203,9 @@ private final class WakeChallengeSquatSession {
     queue.maxConcurrentOperationCount = 1
     queue.qualityOfService = .userInitiated
     motionQueue = queue
+    guidanceHapticGenerator.prepare()
+    endpointHapticGenerator.prepare()
+    completionHapticGenerator.prepare()
   }
 
   var tiltLabel: String {
@@ -724,6 +1217,33 @@ private final class WakeChallengeSquatSession {
     "\(Int((maximumDropMeters * 100).rounded())) cm"
   }
 
+  var debugTelemetryText: String {
+    let h = String(format: "%.3f", verticalRangeMeters)
+    let bigY = String(format: "%.3f", currentVerticalHeightMeters)
+    let littleY = String(format: "%.3f", verticalPosition)
+    let bigV = String(
+      format: "%+.3f",
+      currentVerticalVelocityMetersPerSecond
+    )
+    let littleV = String(format: "%+.3f", normalizedVerticalVelocity)
+    let acceleration = String(format: "%+.4f", projectedVerticalAccelerationG)
+    let bias = String(format: "%+.4f", verticalAccelerationBiasG)
+    let observation =
+      isHapticQuarantined
+      ? "HAPTIC MASK"
+      : (detectorIsStationary ? "QUIET" : "MOTION")
+    return """
+      BOUNDED CYCLE PHASE · not absolute altitude
+      H = \(h) m nominal scale
+      Y = \(bigY) phase-m
+      y = \(littleY)  [0…1]
+      V = \(bigV) phase-m/s  (+up)
+      v = \(littleV) /s   (+up, clamped)
+      aᵥ = \(acceleration) g | biasᵥ = \(bias) g | \(observation)
+      phase = \(phaseLabel) | drop = \(dropLabel) | tilt = \(tiltLabel) | last = \(lastAttemptLabel)
+      """
+  }
+
   func start(
     request: WakeChallengeRequest,
     calibrationProfile: SquatCalibrationProfile?,
@@ -731,16 +1251,26 @@ private final class WakeChallengeSquatSession {
     onSquatCompleted: @escaping () -> Void
   ) {
     let isNewRequest = activeRequestID != request.id
+    if isNewRequest, let activeRequestID {
+      finishDiagnosticSession(
+        sessionID: activeRequestID,
+        reason: "replaced_by_new_request"
+      )
+    }
     stopDeviceMotion()
     activeRequestID = request.id
     targetSquats = max(1, request.targetSquats)
     self.calibrationProfile = calibrationProfile
     self.hapticsEnabled = hapticsEnabled
     self.onSquatCompleted = onSquatCompleted
+    prepareHapticsIfNeeded()
     if isNewRequest {
       squats = 0
       moneyDrops = []
       eventSequence = 0
+      gaugeIsReturning = false
+      gaugeEndpointPulseID = 0
+      gaugeEndpointIsTop = true
       maximumDropMeters = 0
       lastAttemptLabel = "—"
     }
@@ -752,6 +1282,9 @@ private final class WakeChallengeSquatSession {
     attemptStartedAt = nil
     didSignalDepthThisAttempt = false
     attemptPeakTiltDegrees = 0
+    if isNewRequest {
+      startDiagnosticSession(request: request)
+    }
     #if targetEnvironment(simulator)
       canStartGuidance = true
       actionTitle = "SIMULATOR READY"
@@ -783,6 +1316,7 @@ private final class WakeChallengeSquatSession {
     self.calibrationProfile = calibrationProfile
     self.hapticsEnabled = hapticsEnabled
     self.onSquatCompleted = onSquatCompleted
+    prepareHapticsIfNeeded()
     resetDetector()
     resetGuidance()
     motionError = nil
@@ -791,6 +1325,10 @@ private final class WakeChallengeSquatSession {
     attemptStartedAt = nil
     didSignalDepthThisAttempt = false
     attemptPeakTiltDegrees = 0
+    appendDiagnosticEvent(
+      "motion_resumed",
+      details: ["squats": "\(squats)"]
+    )
     #if targetEnvironment(simulator)
       canStartGuidance = true
       actionTitle = "SIMULATOR READY"
@@ -803,6 +1341,10 @@ private final class WakeChallengeSquatSession {
 
   func pauseForInactivity() {
     guard activeRequestID != nil else { return }
+    appendDiagnosticEvent(
+      "motion_paused",
+      details: ["squats": "\(squats)"]
+    )
     stopDeviceMotion()
     resetDetector()
     resetGuidance()
@@ -814,8 +1356,14 @@ private final class WakeChallengeSquatSession {
       "Motion pauses while the app is inactive. Return upright and press Start again."
   }
 
-  func stop() {
+  func stop(reason: String = "stopped") {
     stopDeviceMotion()
+    if let diagnosticSessionID {
+      finishDiagnosticSession(
+        sessionID: diagnosticSessionID,
+        reason: reason
+      )
+    }
     activeRequestID = nil
     resetGuidance()
     onSquatCompleted = {}
@@ -828,6 +1376,7 @@ private final class WakeChallengeSquatSession {
       guard isGuidanceStarted, squats < target else { return }
       squats += 1
       motionStatus = "Squat \(squats) simulated."
+      signalGaugeEndpoint(isTop: true)
       bankMoneyDrop()
       onSquatCompleted()
     }
@@ -835,30 +1384,61 @@ private final class WakeChallengeSquatSession {
 
   @discardableResult
   func beginGuidance() -> Bool {
+    guard !isGuidanceStarted else { return false }
     #if targetEnvironment(simulator)
       isGuidanceStarted = true
+      isZeroingGuidance = false
       canStartGuidance = true
       verticalPosition = Self.guidanceConfiguration.initialTopPosition
       motionStatus = "Top set. Follow the marker down and back up."
       actionTitle = "SQUAT DOWN"
       phaseLabel = "STAND"
-      testHaptic(.calibrated)
+      appendDiagnosticEvent("guidance_armed")
+      testHaptic(
+        .calibrated,
+        motionTimestamp: nil
+      )
       return true
     #else
       guard let latestMotionSample = averagedStartingPositionSample() else {
         motionStatus = "Waiting for a live motion sample. Hold the phone steady and try again."
         return false
       }
-      let update = detector.armGuidedTracking(from: latestMotionSample)
       isGuidanceStarted = true
+      isZeroingGuidance = true
+      canStartGuidance = false
+      guidanceZeroingNotBefore =
+        latestMotionSample.timestamp
+        + Self.startHapticQuarantineDuration
+      startingPositionSamples.removeAll(keepingCapacity: true)
       verticalPosition = Self.guidanceConfiguration.initialTopPosition
+      currentVerticalHeightMeters = verticalRangeMeters
+      currentVerticalVelocityMetersPerSecond = 0
+      normalizedVerticalVelocity = 0
+      projectedVerticalAccelerationG = 0
+      verticalAccelerationBiasG = 0
+      detectorIsStationary = false
+      isHapticQuarantined = false
+      gaugeIsReturning = false
       lastGuidancePosition = verticalPosition
       lastGuidanceHapticStep = 0
+      lastGuidanceHapticTimestamp = nil
       isGuidingUpward = false
-      motionStatus = update.status
-      actionTitle = "SQUAT DOWN"
-      phaseLabel = "STAND"
-      testHaptic(.calibrated)
+      motionStatus =
+        "Hold at the top through the Start pulse while zero velocity is measured."
+      actionTitle = "HOLD AT TOP"
+      phaseLabel = "ZEROING"
+      appendDiagnosticEvent(
+        "guidance_zeroing_started",
+        rawMotion: diagnosticMotionData(
+          from: latestMotionSample,
+          receivedAt: .now
+        )
+      )
+      testHaptic(
+        .calibrated,
+        motionTimestamp: nil
+      )
       return true
     #endif
   }
@@ -870,6 +1450,10 @@ private final class WakeChallengeSquatSession {
     }
 
     stopDeviceMotion()
+    appendDiagnosticEvent(
+      "motion_retry_requested",
+      details: ["squats": "\(squats)"]
+    )
     resetDetector()
     resetGuidance()
     motionError = nil
@@ -922,18 +1506,25 @@ private final class WakeChallengeSquatSession {
       self?.receive(sample)
     }
     let availableFrames = CMMotionManager.availableAttitudeReferenceFrames()
+    let referenceFrame: String
     if availableFrames.contains(.xArbitraryZVertical) {
+      referenceFrame = "xArbitraryZVertical"
       motionManager.startDeviceMotionUpdates(
         using: .xArbitraryZVertical,
         to: motionQueue,
         withHandler: handler
       )
     } else {
+      referenceFrame = "default"
       motionManager.startDeviceMotionUpdates(
         to: motionQueue,
         withHandler: handler
       )
     }
+    appendDiagnosticEvent(
+      "motion_tracking_started",
+      details: ["attitude_reference_frame": referenceFrame]
+    )
 
     startupWatchdog = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(5))
@@ -952,6 +1543,9 @@ private final class WakeChallengeSquatSession {
   }
 
   private func resetDetector() {
+    let configuration =
+      Self.guidanceConfiguration.calibrated(using: calibrationProfile)
+    verticalRangeMeters = configuration.verticalRangeMeters
     detector = SquatDetector(
       initialRepCount: squats,
       calibrationProfile: calibrationProfile
@@ -960,13 +1554,185 @@ private final class WakeChallengeSquatSession {
 
   private func resetGuidance() {
     isGuidanceStarted = false
+    isZeroingGuidance = false
     canStartGuidance = false
     latestMotionSample = nil
     startingPositionSamples.removeAll(keepingCapacity: true)
+    guidanceZeroingNotBefore = nil
     verticalPosition = Self.guidanceConfiguration.initialTopPosition
+    currentVerticalHeightMeters = verticalRangeMeters * verticalPosition
+    currentVerticalVelocityMetersPerSecond = 0
+    normalizedVerticalVelocity = 0
+    projectedVerticalAccelerationG = 0
+    verticalAccelerationBiasG = 0
+    detectorIsStationary = false
+    isHapticQuarantined = false
+    gaugeIsReturning = false
     lastGuidancePosition = verticalPosition
     lastGuidanceHapticStep = 0
+    lastGuidanceHapticTimestamp = nil
     isGuidingUpward = false
+    prepareHapticsIfNeeded()
+  }
+
+  private func startDiagnosticSession(request: WakeChallengeRequest) {
+    diagnosticSessionID = request.id
+    diagnosticSampleIndex = 0
+    diagnosticLogRelativePath = nil
+    let appVersion =
+      Bundle.main.object(
+        forInfoDictionaryKey: "CFBundleShortVersionString"
+      ) as? String ?? "unknown"
+    let buildNumber =
+      Bundle.main.object(
+        forInfoDictionaryKey: "CFBundleVersion"
+      ) as? String ?? "unknown"
+    let configuration =
+      Self.guidanceConfiguration.calibrated(using: calibrationProfile)
+    let details = [
+      "acceleration_smoothing_factor": String(
+        format: "%.6f",
+        configuration.accelerationSmoothingFactor
+      ),
+      "app_version": appVersion,
+      "bottom_completion_position": String(
+        format: "%.6f",
+        configuration.bottomCompletionPosition
+      ),
+      "build_number": buildNumber,
+      "calibration_source": calibrationProfile == nil ? "default" : "saved",
+      "detector_model": "bounded_four_lobe_v2",
+      "is_canonical": request.isCanonical ? "true" : "false",
+      "minimum_downward_velocity_meters_per_second": String(
+        format: "%.6f",
+        configuration.minimumDownwardVelocity
+      ),
+      "minimum_upward_velocity_meters_per_second": String(
+        format: "%.6f",
+        configuration.minimumUpwardVelocity
+      ),
+      "minimum_guided_cycle_travel_meters": String(
+        format: "%.6f",
+        max(
+          configuration.minimumVerticalDropMeters,
+          configuration.verticalRangeMeters
+            * configuration.guidedMinimumTravelFraction
+        )
+      ),
+      "maximum_tracking_acceleration_g": String(
+        format: "%.6f",
+        configuration.maximumTrackingAcceleration
+      ),
+      "owner": request.owner.rawValue,
+      "position_hysteresis": String(
+        format: "%.6f",
+        configuration.positionHysteresis
+      ),
+      "system_version": UIDevice.current.systemVersion,
+      "target_squats": "\(targetSquats)",
+      "top_completion_position": String(
+        format: "%.6f",
+        configuration.topCompletionPosition
+      ),
+      "velocity_damping_per_second": String(
+        format: "%.6f",
+        configuration.velocityDampingPerSecond
+      ),
+      "vertical_acceleration_deadband_g": String(
+        format: "%.6f",
+        configuration.verticalAccelerationDeadbandG
+      ),
+      "vertical_range_meters": String(
+        format: "%.6f",
+        configuration.verticalRangeMeters
+      ),
+    ]
+    let recorder = diagnosticRecorder
+    let previousTask = diagnosticTask
+    let sessionID = request.id
+    diagnosticTask = Task { @MainActor [weak self] in
+      await previousTask?.value
+      do {
+        let descriptor = try await recorder.startSession(
+          sessionID: sessionID,
+          details: details
+        )
+        guard let self, self.diagnosticSessionID == sessionID else {
+          return
+        }
+        self.diagnosticLogRelativePath = descriptor.relativePath
+        Self.logger.info(
+          "Squat challenge diagnostics: \(descriptor.relativePath, privacy: .public)"
+        )
+      } catch {
+        if let self, self.diagnosticSessionID == sessionID {
+          self.diagnosticLogRelativePath =
+            "unavailable: \(error.localizedDescription)"
+        }
+        Self.logger.error(
+          "Could not start squat diagnostics: \(error.localizedDescription, privacy: .public)"
+        )
+      }
+    }
+  }
+
+  private func appendDiagnosticSample(
+    rawMotion: SquatChallengeDiagnosticMotionData,
+    detector snapshot: SquatChallengeDiagnosticSnapshot
+  ) {
+    guard let diagnosticSessionID else { return }
+    diagnosticSampleIndex += 1
+    let sampleIndex = diagnosticSampleIndex
+    let recorder = diagnosticRecorder
+    let previousTask = diagnosticTask
+    diagnosticTask = Task {
+      await previousTask?.value
+      await recorder.appendSample(
+        sessionID: diagnosticSessionID,
+        sampleIndex: sampleIndex,
+        rawMotion: rawMotion,
+        detector: snapshot
+      )
+    }
+  }
+
+  private func appendDiagnosticEvent(
+    _ name: String,
+    details: [String: String] = [:],
+    rawMotion: SquatChallengeDiagnosticMotionData? = nil,
+    detector snapshot: SquatChallengeDiagnosticSnapshot? = nil
+  ) {
+    guard let diagnosticSessionID else { return }
+    let recorder = diagnosticRecorder
+    let previousTask = diagnosticTask
+    diagnosticTask = Task {
+      await previousTask?.value
+      await recorder.appendEvent(
+        sessionID: diagnosticSessionID,
+        name: name,
+        details: details,
+        rawMotion: rawMotion,
+        detector: snapshot
+      )
+    }
+  }
+
+  private func finishDiagnosticSession(
+    sessionID: UUID,
+    reason: String
+  ) {
+    if diagnosticSessionID == sessionID {
+      diagnosticSessionID = nil
+    }
+    let recorder = diagnosticRecorder
+    let previousTask = diagnosticTask
+    diagnosticTask = Task {
+      await previousTask?.value
+      await recorder.finishSession(
+        sessionID: sessionID,
+        reason: reason
+      )
+    }
   }
 
   private func averagedStartingPositionSample() -> SquatMotionSample? {
@@ -1024,6 +1790,203 @@ private final class WakeChallengeSquatSession {
     )
   }
 
+  private func receiveGuidanceZeroingSample(
+    _ motion: SquatMotionSample,
+    receivedAt: Date
+  ) {
+    guard
+      let guidanceZeroingNotBefore,
+      motion.timestamp >= guidanceZeroingNotBefore
+    else {
+      return
+    }
+
+    startingPositionSamples.append(motion)
+    if startingPositionSamples.count > 15 {
+      startingPositionSamples.removeFirst(
+        startingPositionSamples.count - 15
+      )
+    }
+    guard
+      startingPositionSamples.count >= 10,
+      let oldestTimestamp = startingPositionSamples.first?.timestamp,
+      motion.timestamp - oldestTimestamp
+        >= Self.topZeroSampleDuration - 0.02
+    else {
+      return
+    }
+    guard startingPositionWindowIsQuiet else {
+      motionStatus =
+        "Keep holding at the top—waiting for a quiet 0.2-second zero-velocity window."
+      return
+    }
+    guard let topSample = averagedStartingPositionSample() else {
+      return
+    }
+
+    let update = detector.armGuidedTracking(
+      from: topSample,
+      standingWasStabilized: true
+    )
+    isZeroingGuidance = false
+    self.guidanceZeroingNotBefore = nil
+    startingPositionSamples.removeAll(keepingCapacity: true)
+    applyDebugTelemetry(update)
+    lastGuidancePosition = verticalPosition
+    motionStatus = "Top zero locked. Lower smoothly when you are ready."
+    actionTitle = "SQUAT DOWN"
+    phaseLabel = "STAND"
+    appendDiagnosticEvent(
+      "guidance_armed",
+      details: [
+        "post_haptic_zeroing_seconds": String(
+          format: "%.3f",
+          motion.timestamp
+            - (guidanceZeroingNotBefore
+              - Self.startHapticQuarantineDuration)
+        )
+      ],
+      rawMotion: diagnosticMotionData(
+        from: topSample,
+        receivedAt: receivedAt
+      ),
+      detector: diagnosticSnapshot(from: update)
+    )
+  }
+
+  private var startingPositionWindowIsQuiet: Bool {
+    guard startingPositionSamples.count >= 10 else { return false }
+    let count = Double(startingPositionSamples.count)
+    let meanGravity = startingPositionSamples.reduce(
+      (x: 0.0, y: 0.0, z: 0.0)
+    ) { partial, sample in
+      (
+        partial.x + sample.gravity.x,
+        partial.y + sample.gravity.y,
+        partial.z + sample.gravity.z
+      )
+    }
+    let gravityMagnitude = sqrt(
+      (meanGravity.x * meanGravity.x)
+        + (meanGravity.y * meanGravity.y)
+        + (meanGravity.z * meanGravity.z)
+    )
+    guard gravityMagnitude > 0.000_001 else { return false }
+    let normalizedMeanGravity = (
+      x: meanGravity.x / gravityMagnitude,
+      y: meanGravity.y / gravityMagnitude,
+      z: meanGravity.z / gravityMagnitude
+    )
+    let meanAcceleration = startingPositionSamples.reduce(
+      (x: 0.0, y: 0.0, z: 0.0)
+    ) { partial, sample in
+      (
+        partial.x + sample.userAcceleration.x,
+        partial.y + sample.userAcceleration.y,
+        partial.z + sample.userAcceleration.z
+      )
+    }
+    let accelerationBias = (
+      x: meanAcceleration.x / count,
+      y: meanAcceleration.y / count,
+      z: meanAcceleration.z / count
+    )
+
+    var projectedResidualSquares = 0.0
+    var rotationSquares = 0.0
+    var maximumGravitySpreadDegrees = 0.0
+    for sample in startingPositionSamples {
+      let gravityMagnitude = sqrt(
+        (sample.gravity.x * sample.gravity.x)
+          + (sample.gravity.y * sample.gravity.y)
+          + (sample.gravity.z * sample.gravity.z)
+      )
+      guard gravityMagnitude > 0.000_001 else { return false }
+      let gravity = (
+        x: sample.gravity.x / gravityMagnitude,
+        y: sample.gravity.y / gravityMagnitude,
+        z: sample.gravity.z / gravityMagnitude
+      )
+      let projectedResidual =
+        ((sample.userAcceleration.x - accelerationBias.x) * gravity.x)
+        + ((sample.userAcceleration.y - accelerationBias.y) * gravity.y)
+        + ((sample.userAcceleration.z - accelerationBias.z) * gravity.z)
+      projectedResidualSquares += projectedResidual * projectedResidual
+      rotationSquares +=
+        (sample.rotationRate.x * sample.rotationRate.x)
+        + (sample.rotationRate.y * sample.rotationRate.y)
+        + (sample.rotationRate.z * sample.rotationRate.z)
+      let gravityDot =
+        (gravity.x * normalizedMeanGravity.x)
+        + (gravity.y * normalizedMeanGravity.y)
+        + (gravity.z * normalizedMeanGravity.z)
+      let spreadDegrees =
+        acos(min(1, max(-1, gravityDot))) * 180 / .pi
+      maximumGravitySpreadDegrees = max(
+        maximumGravitySpreadDegrees,
+        spreadDegrees
+      )
+    }
+
+    let projectedResidualRMS = sqrt(projectedResidualSquares / count)
+    let rotationRMS = sqrt(rotationSquares / count)
+    return projectedResidualRMS <= 0.04
+      && rotationRMS <= 0.45
+      && maximumGravitySpreadDegrees <= 3
+  }
+
+  private func diagnosticMotionData(
+    from motion: SquatMotionSample,
+    receivedAt: Date
+  ) -> SquatChallengeDiagnosticMotionData {
+    SquatChallengeDiagnosticMotionData(
+      motionTimestampSeconds: motion.timestamp,
+      callbackWallTimeUnixSeconds: receivedAt.timeIntervalSince1970,
+      gravityG: motion.gravity,
+      userAccelerationG: motion.userAcceleration,
+      rotationRateRadiansPerSecond: motion.rotationRate
+    )
+  }
+
+  private func diagnosticSnapshot(
+    from update: SquatDetectorUpdate
+  ) -> SquatChallengeDiagnosticSnapshot {
+    SquatChallengeDiagnosticSnapshot(
+      phase: Self.diagnosticPhaseName(for: update.phase),
+      event: Self.diagnosticEventName(for: update.event),
+      repCount: update.repCount,
+      didReachBottom: update.didReachBottom,
+      didCountRep: update.didCountRep,
+      tiltDegrees: update.tiltDegrees,
+      maximumVerticalDropMeters: update.maximumVerticalDropMeters,
+      verticalRangeMeters: update.verticalRangeMeters,
+      currentVerticalHeightMeters: update.currentVerticalHeightMeters,
+      normalizedVerticalPosition: update.verticalPosition,
+      verticalVelocityMetersPerSecond:
+        update.currentVerticalVelocityMetersPerSecond,
+      normalizedVerticalVelocity: update.normalizedVerticalVelocity,
+      projectedVerticalAccelerationG: update.projectedVerticalAccelerationG,
+      verticalAccelerationBiasG: update.verticalAccelerationBiasG,
+      isStationary: update.isStationary,
+      isHapticQuarantined: update.isHapticQuarantined,
+      status: update.status
+    )
+  }
+
+  private func applyDebugTelemetry(_ update: SquatDetectorUpdate) {
+    verticalRangeMeters = update.verticalRangeMeters
+    currentVerticalHeightMeters = update.currentVerticalHeightMeters
+    verticalPosition = update.verticalPosition
+    currentVerticalVelocityMetersPerSecond =
+      update.currentVerticalVelocityMetersPerSecond
+    normalizedVerticalVelocity = update.normalizedVerticalVelocity
+    projectedVerticalAccelerationG = update.projectedVerticalAccelerationG
+    verticalAccelerationBiasG = update.verticalAccelerationBiasG
+    detectorIsStationary = update.isStationary
+    isHapticQuarantined = update.isHapticQuarantined
+    gaugeIsReturning = update.phase == .returning
+  }
+
   private func receive(_ sample: WakeMotionSample) {
     guard activeGeneration == sample.generation else { return }
 
@@ -1048,6 +2011,14 @@ private final class WakeChallengeSquatSession {
     motionError = nil
     startupWatchdog?.cancel()
     startupWatchdog = nil
+    latestMotionSample = motion
+    if isZeroingGuidance {
+      receiveGuidanceZeroingSample(
+        motion,
+        receivedAt: sample.receivedAt
+      )
+      return
+    }
     guard isGuidanceStarted else {
       startingPositionSamples.append(motion)
       if startingPositionSamples.count > 25 {
@@ -1055,7 +2026,6 @@ private final class WakeChallengeSquatSession {
           startingPositionSamples.count - 25
         )
       }
-      latestMotionSample = motion
       canStartGuidance = startingPositionSamples.count >= 10
       verticalPosition = Self.guidanceConfiguration.initialTopPosition
       actionTitle = "PRESS START"
@@ -1066,40 +2036,65 @@ private final class WakeChallengeSquatSession {
 
     let previousPhase = detector.phase
     let update = detector.process(motion)
+    let rawMotion = diagnosticMotionData(
+      from: motion,
+      receivedAt: sample.receivedAt
+    )
+    let diagnosticSnapshot = diagnosticSnapshot(from: update)
+    appendDiagnosticSample(
+      rawMotion: rawMotion,
+      detector: diagnosticSnapshot
+    )
     let previousSquats = squats
     squats = min(update.repCount, targetSquats)
     maximumDropMeters = update.maximumVerticalDropMeters
-    verticalPosition = update.verticalPosition
-    updateGuidanceHaptics(using: update)
+    applyDebugTelemetry(update)
+    if update.event == .attemptBegan || update.event == .attemptRejected {
+      resetGuidanceHapticCycle(at: update.verticalPosition)
+    }
+    updateGuidanceHaptics(
+      using: update,
+      motionTimestamp: motion.timestamp
+    )
     if let tiltDegrees = update.tiltDegrees {
       attemptPeakTiltDegrees = max(attemptPeakTiltDegrees, tiltDegrees)
     }
 
-    if previousPhase == .standing, update.phase == .descending {
+    if update.event == .attemptBegan {
       attemptStartedAt = motion.timestamp
       lastAttemptLabel = "IN PROGRESS"
       didSignalDepthThisAttempt = false
       attemptPeakTiltDegrees = update.tiltDegrees ?? 0
-    } else if attemptStartedAt == nil,
-      update.status.localizedCaseInsensitiveContains("tilt alone")
-    {
-      attemptStartedAt = motion.timestamp
-      lastAttemptLabel = "IN PROGRESS"
+      appendDiagnosticEvent(
+        "attempt_started",
+        rawMotion: rawMotion,
+        detector: diagnosticSnapshot
+      )
     }
-    if !didSignalDepthThisAttempt, update.didReachBottom {
+    if !didSignalDepthThisAttempt, update.event == .bottomReached {
       didSignalDepthThisAttempt = true
-      testHaptic(.depth)
+      signalGaugeEndpoint(isTop: false)
+      appendDiagnosticEvent(
+        "bottom_reached",
+        rawMotion: rawMotion,
+        detector: diagnosticSnapshot
+      )
+      testHaptic(
+        .depth,
+        motionTimestamp: motion.timestamp
+      )
     }
 
-    let isRejected =
-      update.status.localizedCaseInsensitiveContains("rejected")
-      || (previousPhase != .standing
-        && previousPhase != .calibrating
-        && previousPhase != .cooldown
-        && update.phase == .standing)
     if squats > previousSquats {
+      signalGaugeEndpoint(isTop: true)
       bankMoneyDrop()
       onSquatCompleted()
+      appendDiagnosticEvent(
+        "rep_counted",
+        details: ["squats": "\(squats)"],
+        rawMotion: rawMotion,
+        detector: diagnosticSnapshot
+      )
       finishAttempt(
         result: "COUNTED",
         motionTimestamp: motion.timestamp,
@@ -1107,8 +2102,16 @@ private final class WakeChallengeSquatSession {
         peakTiltDegrees: attemptPeakTiltDegrees,
         status: update.status
       )
-      testHaptic(.counted)
-    } else if isRejected {
+      testHaptic(
+        .counted,
+        motionTimestamp: motion.timestamp
+      )
+    } else if update.event == .attemptRejected {
+      appendDiagnosticEvent(
+        "attempt_rejected",
+        rawMotion: rawMotion,
+        detector: diagnosticSnapshot
+      )
       finishAttempt(
         result: "REJECTED",
         motionTimestamp: motion.timestamp,
@@ -1116,7 +2119,10 @@ private final class WakeChallengeSquatSession {
         peakTiltDegrees: attemptPeakTiltDegrees,
         status: update.status
       )
-      testHaptic(.rejected)
+      testHaptic(
+        .rejected,
+        motionTimestamp: motion.timestamp
+      )
     }
 
     let shouldRefreshTelemetry =
@@ -1130,8 +2136,18 @@ private final class WakeChallengeSquatSession {
     lastTelemetryTimestamp = motion.timestamp
     motionStatus = update.status
     tiltDegrees = update.tiltDegrees
-    actionTitle = Self.actionTitle(for: update.phase)
-    phaseLabel = Self.phaseLabel(for: update.phase)
+    let isSettlingAtTop =
+      update.phase == .returning
+      && update.verticalPosition >= 0.999
+      && abs(update.currentVerticalVelocityMetersPerSecond) <= 0.001
+    actionTitle =
+      isSettlingAtTop
+      ? "HOLD BRIEFLY"
+      : Self.actionTitle(for: update.phase)
+    phaseLabel =
+      isSettlingAtTop
+      ? "TOP"
+      : Self.phaseLabel(for: update.phase)
   }
 
   private func finishAttempt(
@@ -1165,7 +2181,17 @@ private final class WakeChallengeSquatSession {
     attemptPeakTiltDegrees = 0
   }
 
-  private func updateGuidanceHaptics(using update: SquatDetectorUpdate) {
+  private func resetGuidanceHapticCycle(at position: Double) {
+    isGuidingUpward = false
+    lastGuidanceHapticStep = 0
+    lastGuidancePosition = position
+    lastGuidanceHapticTimestamp = nil
+  }
+
+  private func updateGuidanceHaptics(
+    using update: SquatDetectorUpdate,
+    motionTimestamp: TimeInterval
+  ) {
     guard hapticsEnabled else { return }
     if update.didReachBottom {
       isGuidingUpward = true
@@ -1209,33 +2235,63 @@ private final class WakeChallengeSquatSession {
 
     let clampedProgress = min(1, max(0, progress))
     let step = Int(floor(clampedProgress / Self.guidanceHapticStep))
+    let hasClearedHapticInterval =
+      lastGuidanceHapticTimestamp.map {
+        motionTimestamp - $0 >= Self.guidanceHapticMinimumInterval
+      } ?? true
     guard
       isMovingInGuidedDirection,
       step > lastGuidanceHapticStep,
-      clampedProgress < 1
+      clampedProgress < 1,
+      hasClearedHapticInterval
     else {
       return
     }
     lastGuidanceHapticStep = step
-    let generator = UIImpactFeedbackGenerator(style: .soft)
-    generator.prepare()
-    generator.impactOccurred(
-      intensity: min(0.90, 0.18 + (clampedProgress * 0.72))
+    lastGuidanceHapticTimestamp = motionTimestamp
+    detector.quarantineHapticArtifact(
+      after: motionTimestamp,
+      duration: Self.detectorHapticQuarantineDuration
     )
+    guidanceHapticGenerator.impactOccurred(
+      intensity: min(1, 0.50 + (clampedProgress * 0.50))
+    )
+    guidanceHapticGenerator.prepare()
   }
 
-  private func testHaptic(_ event: SquatTestHaptic) {
+  private func testHaptic(
+    _ event: SquatTestHaptic,
+    motionTimestamp: TimeInterval?
+  ) {
     guard hapticsEnabled else { return }
+    if let motionTimestamp {
+      detector.quarantineHapticArtifact(
+        after: motionTimestamp,
+        duration: Self.detectorHapticQuarantineDuration
+      )
+    }
     switch event {
     case .calibrated:
-      UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.45)
+      guidanceHapticGenerator.impactOccurred(intensity: 0.80)
+      guidanceHapticGenerator.prepare()
     case .depth:
-      UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1)
+      endpointHapticGenerator.impactOccurred(intensity: 1)
+      endpointHapticGenerator.prepare()
     case .counted:
-      UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1)
+      endpointHapticGenerator.impactOccurred(intensity: 1)
+      completionHapticGenerator.notificationOccurred(.success)
+      endpointHapticGenerator.prepare()
+      completionHapticGenerator.prepare()
     case .rejected:
       UINotificationFeedbackGenerator().notificationOccurred(.error)
     }
+  }
+
+  private func prepareHapticsIfNeeded() {
+    guard hapticsEnabled else { return }
+    guidanceHapticGenerator.prepare()
+    endpointHapticGenerator.prepare()
+    completionHapticGenerator.prepare()
   }
 
   private func bankMoneyDrop() {
@@ -1260,7 +2316,16 @@ private final class WakeChallengeSquatSession {
     }
   }
 
+  private func signalGaugeEndpoint(isTop: Bool) {
+    gaugeEndpointIsTop = isTop
+    gaugeEndpointPulseID &+= 1
+  }
+
   private func failMotion(_ message: String) {
+    appendDiagnosticEvent(
+      "motion_failed",
+      details: ["message": message]
+    )
     stopDeviceMotion()
     resetGuidance()
     motionError = message
@@ -1307,6 +2372,42 @@ private final class WakeChallengeSquatSession {
       "DRIVE UP"
     case .cooldown:
       "RESET"
+    }
+  }
+
+  private static func diagnosticPhaseName(
+    for phase: SquatDetectorPhase
+  ) -> String {
+    switch phase {
+    case .calibrating:
+      "calibrating"
+    case .standing:
+      "standing"
+    case .descending:
+      "descending"
+    case .down:
+      "down"
+    case .returning:
+      "returning"
+    case .cooldown:
+      "cooldown"
+    }
+  }
+
+  private static func diagnosticEventName(
+    for event: SquatDetectorEvent?
+  ) -> String? {
+    switch event {
+    case .attemptBegan:
+      "attempt_began"
+    case .bottomReached:
+      "bottom_reached"
+    case .repCounted:
+      "rep_counted"
+    case .attemptRejected:
+      "attempt_rejected"
+    case nil:
+      nil
     }
   }
 

@@ -21,6 +21,7 @@ enum AlarmSchedulerError: Error, LocalizedError {
   case authorizationRequired
   case cancellationFailed(Int)
   case interactionInProgress
+  case powerNapTimeMustBeFuture
 
   var errorDescription: String? {
     switch self {
@@ -31,6 +32,8 @@ enum AlarmSchedulerError: Error, LocalizedError {
         : "\(count) alarms could not be cleared. Try Clear Alarms again."
     case .interactionInProgress:
       "An alarm interaction is in progress. The current attack stack was preserved."
+    case .powerNapTimeMustBeFuture:
+      "Choose a Power Nap time that is still in the future."
     }
   }
 }
@@ -68,6 +71,7 @@ actor AlarmScheduler {
     let records =
       SettingsStore.shared.loadScheduledAlarms()
       + SettingsStore.shared.loadScheduledTestAlarms()
+      + SettingsStore.shared.loadScheduledPowerNaps()
     let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
     let states = try? Dictionary(
       uniqueKeysWithValues: AlarmManager.shared.alarms.map { ($0.id, $0.state) }
@@ -302,6 +306,86 @@ actor AlarmScheduler {
     return newlyScheduled
   }
 
+  func replacePowerNap(
+    fireDate: Date,
+    soundChoice: AlarmSoundChoice,
+    now: Date = .now
+  ) async throws -> ScheduledAlarmRecord {
+    guard AlarmManager.shared.authorizationState == .authorized else {
+      throw AlarmSchedulerError.authorizationRequired
+    }
+    guard fireDate > now else {
+      throw AlarmSchedulerError.powerNapTimeMustBeFuture
+    }
+    guard !isAlarmInteractionInFlight(now: now) else {
+      throw AlarmSchedulerError.interactionInProgress
+    }
+
+    let store = SettingsStore.shared
+    let previousRecords = store.loadScheduledPowerNaps()
+    let setID = UUID()
+    let retryChain = makeRetryChain(
+      owner: .powerNap,
+      alarmID: UUID(),
+      setID: setID,
+      isCanonical: true,
+      targetTitle: "Power Nap",
+      targetDate: fireDate,
+      offsetMinutes: 0,
+      ordinal: 1,
+      total: 1,
+      title: "Power Nap",
+      soundChoice: soundChoice,
+      fireDate: fireDate
+    )
+
+    let newRecord = try await schedule(
+      id: retryChain.currentAlarmID,
+      chainID: retryChain.id,
+      setID: setID,
+      isCanonical: true,
+      owner: .powerNap,
+      fireDate: fireDate,
+      targetTitle: "Power Nap",
+      targetDate: fireDate,
+      offsetMinutes: 0,
+      ordinal: 1,
+      total: 1,
+      title: "Power Nap",
+      soundChoice: soundChoice
+    )
+
+    guard !isAlarmInteractionInFlight() else {
+      let failedRollbackRecords = cancel([newRecord])
+      preserveUncommittedRollback(
+        failedRollbackRecords,
+        retryChains: [retryChain],
+        owner: .powerNap
+      )
+      throw AlarmSchedulerError.interactionInProgress
+    }
+
+    let supersededChains = replaceRetryChains(for: .powerNap, with: [retryChain])
+    let failedSupersededRecords = cancel(previousRecords)
+    let previousRecordIDs = Set(previousRecords.map(\.id))
+    let supersededRetryIDs =
+      supersededChains
+      .map(\.currentAlarmID)
+      .filter { !previousRecordIDs.contains($0) }
+    let failedSupersededRetryIDs = cancel(supersededRetryIDs)
+    preserveFailedRetryChains(
+      supersededChains,
+      failedIDs: failedSupersededRetryIDs
+    )
+    store.saveScheduledPowerNaps(
+      merged([newRecord], with: failedSupersededRecords)
+    )
+    try reportCancellationFailures(
+      failedSupersededRecords.count + failedSupersededRetryIDs.count
+    )
+    return newRecord
+  }
+
   func cancelBarrage() throws {
     clearWakeHandoff(owner: .barrage)
     let records = SettingsStore.shared.loadScheduledAlarms()
@@ -335,22 +419,39 @@ actor AlarmScheduler {
     try reportCancellationFailures(failedRecords.count + failedRetryIDs.count)
   }
 
+  func cancelPowerNap() throws {
+    clearWakeHandoff(owner: .powerNap)
+    let records = SettingsStore.shared.loadScheduledPowerNaps()
+    let retryChains = removeRetryChains(for: .powerNap)
+    let failedRecords = cancel(records)
+    let recordIDs = Set(records.map(\.id))
+    let retryOnlyIDs = retryChains.map(\.currentAlarmID).filter { !recordIDs.contains($0) }
+    let failedRetryIDs = cancel(retryOnlyIDs)
+    preserveFailedRetryChains(retryChains, failedIDs: failedRetryIDs)
+    SettingsStore.shared.saveScheduledPowerNaps(failedRecords)
+    try reportCancellationFailures(failedRecords.count + failedRetryIDs.count)
+  }
+
   func cancelAll() throws {
     SettingsStore.shared.clearAlarmWakeHandoff()
     let barrageRecords = SettingsStore.shared.loadScheduledAlarms()
     let testRecords = SettingsStore.shared.loadScheduledTestAlarms()
+    let powerNapRecords = SettingsStore.shared.loadScheduledPowerNaps()
     let retryChains = removeAllRetryChains()
     let failedBarrageRecords = cancel(barrageRecords)
     let failedTestRecords = cancel(testRecords)
-    let recordIDs = Set((barrageRecords + testRecords).map(\.id))
+    let failedPowerNapRecords = cancel(powerNapRecords)
+    let recordIDs = Set((barrageRecords + testRecords + powerNapRecords).map(\.id))
     let retryOnlyIDs = retryChains.map(\.currentAlarmID).filter { !recordIDs.contains($0) }
     let failedRetryIDs = cancel(retryOnlyIDs)
     preserveFailedRetryChains(retryChains, failedIDs: failedRetryIDs)
     SettingsStore.shared.saveScheduledAlarms(failedBarrageRecords)
     SettingsStore.shared.saveScheduledTestAlarms(failedTestRecords)
+    SettingsStore.shared.saveScheduledPowerNaps(failedPowerNapRecords)
     SettingsStore.shared.saveAlarmRetryTimestamps([])
     try reportCancellationFailures(
-      failedBarrageRecords.count + failedTestRecords.count + failedRetryIDs.count
+      failedBarrageRecords.count + failedTestRecords.count
+        + failedPowerNapRecords.count + failedRetryIDs.count
     )
   }
 
@@ -364,15 +465,20 @@ actor AlarmScheduler {
     }
     let barrageRecords = SettingsStore.shared.loadScheduledAlarms()
     let testRecords = SettingsStore.shared.loadScheduledTestAlarms()
+    let powerNapRecords = SettingsStore.shared.loadScheduledPowerNaps()
     let setBarrageRecords = barrageRecords.filter { $0.setID == setID }
     let setTestRecords = testRecords.filter { $0.setID == setID }
+    let setPowerNapRecords = powerNapRecords.filter { $0.setID == setID }
     let allChains = SettingsStore.shared.loadAlarmRetryChains()
     let setChains = allChains.filter { $0.setID == setID }
     SettingsStore.shared.saveAlarmRetryChains(allChains.filter { $0.setID != setID })
 
     let failedBarrageRecords = cancel(setBarrageRecords)
     let failedTestRecords = cancel(setTestRecords)
-    let recordIDs = Set((setBarrageRecords + setTestRecords).map(\.id))
+    let failedPowerNapRecords = cancel(setPowerNapRecords)
+    let recordIDs = Set(
+      (setBarrageRecords + setTestRecords + setPowerNapRecords).map(\.id)
+    )
     let retryOnlyIDs = setChains.map(\.currentAlarmID).filter { !recordIDs.contains($0) }
     let failedRetryIDs = cancel(retryOnlyIDs)
     preserveFailedRetryChains(setChains, failedIDs: failedRetryIDs)
@@ -383,8 +489,15 @@ actor AlarmScheduler {
     SettingsStore.shared.saveScheduledTestAlarms(
       merged(testRecords.filter { $0.setID != setID }, with: failedTestRecords)
     )
+    SettingsStore.shared.saveScheduledPowerNaps(
+      merged(
+        powerNapRecords.filter { $0.setID != setID },
+        with: failedPowerNapRecords
+      )
+    )
     try reportCancellationFailures(
-      failedBarrageRecords.count + failedTestRecords.count + failedRetryIDs.count
+      failedBarrageRecords.count + failedTestRecords.count
+        + failedPowerNapRecords.count + failedRetryIDs.count
     )
   }
 
@@ -700,6 +813,7 @@ actor AlarmScheduler {
       let appOwnedIDs = Set(storedChains.map(\.currentAlarmID))
         .union(SettingsStore.shared.loadScheduledAlarms().map(\.id))
         .union(SettingsStore.shared.loadScheduledTestAlarms().map(\.id))
+        .union(SettingsStore.shared.loadScheduledPowerNaps().map(\.id))
       let alertingIDs = Set(
         currentStates.compactMap { id, state in
           state == .alerting && appOwnedIDs.contains(id) ? id : nil
@@ -729,6 +843,7 @@ actor AlarmScheduler {
       let records =
         SettingsStore.shared.loadScheduledAlarms()
         + SettingsStore.shared.loadScheduledTestAlarms()
+        + SettingsStore.shared.loadScheduledPowerNaps()
       let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
       for chain in activeRetryChains(now: now) {
         guard
@@ -964,6 +1079,10 @@ actor AlarmScheduler {
       SettingsStore.shared.saveScheduledAlarms(
         merged(SettingsStore.shared.loadScheduledAlarms(), with: failedRecords)
       )
+    case .powerNap:
+      SettingsStore.shared.saveScheduledPowerNaps(
+        merged(SettingsStore.shared.loadScheduledPowerNaps(), with: failedRecords)
+      )
     case .test:
       SettingsStore.shared.saveScheduledTestAlarms(
         merged(SettingsStore.shared.loadScheduledTestAlarms(), with: failedRecords)
@@ -988,6 +1107,13 @@ actor AlarmScheduler {
       records.removeAll { $0.id == previousAlarmID }
       records.append(record)
       SettingsStore.shared.saveScheduledAlarms(records.sorted { $0.fireDate < $1.fireDate })
+    case .powerNap:
+      var records = SettingsStore.shared.loadScheduledPowerNaps()
+      records.removeAll { $0.id == previousAlarmID }
+      records.append(record)
+      SettingsStore.shared.saveScheduledPowerNaps(
+        records.sorted { $0.fireDate < $1.fireDate }
+      )
     case .test:
       var records = SettingsStore.shared.loadScheduledTestAlarms()
       records.removeAll { $0.id == previousAlarmID }
@@ -1002,6 +1128,9 @@ actor AlarmScheduler {
     )
     SettingsStore.shared.saveScheduledTestAlarms(
       SettingsStore.shared.loadScheduledTestAlarms().filter { !ids.contains($0.id) }
+    )
+    SettingsStore.shared.saveScheduledPowerNaps(
+      SettingsStore.shared.loadScheduledPowerNaps().filter { !ids.contains($0.id) }
     )
   }
 

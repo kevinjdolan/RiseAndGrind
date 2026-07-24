@@ -30,7 +30,7 @@ The Grind tab can mute attacks for the next operational morning, seven operation
 
 ## Product surfaces
 
-- **Grind:** Grind Time and Lock In controls, Active Day selectors, and the timed or indefinite Mute control.
+- **Grind:** Grind Time and Lock In controls, Active Day selectors, a one-off Power Nap alarm, and the timed or indefinite Mute control.
 - **Calendar:** next-morning preview, wake-target explanation, one chronological Upcoming Attacks list of armed, test, and struck-through muted attacks, and a control that clears armed alarms.
 - **Stack:** alarm count, spacing, and Final Warning offset.
 - **Sounds:** 100 built-in songs with fictional artist credits, compact genre labels, pool membership, continuous looping previews, and custom imports.
@@ -45,16 +45,18 @@ The app is gated until all operational setup is complete:
 - AlarmKit authorization
 - Calendar full access
 - notification authorization for nightly results
-- confirmation that the nightly Personal Automation was created
+- Motion & Fitness access and a usable squat calibration
 
-If either system permission is later revoked, the app returns to the access gate. Photos imports use Apple’s scoped video picker, so broad Photo Library permission is neither requested nor required.
+If any required permission is later revoked, the app returns to the access gate. Photos imports use Apple’s scoped video picker, so broad Photo Library permission is neither requested nor required.
 
-Apple does not let an app silently create or inspect a user’s Personal Automations. The lowest-effort supported setup is presented inside onboarding:
+Apple does not let an app silently create or inspect a user’s Personal Automations. The automation is strongly recommended, but onboarding can be completed without it after acknowledging that late Calendar changes may be missed while the app is closed. The lowest-effort supported setup is presented inside onboarding:
 
 1. Open Shortcuts from the in-app link.
 2. Create a Daily, 9:00 PM, Run Immediately automation.
 3. Add Rise & Grind’s **Prepare Tomorrow’s Barrage** action.
 4. Return and confirm setup.
+
+Rise & Grind also requests a best-effort `BGAppRefreshTask` opportunity about once per hour. iOS decides whether and when that task runs, so it supplements rather than replaces the nightly Personal Automation.
 
 The intent records its last successful run so Setup can show whether it has ever executed, and it posts a notification with the resulting Grind Time or the reason no alarms were armed. Apple’s [Personal Automation guide](https://support.apple.com/guide/shortcuts/intro-to-personal-automation-apd690170742/ios) describes the system-owned workflow.
 

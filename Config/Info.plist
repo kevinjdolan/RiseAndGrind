@@ -20,6 +20,10 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.kevin.riseandgrind.alarmkit.hourly-refresh</string>
+	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>NSAlarmKitUsageDescription</key>
@@ -28,6 +32,8 @@
 	<string>Rise &amp; Grind reads tomorrow's events to detect meetings earlier than your normal start time.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Rise &amp; Grind uses Motion &amp; Fitness data to verify that you completed your configured wake-up squat reps.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Rise &amp; Grind uses microphone sound levels in Squat Lab to timestamp your top and bottom positions without recording or saving audio.</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>accelerometer</string>
@@ -36,6 +42,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>fetch</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

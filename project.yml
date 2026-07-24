@@ -36,17 +36,21 @@ targets:
         CFBundleDisplayName: Rise & Grind
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.kevin.riseandgrind.alarmkit.hourly-refresh
         LSApplicationCategoryType: public.app-category.productivity
         UILaunchScreen:
           UIColorName: LaunchBackground
         NSAlarmKitUsageDescription: Rise & Grind schedules the alarms you configure so your morning can achieve maximum shareholder value.
         NSCalendarsFullAccessUsageDescription: Rise & Grind reads tomorrow's events to detect meetings earlier than your normal start time.
+        NSMicrophoneUsageDescription: Rise & Grind uses microphone sound levels in Squat Lab to timestamp your top and bottom positions without recording or saving audio.
         NSMotionUsageDescription: Rise & Grind uses Motion & Fitness data to verify that you completed your configured wake-up squat reps.
         UIRequiredDeviceCapabilities:
           - accelerometer
           - gyroscope
         UIBackgroundModes:
           - audio
+          - fetch
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kevin.riseandgrind.alarmkit
@@ -67,6 +71,7 @@ targets:
       - sdk: AlarmKit.framework
       - sdk: ActivityKit.framework
       - sdk: AppIntents.framework
+      - sdk: BackgroundTasks.framework
       - sdk: EventKit.framework
       - sdk: CoreMotion.framework
       - sdk: CoreHaptics.framework

@@ -14,17 +14,21 @@ struct SetupView: View {
   let motionAuthorization: String
   let automationAcknowledged: Bool
   let lastNightlyRun: Date?
+  let lastBackgroundRefresh: Date?
   let scheduledTestAlarms: [ScheduledAlarmRecord]
   let isWorking: Bool
   let requestPermissions: @MainActor () async -> RGActionResult?
   let scheduleAlarmTest: @MainActor (Int) async -> RGActionResult?
   let cancelAlarmTest: @MainActor () async -> RGActionResult?
+  let acknowledgeAutomation: () -> Void
   let openSettings: () -> Void
 
   @State private var actionResult: RGActionResult?
   @State private var isAwaitingResult = false
   @State private var isShowingFactoryResetConfirmation = false
   @State private var isShowingSquatCalibration = false
+  @State private var isShowingSquatDiagnostic = false
+  @State private var squatPracticeRequest: WakeChallengeRequest?
   @State private var testAlarmCount = 3
 
   var body: some View {
@@ -123,6 +127,24 @@ struct SetupView: View {
         model.saveSquatCalibration(profile)
       }
     }
+    .fullScreenCover(isPresented: $isShowingSquatDiagnostic) {
+      SquatDiagnosticView(
+        calibrationProfile: model.settings.squatCalibration
+      )
+    }
+    .fullScreenCover(item: $squatPracticeRequest) { request in
+      WakeChallengeView(
+        request: request,
+        coordinator: WakeChallengeCoordinator.shared,
+        calibrationProfile: model.settings.squatCalibration,
+        openSettings: model.openSystemSettings,
+        purpose: .settingsTest,
+        exitSettingsTest: {
+          squatPracticeRequest = nil
+        }
+      )
+      .id(request.id)
+    }
     .alert(
       "Factory Reset Rise & Grind?",
       isPresented: $isShowingFactoryResetConfirmation
@@ -154,19 +176,29 @@ struct SetupView: View {
           )
           Spacer(minLength: 10)
           RGStatusPill(
-            text: automationAcknowledged ? "Set up" : "Required",
-            color: automationAcknowledged ? RGTheme.mint : RGTheme.orange,
-            icon: automationAcknowledged ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
+            text: automationStatus.text,
+            color: automationStatus.color,
+            icon: automationStatus.icon
           )
         }
 
         if let lastNightlyRun {
           Label(
             "Last ran \(lastNightlyRun.formatted(date: .abbreviated, time: .shortened))",
-            systemImage: "clock.badge.checkmark.fill"
+            systemImage:
+              isNightlyRunCurrent
+              ? "clock.badge.checkmark.fill" : "clock.badge.exclamationmark.fill"
           )
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(RGTheme.cream)
+          .foregroundStyle(isNightlyRunCurrent ? RGTheme.cream : RGTheme.orange)
+
+          if !isNightlyRunCurrent {
+            Text(
+              "The daily heartbeat is overdue. The automation may be disabled or missing."
+            )
+            .font(.caption)
+            .foregroundStyle(RGTheme.orange)
+          }
         } else {
           Label(
             "No automatic run recorded yet",
@@ -176,8 +208,31 @@ struct SetupView: View {
           .foregroundStyle(RGTheme.orange)
         }
 
+        if let lastBackgroundRefresh {
+          Label(
+            "Background safety check ran \(lastBackgroundRefresh.formatted(date: .abbreviated, time: .shortened))",
+            systemImage: "arrow.clockwise.circle.fill"
+          )
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(RGTheme.mutedCream)
+        } else {
+          Label(
+            "No background safety check recorded yet",
+            systemImage: "arrow.clockwise.circle"
+          )
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(RGTheme.mutedCream)
+        }
+
         RGShortcutAutomationLinks()
           .frame(maxWidth: .infinity, alignment: .leading)
+
+        if !automationAcknowledged {
+          Button(action: acknowledgeAutomation) {
+            Label("I SET IT UP", systemImage: "checkmark.seal.fill")
+          }
+          .buttonStyle(RGPrimaryButtonStyle())
+        }
 
         Text(
           "iOS requires you to create Personal Automations yourself; apps cannot create or inspect them silently."
@@ -293,6 +348,34 @@ struct SetupView: View {
         .buttonStyle(RGPrimaryButtonStyle())
         .disabled(isBusy)
 
+        Button {
+          beginSquatPractice()
+        } label: {
+          Label(
+            "PRACTICE MY SQUAT",
+            systemImage: "figure.strengthtraining.functional"
+          )
+        }
+        .buttonStyle(RGSecondaryButtonStyle())
+        .disabled(isBusy)
+
+        Button {
+          isShowingSquatDiagnostic = true
+        } label: {
+          Label(
+            "RUN SQUAT DIAGNOSTIC",
+            systemImage: "waveform.path.ecg.rectangle"
+          )
+        }
+        .buttonStyle(RGSecondaryButtonStyle())
+        .disabled(isBusy)
+
+        Text(
+          "Captures a labeled three-minute motion session so squat detection can be measured instead of guessed."
+        )
+        .font(.caption)
+        .foregroundStyle(RGTheme.mutedCream)
+
         if let squatCalibration = model.settings.squatCalibration {
           HStack {
             Label(
@@ -346,12 +429,48 @@ struct SetupView: View {
     testAlarmCount == 1 ? "ARM 1 TEST ALARM" : "ARM \(testAlarmCount) TEST ALARMS"
   }
 
+  private var isNightlyRunCurrent: Bool {
+    guard let lastNightlyRun else { return false }
+    return lastNightlyRun > Date.now.addingTimeInterval(-36 * 60 * 60)
+  }
+
+  private var automationStatus: (text: String, color: Color, icon: String) {
+    if isNightlyRunCurrent {
+      return ("Recent run", RGTheme.mint, "checkmark.circle.fill")
+    }
+    if lastNightlyRun != nil {
+      return ("Overdue", RGTheme.orange, "exclamationmark.circle.fill")
+    }
+    if automationAcknowledged {
+      return ("Unverified", RGTheme.orange, "questionmark.circle.fill")
+    }
+    return ("Not confirmed", RGTheme.orange, "exclamationmark.circle.fill")
+  }
+
   private func run(_ action: @escaping @MainActor () async -> RGActionResult?) {
     isAwaitingResult = true
     Task { @MainActor in
       actionResult = await action()
       isAwaitingResult = false
     }
+  }
+
+  private func beginSquatPractice() {
+    let sourceAlarmID = UUID()
+    squatPracticeRequest = WakeChallengeRequest(
+      id: UUID(),
+      sourceAlarmID: sourceAlarmID,
+      setID: sourceAlarmID,
+      sourceSound: .system,
+      isCanonical: false,
+      owner: .test,
+      additionalOwner: nil,
+      startedAt: .now,
+      targetSquats: wakeChallengeSquatCount,
+      suppressionUntil: nil,
+      countingStartedAt: nil,
+      expiresAt: .distantFuture
+    )
   }
 
   private func performFactoryReset() {

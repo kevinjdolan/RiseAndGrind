@@ -10,13 +10,16 @@ struct SettingsStore: @unchecked Sendable {
     static let settings = "riseAndGrind.settings.v2"
     static let scheduledAlarms = "riseAndGrind.scheduledAlarms.v2"
     static let scheduledTestAlarms = "riseAndGrind.scheduledTestAlarms.v1"
+    static let scheduledPowerNaps = "riseAndGrind.scheduledPowerNaps.v1"
     static let alarmRetryChains = "riseAndGrind.alarmRetryChains.v1"
     static let alarmRetryTimestamps = "riseAndGrind.alarmRetryTimestamps.v1"
     static let alarmWakeHandoff = "riseAndGrind.alarmWakeHandoff.v1"
     static let importedSounds = "riseAndGrind.importedSounds.v2"
     static let onboardingCompleted = "riseAndGrind.onboardingCompleted.v1"
+    static let introPitchCompleted = "riseAndGrind.introPitchCompleted.v1"
     static let automationAcknowledged = "riseAndGrind.automationAcknowledged.v1"
     static let lastNightlyRun = "riseAndGrind.lastNightlyRun.v1"
+    static let lastBackgroundRefresh = "riseAndGrind.lastBackgroundRefresh.v1"
     static let lastSummary = "riseAndGrind.lastSummary.v2"
     static let alarmMuteState = "riseAndGrind.alarmMuteState.v1"
     static let wakeChallenge = "riseAndGrind.wakeChallenge.v1"
@@ -110,6 +113,14 @@ struct SettingsStore: @unchecked Sendable {
     encode(records, forKey: Key.scheduledTestAlarms)
   }
 
+  func loadScheduledPowerNaps() -> [ScheduledAlarmRecord] {
+    decode(forKey: Key.scheduledPowerNaps) ?? []
+  }
+
+  func saveScheduledPowerNaps(_ records: [ScheduledAlarmRecord]) {
+    encode(records, forKey: Key.scheduledPowerNaps)
+  }
+
   func loadAlarmRetryChains() -> [AlarmRetryChain] {
     decode(forKey: Key.alarmRetryChains) ?? []
   }
@@ -161,6 +172,20 @@ struct SettingsStore: @unchecked Sendable {
     defaults.set(completed, forKey: Key.onboardingCompleted)
   }
 
+  func loadIntroPitchCompleted() -> Bool {
+    if defaults.object(forKey: Key.introPitchCompleted) != nil {
+      return defaults.bool(forKey: Key.introPitchCompleted)
+    }
+
+    // Existing users who already finished onboarding should not receive a new
+    // first-launch pitch after updating the app.
+    return loadOnboardingCompleted()
+  }
+
+  func saveIntroPitchCompleted(_ completed: Bool) {
+    defaults.set(completed, forKey: Key.introPitchCompleted)
+  }
+
   func loadAutomationAcknowledged() -> Bool {
     defaults.bool(forKey: Key.automationAcknowledged)
   }
@@ -175,6 +200,14 @@ struct SettingsStore: @unchecked Sendable {
 
   func saveLastNightlyRun(_ date: Date) {
     defaults.set(date, forKey: Key.lastNightlyRun)
+  }
+
+  func loadLastBackgroundRefresh() -> Date? {
+    defaults.object(forKey: Key.lastBackgroundRefresh) as? Date
+  }
+
+  func saveLastBackgroundRefresh(_ date: Date) {
+    defaults.set(date, forKey: Key.lastBackgroundRefresh)
   }
 
   func loadLastSummary() -> String? {

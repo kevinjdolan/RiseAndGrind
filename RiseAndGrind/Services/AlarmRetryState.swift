@@ -9,6 +9,7 @@ enum AlarmSemantics {
 
 enum ScheduledAlarmOwner: String, Codable, Sendable {
   case barrage
+  case powerNap
   case test
 }
 
