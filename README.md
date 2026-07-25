@@ -131,6 +131,10 @@ To build and install from Xcode, open `RiseAndGrind.xcodeproj`, select the RiseA
 xcodegen generate --spec project.yml
 ```
 
+For external beta distribution, follow the
+[TestFlight release guide](docs/TESTFLIGHT.md). It covers build-number
+preparation, App Store Connect setup, Beta App Review, and friend invitations.
+
 ## Platform boundaries
 
 - Rise & Grind schedules its own AlarmKit alarms. It cannot create, edit, or enumerate alarms inside Apple’s Clock app.

@@ -70,6 +70,9 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
   public let genreName: String?
   public let fileName: String?
   public let previewFileName: String?
+  public let editableSourceFileName: String?
+  public let clipStartSeconds: Double?
+  public let clipDurationSeconds: Double?
 
   public init(
     id: String,
@@ -77,7 +80,10 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
     artistName: String? = nil,
     genreName: String? = nil,
     fileName: String?,
-    previewFileName: String? = nil
+    previewFileName: String? = nil,
+    editableSourceFileName: String? = nil,
+    clipStartSeconds: Double? = nil,
+    clipDurationSeconds: Double? = nil
   ) {
     self.id = id
     self.displayName = displayName
@@ -85,6 +91,9 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
     self.genreName = genreName
     self.fileName = fileName
     self.previewFileName = previewFileName
+    self.editableSourceFileName = editableSourceFileName
+    self.clipStartSeconds = clipStartSeconds
+    self.clipDurationSeconds = clipDurationSeconds
   }
 
   public static let system = AlarmSoundChoice(

@@ -28,8 +28,8 @@ struct ContentView: View {
             }
           )
           .id(request.id)
-        } else if !model.introPitchCompleted {
-          IntroPitchView(complete: model.completeIntroPitch)
+        } else if !model.hasHandledIntroPitch {
+          IntroPitchView(complete: model.recordIntroPitch)
         } else if model.isAppReady {
           appTabs(model: model)
         } else {
@@ -115,17 +115,22 @@ struct ContentView: View {
       }
       .tag(AppTab.grind)
       .tabItem {
-        Label("Grind", systemImage: "alarm.waves.left.and.right.fill")
+        Label("Regimen", systemImage: "alarm.waves.left.and.right.fill")
       }
 
       NavigationStack {
         BarrageView(
-          settings: $model.settings
+          settings: $model.settings,
+          scheduledAlarms: model.scheduledAlarms,
+          scheduledTestAlarms: model.scheduledTestAlarms,
+          scheduledPowerNaps: model.scheduledPowerNaps,
+          mutedAlarms: model.mutedAlarms,
+          muteState: model.muteState
         )
       }
       .tag(AppTab.barrage)
       .tabItem {
-        Label("Stack", systemImage: "bolt.horizontal.circle.fill")
+        Label("Stack", systemImage: "rectangle.stack.fill")
       }
 
       NavigationStack {
@@ -138,26 +143,13 @@ struct ContentView: View {
           toggle: model.toggleSound,
           importAudio: model.importAudio,
           importVideo: model.importVideo,
+          editImportedVideo: model.editImportedVideo,
           reportError: model.reportError
         )
       }
       .tag(AppTab.sounds)
       .tabItem {
-        Label("Sounds", systemImage: "speaker.wave.3.fill")
-      }
-
-      NavigationStack {
-        CalendarOverrideView(
-          scheduledAlarms: model.scheduledAlarms,
-          scheduledTestAlarms: model.scheduledTestAlarms,
-          scheduledPowerNaps: model.scheduledPowerNaps,
-          mutedAlarms: model.mutedAlarms,
-          muteState: model.muteState
-        )
-      }
-      .tag(AppTab.calendar)
-      .tabItem {
-        Label("Alarms", systemImage: "calendar.badge.clock")
+        Label("Arsenal", systemImage: "music.note.list")
       }
 
       NavigationStack {
@@ -167,6 +159,7 @@ struct ContentView: View {
           calendarAuthorization: model.calendarAuthorization,
           notificationAuthorization: model.notificationAuthorization,
           motionAuthorization: model.motionAuthorization,
+          requiredPermissionsReady: model.requiredPermissionsReady,
           automationAcknowledged: model.automationAcknowledged,
           lastNightlyRun: model.lastNightlyRun,
           lastBackgroundRefresh: model.lastBackgroundRefresh,
@@ -198,7 +191,7 @@ struct ContentView: View {
       }
       .tag(AppTab.setup)
       .tabItem {
-        Label("Setup", systemImage: "gearshape.fill")
+        Label("Rig", systemImage: "box.truck.fill")
       }
     }
     .rgTabBarAppearance()
@@ -379,6 +372,5 @@ private enum AppTab: Hashable {
   case grind
   case barrage
   case sounds
-  case calendar
   case setup
 }

@@ -17,40 +17,40 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
     min(rawValue + 1, 3)
   }
 
-  var eyebrow: String {
+  var stepLabel: String {
     switch self {
     case .standing:
-      "Stage 1 · Baseline"
+      "STEP 1 OF 3"
     case .depth:
-      "Stage 2 · Squat Depth"
+      "STEP 2 OF 3"
     case .returned:
-      "Stage 3 · Return"
+      "STEP 3 OF 3"
     case .complete:
-      "Calibration Complete"
+      "CALIBRATION COMPLETE"
     }
   }
 
   var title: String {
     switch self {
     case .standing:
-      "Stand tall"
+      "Reach Your Highest Potential"
     case .depth:
-      "Hit your normal depth"
+      "Keep Yourself Grounded"
     case .returned:
-      "Return upright"
+      "Always Get Back Up"
     case .complete:
-      "Your squat is mapped"
+      "Your Squat Is Mapped"
     }
   }
 
   var instruction: String {
     switch self {
     case .standing:
-      "Begin by standing in an upright position, legs shoulder width apart, knees slightly bent, and hold your phone about six inches in front of your heart. Then press the button and hold for two seconds."
+      "Start at your top squat position."
     case .depth:
-      "Now bring your body down to the ground as low as you can, keeping your phone right there in front of your heart. I mean it, bust it down real low. Then press the button and hold for two seconds."
+      "Find the lowest squat you can comfortably do."
     case .returned:
-      "Return back to your original upright position, and once again, press the button and hold for two seconds."
+      "Return to your starting upright squat position."
     case .complete:
       "Standing, depth, and return positions captured."
     }
@@ -65,7 +65,7 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
     }
   }
 
-  var audioAssetName: String? {
+  var videoAssetName: String? {
     switch self {
     case .standing:
       "CalibrationInstruction1"
@@ -81,26 +81,80 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
   var buttonTitle: String {
     switch self {
     case .standing:
-      "HOLD START"
+      "HOLD TO SET TOP"
     case .depth:
-      "HOLD BOTTOM"
+      "HOLD TO SET BOTTOM"
     case .returned:
-      "HOLD TOP"
+      "HOLD TO SET TOP"
     case .complete:
-      "DONE"
+      "CALIBRATED"
     }
   }
 
-  var symbol: String {
+  var accent: Color {
     switch self {
     case .standing:
-      "figure.stand"
+      RGTheme.orange
     case .depth:
-      "figure.strengthtraining.functional"
+      RGTheme.coolBlue
     case .returned:
-      "arrow.up.circle.fill"
+      RGTheme.magenta
     case .complete:
-      "checkmark.seal.fill"
+      RGTheme.mint
+    }
+  }
+
+  var captions: [SquatCalibrationCaptionCue] {
+    switch self {
+    case .standing:
+      [
+        .init(startTime: 0.00, endTime: 1.04, text: "Lock in,"),
+        .init(startTime: 1.04, endTime: 2.02, text: "rise up,"),
+        .init(startTime: 2.02, endTime: 3.52, text: "and stay on top."),
+        .init(startTime: 3.52, endTime: 4.80, text: "Back straight up,"),
+        .init(startTime: 4.80, endTime: 6.52, text: "knees low-key bent."),
+        .init(startTime: 6.52, endTime: 8.34, text: "Stand on business,"),
+        .init(startTime: 8.34, endTime: 9.78, text: "ten toes down."),
+        .init(startTime: 9.78, endTime: 11.30, text: "Phone in your hands,"),
+        .init(startTime: 11.30, endTime: 12.90, text: "hold the button for"),
+        .init(startTime: 12.90, endTime: 15.74, text: "two whole seconds."),
+      ]
+    case .depth:
+      [
+        .init(startTime: 0.00, endTime: 0.96, text: "Now drop that"),
+        .init(startTime: 0.96, endTime: 2.16, text: "hang down low"),
+        .init(startTime: 2.16, endTime: 3.68, text: "to the flo’."),
+        .init(startTime: 3.68, endTime: 4.50, text: "Hips back,"),
+        .init(startTime: 4.50, endTime: 5.50, text: "knees out,"),
+        .init(startTime: 5.50, endTime: 6.42, text: "and let your elbows"),
+        .init(startTime: 6.42, endTime: 8.64, text: "give ’em a lil’ kiss."),
+        .init(startTime: 8.64, endTime: 9.44, text: "Try to keep those"),
+        .init(startTime: 9.44, endTime: 11.18, text: "ten toes down."),
+        .init(startTime: 11.18, endTime: 12.46, text: "Phone still clutched,"),
+        .init(
+          startTime: 12.46,
+          endTime: 14.00,
+          text: "hold the button for another"
+        ),
+        .init(startTime: 14.00, endTime: 15.68, text: "two seconds."),
+      ]
+    case .returned:
+      [
+        .init(startTime: 0.00, endTime: 0.82, text: "Now let’s get our"),
+        .init(startTime: 0.82, endTime: 2.73, text: "body back to HQ."),
+        .init(
+          startTime: 2.73,
+          endTime: 4.02,
+          text: "Keep that phone gripped up"
+        ),
+        .init(startTime: 4.02, endTime: 5.46, text: "and ascend to your"),
+        .init(startTime: 5.46, endTime: 7.46, text: "original peak."),
+        .init(startTime: 7.46, endTime: 8.47, text: "Finally,"),
+        .init(startTime: 8.47, endTime: 9.78, text: "hold the button for"),
+        .init(startTime: 9.78, endTime: 12.52, text: "one last time."),
+      ]
+    case .complete:
+      []
     }
   }
 
@@ -115,6 +169,16 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
     case .complete:
       "complete"
     }
+  }
+}
+
+private struct SquatCalibrationCaptionCue: Identifiable, Sendable {
+  let startTime: TimeInterval
+  let endTime: TimeInterval
+  let text: String
+
+  var id: TimeInterval {
+    startTime
   }
 }
 
@@ -293,6 +357,12 @@ struct SquatCalibrationView: View {
   let onComplete: @MainActor (SquatCalibrationProfile) -> Void
 
   @State private var session = SquatCalibrationViewSession()
+  @State private var instructionPlayer = AVPlayer()
+  @State private var currentInstructionItem: AVPlayerItem?
+  @State private var instructionTimeObserver: Any?
+  @State private var activeCaptionIndex: Int?
+  @State private var isInstructionFinished = false
+  @State private var instructionVideoError: String?
 
   init(
     onComplete: @escaping @MainActor (SquatCalibrationProfile) -> Void = { _ in }
@@ -306,37 +376,78 @@ struct SquatCalibrationView: View {
         header
 
         ScrollView {
-          VStack(spacing: 16) {
-            stageCard
+          VStack(spacing: 14) {
+            instructionVideoCall
+            if session.stage != .complete {
+              capturePanel
+            }
             if let result = session.completedResult {
               resultCard(result)
             }
+            actionArea
           }
           .padding(.horizontal, 18)
           .padding(.top, 14)
           .padding(.bottom, 24)
         }
-
-        actionArea
       }
     }
     .interactiveDismissDisabled(session.isBusy)
     .onAppear {
       session.start()
+      playInstructionVideo(for: session.stage)
     }
     .onDisappear {
+      stopInstructionVideo()
       session.stop()
     }
     .onChange(of: scenePhase) { _, newPhase in
       if newPhase == .active {
         session.resume()
+        if session.stage != .complete {
+          instructionPlayer.play()
+        }
       } else {
+        instructionPlayer.pause()
         session.pause()
       }
+    }
+    .onChange(of: session.stage) { _, newStage in
+      playInstructionVideo(for: newStage)
     }
     .onChange(of: session.completedResult) { _, result in
       guard let result else { return }
       onComplete(result)
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.didPlayToEndTimeNotification
+      )
+    ) { notification in
+      guard
+        let currentInstructionItem,
+        let finishedItem = notification.object as? AVPlayerItem,
+        finishedItem === currentInstructionItem
+      else {
+        return
+      }
+      isInstructionFinished = true
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.failedToPlayToEndTimeNotification
+      )
+    ) { notification in
+      guard
+        let currentInstructionItem,
+        let failedItem = notification.object as? AVPlayerItem,
+        failedItem === currentInstructionItem
+      else {
+        return
+      }
+      instructionVideoError =
+        failedItem.error?.localizedDescription
+        ?? "The instruction video could not be played."
     }
   }
 
@@ -348,9 +459,12 @@ struct SquatCalibrationView: View {
             .font(.caption.weight(.black))
             .tracking(1.7)
             .foregroundStyle(RGTheme.gold)
-          Text("Map one normal squat")
-            .font(.title2.weight(.black))
+          Text(session.stage.title)
+            .font(.title3.weight(.black))
             .foregroundStyle(RGTheme.cream)
+            .lineLimit(2)
+            .minimumScaleFactor(0.80)
+            .contentTransition(.opacity)
         }
 
         Spacer()
@@ -386,6 +500,7 @@ struct SquatCalibrationView: View {
     }
     .padding(.horizontal, 18)
     .padding(.top, 14)
+    .fixedSize(horizontal: false, vertical: true)
   }
 
   private var diagnosticStatus: some View {
@@ -677,175 +792,372 @@ struct SquatCalibrationView: View {
     )
   }
 
-  private var stageCard: some View {
-    RGCard(accent: session.stage == .complete ? RGTheme.mint : RGTheme.magenta) {
-      VStack(spacing: 16) {
-        poseGuidance
+  private var instructionVideoCall: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .fill(Color.black)
 
-        ZStack {
-          Circle()
-            .stroke(RGTheme.graphite, lineWidth: 12)
+      if session.stage == .complete {
+        calibrationCompleteVideoState
+      } else if let instructionVideoError {
+        VStack(spacing: 10) {
+          Image(systemName: "video.slash.fill")
+            .font(.system(size: 34, weight: .bold))
+            .foregroundStyle(RGTheme.danger)
+          Text(instructionVideoError)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(RGTheme.mutedCream)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 28)
+        }
+      } else {
+        SquatCalibrationInstructionVideoPlayer(player: instructionPlayer)
+          .accessibilityHidden(true)
+      }
 
-          Circle()
-            .trim(from: 0, to: session.captureProgress)
-            .stroke(
-              RGTheme.brandGradient,
-              style: StrokeStyle(lineWidth: 12, lineCap: .round)
-            )
-            .rotationEffect(.degrees(-90))
-            .animation(.linear(duration: 0.08), value: session.captureProgress)
+      LinearGradient(
+        colors: [
+          Color.black.opacity(0.42),
+          Color.clear,
+          Color.clear,
+          Color.black.opacity(0.82),
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+      )
+      .allowsHitTesting(false)
+      .accessibilityHidden(true)
 
-          if session.stage == .complete {
-            Image(systemName: session.stage.symbol)
-              .font(.system(size: 48, weight: .bold))
-              .foregroundStyle(RGTheme.mint)
-          } else {
+      VStack(spacing: 0) {
+        HStack(spacing: 8) {
+          HStack(spacing: 7) {
+            Circle()
+              .fill(session.stage == .complete ? RGTheme.mint : RGTheme.danger)
+              .frame(width: 8, height: 8)
+            Text(session.stage.stepLabel)
+              .font(.caption2.weight(.black))
+              .tracking(1.1)
+          }
+          .foregroundStyle(RGTheme.cream)
+          .padding(.horizontal, 11)
+          .padding(.vertical, 8)
+          .background(Color.black.opacity(0.52), in: Capsule())
+
+          Spacer()
+
+          if session.stage != .complete {
             Button {
+              replayInstructionVideo()
             } label: {
-              VStack(spacing: 7) {
-                Image(systemName: session.stage.symbol)
-                  .font(.system(size: 28, weight: .bold))
-                Text(session.actionTitle)
-                  .font(.caption.weight(.black))
-                  .tracking(0.7)
-                  .multilineTextAlignment(.center)
-                Text(session.captureCountdownLabel)
-                  .font(.caption2.monospacedDigit().weight(.bold))
-                  .foregroundStyle(RGTheme.gold)
-              }
-              .foregroundStyle(RGTheme.cream)
-              .frame(width: 126, height: 126)
-              .background(
-                session.isCapturePending
-                  ? RGTheme.magenta.opacity(0.30)
-                  : RGTheme.elevatedInk,
-                in: Circle()
+              Image(
+                systemName: isInstructionFinished
+                  ? "arrow.counterclockwise"
+                  : "gobackward"
               )
-              .overlay {
-                Circle()
-                  .stroke(RGTheme.magenta.opacity(0.55), lineWidth: 1)
-              }
+              .font(.subheadline.weight(.black))
+              .foregroundStyle(RGTheme.cream)
+              .frame(width: 38, height: 38)
+              .background(Color.black.opacity(0.52), in: Circle())
             }
             .buttonStyle(.plain)
-            .contentShape(Circle())
-            .allowsHitTesting(session.canCapture || session.isCapturePending)
-            .onLongPressGesture(
-              minimumDuration: .infinity,
-              maximumDistance: 110,
-              pressing: { isPressing in
-                if isPressing {
-                  session.beginCaptureHold()
-                } else {
-                  session.endCaptureHold()
-                }
-              },
-              perform: {}
-            )
-            .accessibilityLabel(session.actionTitle)
-            .accessibilityHint(
-              "Press and hold continuously for two seconds. Releasing early resets the sample."
-            )
+            .accessibilityLabel("Replay instruction video")
           }
         }
-        .frame(width: 184, height: 184)
 
-        VStack(spacing: 5) {
-          Text(session.status)
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(session.errorMessage == nil ? RGTheme.cream : RGTheme.danger)
+        Spacer()
+
+        if let activeInstructionCaption, session.stage != .complete {
+          Text(activeInstructionCaption.text.uppercased())
+            .font(.title3.weight(.black))
+            .tracking(0.2)
+            .foregroundStyle(RGTheme.cream)
             .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-
-          if session.isCapturePending {
-            Text("Keep holding · release early and the circle resets.")
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-          } else if session.stage != .complete {
-            Text("Hold for 2 seconds at each position. Keep the same grip throughout.")
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-              .multilineTextAlignment(.center)
-          }
-
-          if session.stage == .depth || session.stage == .returned {
-            Text(
-              "\(session.stage == .returned ? "Live return travel" : "Live vertical travel") · \(session.observedTravelLabel)"
-            )
-            .font(.caption.monospacedDigit().weight(.bold))
-            .foregroundStyle(RGTheme.gold)
-          }
+            .lineLimit(2)
+            .minimumScaleFactor(0.72)
+            .shadow(color: Color.black, radius: 2, y: 2)
+            .shadow(color: session.stage.accent.opacity(0.80), radius: 9)
+            .padding(.horizontal, 22)
+            .padding(.bottom, 22)
+            .id("\(session.stage.rawValue)-\(activeInstructionCaption.id)")
+            .transition(.opacity.combined(with: .scale(scale: 0.96)))
         }
+      }
+      .padding(14)
+    }
+    .aspectRatio(1.15, contentMode: .fit)
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .stroke(session.stage.accent.opacity(0.55), lineWidth: 1.5)
+    }
+    .shadow(color: session.stage.accent.opacity(0.16), radius: 24, y: 12)
+    .animation(.easeOut(duration: 0.18), value: activeCaptionIndex)
+  }
+
+  private var calibrationCompleteVideoState: some View {
+    ZStack {
+      RadialGradient(
+        colors: [
+          RGTheme.mint.opacity(0.28),
+          RGTheme.elevatedInk,
+          Color.black,
+        ],
+        center: .center,
+        startRadius: 8,
+        endRadius: 250
+      )
+
+      Image("CalibrationChadUp")
+        .resizable()
+        .scaledToFit()
+        .padding(.vertical, 30)
+        .opacity(0.48)
+
+      Image(systemName: "checkmark.seal.fill")
+        .font(.system(size: 76, weight: .bold))
+        .foregroundStyle(RGTheme.mint)
+        .shadow(color: RGTheme.mint.opacity(0.55), radius: 22)
+    }
+    .accessibilityHidden(true)
+  }
+
+  private var activeInstructionCaption: SquatCalibrationCaptionCue? {
+    guard
+      let activeCaptionIndex,
+      session.stage.captions.indices.contains(activeCaptionIndex)
+    else {
+      return nil
+    }
+    return session.stage.captions[activeCaptionIndex]
+  }
+
+  private var capturePanel: some View {
+    VStack(spacing: 12) {
+      Text(session.stage.instruction)
+        .font(.body)
+        .foregroundStyle(RGTheme.cream)
+        .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
+
+      poseCaptureControl
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 16)
+    .background {
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .fill(RGTheme.elevatedInk.opacity(0.92))
+        .overlay {
+          RoundedRectangle(cornerRadius: 28, style: .continuous)
+            .stroke(session.stage.accent.opacity(0.26), lineWidth: 1)
+        }
+    }
+  }
+
+  private var poseCaptureControl: some View {
+    ZStack {
+      Circle()
+        .stroke(RGTheme.graphite, lineWidth: 12)
+
+      Circle()
+        .trim(from: 0, to: session.captureProgress)
+        .stroke(
+          AngularGradient(
+            colors: [
+              RGTheme.gold,
+              session.stage.accent,
+              RGTheme.magenta,
+              RGTheme.gold,
+            ],
+            center: .center
+          ),
+          style: StrokeStyle(lineWidth: 12, lineCap: .round)
+        )
+        .rotationEffect(.degrees(-90))
+        .animation(.linear(duration: 0.08), value: session.captureProgress)
+
+      if session.stage == .complete {
+        ZStack {
+          Circle()
+            .fill(RGTheme.mint.opacity(0.14))
+          Image(systemName: "checkmark")
+            .font(.system(size: 58, weight: .black))
+            .foregroundStyle(RGTheme.mint)
+        }
+        .padding(17)
+      } else {
+        Button {
+        } label: {
+          ZStack {
+            Circle()
+              .fill(
+                RadialGradient(
+                  colors: [
+                    session.stage.accent.opacity(
+                      session.isCapturePending ? 0.48 : 0.30
+                    ),
+                    RGTheme.elevatedInk.opacity(0.98),
+                  ],
+                  center: .center,
+                  startRadius: 3,
+                  endRadius: 100
+                )
+              )
+
+            Image(session.stage.poseImageName)
+              .resizable()
+              .interpolation(.high)
+              .scaledToFit()
+              .padding(.horizontal, 43)
+              .padding(.top, 14)
+              .padding(.bottom, 38)
+              .accessibilityHidden(true)
+
+            LinearGradient(
+              colors: [Color.clear, Color.black.opacity(0.72)],
+              startPoint: .center,
+              endPoint: .bottom
+            )
+            .clipShape(Circle())
+            .allowsHitTesting(false)
+
+            VStack(spacing: 0) {
+              Spacer()
+
+              Text(session.actionTitle)
+                .font(.caption.weight(.black))
+                .tracking(0.65)
+                .foregroundStyle(RGTheme.cream)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .padding(.horizontal, 22)
+                .padding(.bottom, 17)
+            }
+          }
+          .padding(17)
+        }
+        .buttonStyle(.plain)
+        .contentShape(Circle())
+        .allowsHitTesting(session.canCapture || session.isCapturePending)
+        .onLongPressGesture(
+          minimumDuration: .infinity,
+          maximumDistance: 110,
+          pressing: { isPressing in
+            if isPressing {
+              session.beginCaptureHold()
+            } else {
+              session.endCaptureHold()
+            }
+          },
+          perform: {}
+        )
+        .accessibilityLabel(session.actionTitle)
+        .accessibilityHint(
+          "Press and hold continuously for two seconds. Releasing early resets the sample."
+        )
+      }
+    }
+    .frame(width: 226, height: 226)
+    .scaleEffect(session.isCapturePending ? 1.015 : 1)
+    .animation(.easeInOut(duration: 0.16), value: session.isCapturePending)
+  }
+
+  private func playInstructionVideo(for stage: SquatCalibrationUIStage) {
+    removeInstructionTimeObserver()
+    instructionPlayer.pause()
+    instructionPlayer.replaceCurrentItem(with: nil)
+    currentInstructionItem = nil
+    activeCaptionIndex = stage.captions.isEmpty ? nil : 0
+    isInstructionFinished = false
+    instructionVideoError = nil
+
+    guard let assetName = stage.videoAssetName else { return }
+    guard
+      let url =
+        Bundle.main.url(
+          forResource: assetName,
+          withExtension: "mp4",
+          subdirectory: "CalibrationInstructions"
+        )
+        ?? Bundle.main.url(forResource: assetName, withExtension: "mp4")
+    else {
+      instructionVideoError = "The instruction video is missing from this build."
+      return
+    }
+
+    let audioSession = AVAudioSession.sharedInstance()
+    try? audioSession.setCategory(
+      .playback,
+      mode: .moviePlayback,
+      options: [.duckOthers]
+    )
+    try? audioSession.setActive(true)
+
+    let item = AVPlayerItem(url: url)
+    currentInstructionItem = item
+    instructionPlayer.actionAtItemEnd = .pause
+    instructionPlayer.automaticallyWaitsToMinimizeStalling = true
+    instructionPlayer.replaceCurrentItem(with: item)
+    installInstructionTimeObserver()
+
+    if UIApplication.shared.applicationState == .active {
+      instructionPlayer.play()
+    }
+  }
+
+  private func replayInstructionVideo() {
+    guard session.stage.videoAssetName != nil else { return }
+    activeCaptionIndex = session.stage.captions.isEmpty ? nil : 0
+    isInstructionFinished = false
+    instructionVideoError = nil
+    instructionPlayer.seek(
+      to: .zero,
+      toleranceBefore: .zero,
+      toleranceAfter: .zero
+    ) { finished in
+      guard finished else { return }
+      Task { @MainActor in
+        instructionPlayer.play()
       }
     }
   }
 
-  private var poseGuidance: some View {
-    HStack(alignment: .center, spacing: 14) {
-      ZStack(alignment: .bottom) {
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .fill(
-            LinearGradient(
-              colors: [
-                RGTheme.graphite.opacity(0.18),
-                RGTheme.magenta.opacity(0.12),
-              ],
-              startPoint: .top,
-              endPoint: .bottom
-            )
-          )
-
-        Image(session.stage.poseImageName)
-          .resizable()
-          .scaledToFit()
-          .padding(.horizontal, 5)
-          .padding(.top, 5)
+  private func installInstructionTimeObserver() {
+    let interval = CMTime(seconds: 0.08, preferredTimescale: 600)
+    instructionTimeObserver = instructionPlayer.addPeriodicTimeObserver(
+      forInterval: interval,
+      queue: .main
+    ) { time in
+      Task { @MainActor in
+        updateInstructionCaption(for: time)
       }
-      .frame(width: 106, height: 170)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay {
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(RGTheme.gold.opacity(0.18), lineWidth: 1)
-      }
-      .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 7) {
-        Text(session.stage.eyebrow.uppercased())
-          .font(.caption2.weight(.black))
-          .tracking(1.25)
-          .foregroundStyle(RGTheme.gold)
-
-        Text(session.stage.title)
-          .font(.title3.weight(.black))
-          .foregroundStyle(RGTheme.cream)
-          .fixedSize(horizontal: false, vertical: true)
-
-        Text(session.stage.instruction)
-          .font(.caption)
-          .foregroundStyle(RGTheme.mutedCream)
-          .fixedSize(horizontal: false, vertical: true)
-
-        if session.stage.audioAssetName != nil {
-          Button {
-            session.playCurrentInstruction()
-          } label: {
-            Label("REPLAY VOICE", systemImage: "speaker.wave.2.fill")
-              .font(.caption2.weight(.black))
-              .tracking(0.7)
-              .foregroundStyle(RGTheme.gold)
-              .padding(.horizontal, 11)
-              .padding(.vertical, 8)
-              .background(RGTheme.gold.opacity(0.10), in: Capsule())
-              .overlay {
-                Capsule()
-                  .stroke(RGTheme.gold.opacity(0.32), lineWidth: 1)
-              }
-          }
-          .buttonStyle(.plain)
-          .accessibilityHint("Plays the spoken instruction for this position.")
-        }
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
     }
+  }
+
+  private func updateInstructionCaption(for time: CMTime) {
+    let seconds = time.seconds
+    guard seconds.isFinite else { return }
+    activeCaptionIndex = session.stage.captions.firstIndex {
+      $0.startTime <= seconds && seconds < $0.endTime
+    }
+  }
+
+  private func removeInstructionTimeObserver() {
+    guard let instructionTimeObserver else { return }
+    instructionPlayer.removeTimeObserver(instructionTimeObserver)
+    self.instructionTimeObserver = nil
+  }
+
+  private func stopInstructionVideo() {
+    removeInstructionTimeObserver()
+    instructionPlayer.pause()
+    instructionPlayer.replaceCurrentItem(with: nil)
+    currentInstructionItem = nil
+    activeCaptionIndex = nil
+    try? AVAudioSession.sharedInstance().setActive(
+      false,
+      options: .notifyOthersOnDeactivation
+    )
   }
 
   private func resultCard(_ result: SquatCalibrationProfile) -> some View {
@@ -883,25 +1195,65 @@ struct SquatCalibrationView: View {
         }
         .buttonStyle(RGPrimaryButtonStyle())
       }
-      .padding(.horizontal, 18)
-      .padding(.top, 10)
-      .padding(.bottom, 12)
-      .background(RGTheme.ink.opacity(0.96))
+      .padding(.top, 2)
     } else if session.stage != .standing || session.errorMessage != nil {
       VStack(spacing: 10) {
         Button {
           session.restart()
+          playInstructionVideo(for: .standing)
         } label: {
           Label("RESTART CALIBRATION", systemImage: "arrow.counterclockwise")
         }
         .buttonStyle(RGSecondaryButtonStyle())
         .disabled(session.isCapturePending)
       }
-      .padding(.horizontal, 18)
-      .padding(.top, 10)
-      .padding(.bottom, 12)
-      .background(RGTheme.ink.opacity(0.96))
+      .padding(.top, 2)
     }
+  }
+}
+
+private struct SquatCalibrationInstructionVideoPlayer: UIViewRepresentable {
+  let player: AVPlayer
+
+  func makeUIView(context: Context) -> SquatCalibrationInstructionPlayerUIView {
+    let view = SquatCalibrationInstructionPlayerUIView()
+    view.playerLayer.player = player
+    return view
+  }
+
+  func updateUIView(
+    _ uiView: SquatCalibrationInstructionPlayerUIView,
+    context: Context
+  ) {
+    guard uiView.playerLayer.player !== player else { return }
+    uiView.playerLayer.player = player
+  }
+}
+
+private final class SquatCalibrationInstructionPlayerUIView: UIView {
+  let playerLayer = AVPlayerLayer()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    clipsToBounds = true
+    playerLayer.videoGravity = .resizeAspectFill
+    layer.addSublayer(playerLayer)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("Squat calibration instruction view does not support NSCoder.")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    let side = max(bounds.width, bounds.height)
+    playerLayer.frame = CGRect(
+      x: (bounds.width - side) / 2,
+      y: 0,
+      width: side,
+      height: side
+    )
   }
 }
 
@@ -931,9 +1283,6 @@ private final class SquatCalibrationViewSession {
 
   @ObservationIgnored
   private let completionHapticGenerator = UIImpactFeedbackGenerator(style: .heavy)
-
-  @ObservationIgnored
-  private var instructionPlayer: AVAudioPlayer?
 
   @ObservationIgnored
   private let motionQueue: OperationQueue
@@ -992,15 +1341,6 @@ private final class SquatCalibrationViewSession {
     return stage.buttonTitle
   }
 
-  var captureCountdownLabel: String {
-    guard isCapturePending else { return "2.0 SEC" }
-    let remaining = max(
-      0,
-      Self.captureHoldDuration * (1 - captureProgress)
-    )
-    return String(format: "%.1f SEC", remaining)
-  }
-
   var observedTravelLabel: String {
     let meters =
       stage == .returned
@@ -1013,8 +1353,6 @@ private final class SquatCalibrationViewSession {
     guard activeGeneration == nil else { return }
     progressHapticGenerator.prepare()
     completionHapticGenerator.prepare()
-    configureInstructionAudio()
-    playCurrentInstruction()
     #if targetEnvironment(simulator)
       isMotionReady = true
       errorMessage = nil
@@ -1114,13 +1452,7 @@ private final class SquatCalibrationViewSession {
     cancelCapture()
     completionHapticTask?.cancel()
     completionHapticTask = nil
-    instructionPlayer?.stop()
-    instructionPlayer = nil
     stopMotion()
-    try? AVAudioSession.sharedInstance().setActive(
-      false,
-      options: .notifyOthersOnDeactivation
-    )
     calibration.reset()
     stage = .standing
     activeRunID = UUID()
@@ -1136,13 +1468,7 @@ private final class SquatCalibrationViewSession {
     cancelCapture()
     completionHapticTask?.cancel()
     completionHapticTask = nil
-    instructionPlayer?.stop()
-    instructionPlayer = nil
     stopMotion()
-    try? AVAudioSession.sharedInstance().setActive(
-      false,
-      options: .notifyOthersOnDeactivation
-    )
     enqueueDiagnosticOperation { recorder in
       await recorder.finishSession(
         reason: "view_closed",
@@ -1155,8 +1481,6 @@ private final class SquatCalibrationViewSession {
   func restart() {
     recordEvent("calibration_restarted")
     cancelCapture()
-    instructionPlayer?.stop()
-    instructionPlayer = nil
     calibration.reset()
     activeRunID = UUID()
     stage = .standing
@@ -1165,25 +1489,7 @@ private final class SquatCalibrationViewSession {
     captureProgress = 0
     publishLatestDiagnostics()
     status = "Stand tall, then hold the center button continuously for 2 seconds."
-    playCurrentInstruction()
     start()
-  }
-
-  func playCurrentInstruction() {
-    guard let assetName = stage.audioAssetName else { return }
-    instructionPlayer?.stop()
-    configureInstructionAudio()
-    guard let audioAsset = NSDataAsset(name: assetName) else { return }
-
-    do {
-      let player = try AVAudioPlayer(data: audioAsset.data)
-      player.volume = 1
-      player.prepareToPlay()
-      player.play()
-      instructionPlayer = player
-    } catch {
-      instructionPlayer = nil
-    }
   }
 
   func beginCaptureHold() {
@@ -1481,8 +1787,6 @@ private final class SquatCalibrationViewSession {
         completedProfile: profile
       )
       flushDiagnosticLog()
-      instructionPlayer?.stop()
-      instructionPlayer = nil
     }
   }
 
@@ -1490,7 +1794,6 @@ private final class SquatCalibrationViewSession {
     resetCaptureState()
     errorMessage = nil
     self.status = status
-    playCurrentInstruction()
   }
 
   private func pulseCaptureProgressHapticIfNeeded() {
@@ -1546,8 +1849,6 @@ private final class SquatCalibrationViewSession {
       ]
     )
     flushDiagnosticLog()
-    instructionPlayer?.stop()
-    instructionPlayer = nil
     UINotificationFeedbackGenerator().notificationOccurred(.error)
   }
 
@@ -1585,13 +1886,4 @@ private final class SquatCalibrationViewSession {
     isMotionReady = false
   }
 
-  private func configureInstructionAudio() {
-    let audioSession = AVAudioSession.sharedInstance()
-    try? audioSession.setCategory(
-      .playback,
-      mode: .spokenAudio,
-      options: [.duckOthers]
-    )
-    try? audioSession.setActive(true)
-  }
 }

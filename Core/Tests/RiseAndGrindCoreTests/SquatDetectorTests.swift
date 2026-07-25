@@ -524,12 +524,32 @@ final class SquatDetectorTests: XCTestCase {
     let countedUpdate = updates.first(where: \.didCountRep)
     XCTAssertNotNil(bottomUpdate)
     XCTAssertNotNil(countedUpdate)
+    XCTAssertFalse(
+      countedUpdate?.isReadyForDescent ?? true,
+      "Cooldown must hold the user at the top before the next descent."
+    )
     XCTAssertLessThanOrEqual(bottomUpdate?.verticalPosition ?? 1, 0.10)
     XCTAssertGreaterThanOrEqual(countedUpdate?.verticalPosition ?? 0, 0.90)
     XCTAssertEqual(detector.repCount, 1)
     XCTAssertTrue(
       updates.allSatisfy { $0.verticalPosition.isFinite && (0...1).contains($0.verticalPosition) }
     )
+  }
+
+  func testGuidedStabilizedArmIsImmediatelyReadyForDescent() {
+    var detector = SquatDetector()
+
+    let armed = detector.armGuidedTracking(
+      from: sample(
+        angle: 0,
+        verticalAccelerationG: 0,
+        timestamp: 0
+      ),
+      standingWasStabilized: true
+    )
+
+    XCTAssertEqual(armed.phase, .standing)
+    XCTAssertTrue(armed.isReadyForDescent)
   }
 
   func testGuidedStrongButPlausibleSquatFitsAccelerationGuard() {
@@ -1051,6 +1071,47 @@ final class SquatDetectorTests: XCTestCase {
     XCTAssertEqual(detector.repCount, 0)
   }
 
+  func testGuidedStrongTopBrakeRecoversUnderIntegratedAscent() throws {
+    var detector = makeArmedGuidedDetector(
+      observedVerticalDropMeters: 0.62
+    )
+    let bottom = driveGuidedWaveformToBottom(&detector)
+    var updates = performConstantAccelerationSegment(
+      &detector,
+      startingAt: bottom.endingTimestamp,
+      duration: 0.34,
+      verticalAccelerationG: -0.10,
+      angle: 0
+    )
+    updates += performConstantAccelerationSegment(
+      &detector,
+      startingAt: bottom.endingTimestamp + 0.34,
+      duration: 0.30,
+      verticalAccelerationG: 0.20,
+      angle: 0
+    )
+    let brakePosition = try XCTUnwrap(updates.last?.verticalPosition)
+    XCTAssertGreaterThan(brakePosition, 0.08)
+    XCTAssertLessThan(
+      brakePosition,
+      0.30,
+      "The regression must reproduce the low gauge position in the phone trace."
+    )
+
+    updates += performQuietSegment(
+      &detector,
+      startingAt: bottom.endingTimestamp + 0.64,
+      duration: 5.0,
+      angle: 0
+    )
+
+    XCTAssertTrue(
+      updates.contains { $0.event == .repCounted },
+      "A strong real top brake should enable nominal upward pressure instead of resetting a credible ascent."
+    )
+    XCTAssertEqual(detector.repCount, 1)
+  }
+
   func testGuidedShallowBounceCannotAccumulateAscentAssist() {
     for driveDuration in [0.20, 0.24, 0.30, 0.40] {
       var detector = makeArmedGuidedDetector()
@@ -1201,7 +1262,7 @@ final class SquatDetectorTests: XCTestCase {
     XCTAssertEqual(detector.repCount, 0)
   }
 
-  func testGuidedConfiguredTopStillRequiresQualifiedBrake() throws {
+  func testGuidedSettledHardTopCompletesWithoutQualifiedBrake() throws {
     var detector = makeArmedGuidedDetector()
     let bottom = driveGuidedWaveformToBottom(&detector)
     var timestamp = bottom.endingTimestamp
@@ -1231,8 +1292,12 @@ final class SquatDetectorTests: XCTestCase {
       angle: 0
     )
 
-    XCTAssertFalse((ascent + quiet).contains { $0.event == .repCounted })
-    XCTAssertEqual(detector.repCount, 0)
+    XCTAssertFalse(ascent.contains { $0.event == .repCounted })
+    XCTAssertTrue(
+      quiet.contains { $0.event == .repCounted },
+      "A complete ordered ascent that reaches the hard top must not remain stuck while settled."
+    )
+    XCTAssertEqual(detector.repCount, 1)
   }
 
   func testGuidedQuietCoastBelowConfiguredTopDoesNotComplete() throws {
@@ -1793,6 +1858,10 @@ final class SquatDetectorTests: XCTestCase {
       accuracy: 0.000_001
     )
     XCTAssertEqual(timeoutReset?.phase, .standing)
+    XCTAssertFalse(
+      timeoutReset?.isReadyForDescent ?? true,
+      "A rejected attempt must settle at the top before descent is rearmed."
+    )
 
     let ascent = performConstantAccelerationSegment(
       &detector,
@@ -1968,6 +2037,47 @@ final class SquatDetectorTests: XCTestCase {
     )
   }
 
+  func testGuidedFluidBottomReversalSurvivesEndpointHapticQuarantine() throws {
+    var detector = makeArmedGuidedDetector()
+    let bottom = driveGuidedWaveformToBottom(
+      &detector,
+      bottomBrakeAccelerationG: -0.14
+    )
+    let bottomUpdate = try XCTUnwrap(
+      bottom.updates.first { $0.event == .bottomReached }
+    )
+    XCTAssertEqual(bottomUpdate.phase, .down)
+    XCTAssertEqual(bottomUpdate.verticalPosition, 0, accuracy: 0.000_001)
+    XCTAssertEqual(
+      bottomUpdate.currentVerticalVelocityMetersPerSecond,
+      0,
+      accuracy: 0.000_001
+    )
+
+    detector.quarantineHapticArtifact(
+      after: bottom.endingTimestamp,
+      duration: 0.10
+    )
+    let hapticWindow = performQuietSegment(
+      &detector,
+      startingAt: bottom.endingTimestamp,
+      duration: 0.10
+    )
+    let coast = performQuietSegment(
+      &detector,
+      startingAt: bottom.endingTimestamp + 0.10,
+      duration: 0.40
+    )
+
+    XCTAssertTrue(hapticWindow.allSatisfy(\.isHapticQuarantined))
+    XCTAssertTrue(coast.allSatisfy { $0.phase == .returning })
+    XCTAssertGreaterThan(
+      try XCTUnwrap(coast.last?.verticalPosition),
+      0.08,
+      "A measured fluid reversal should keep moving after the endpoint pulse without a second phone impulse."
+    )
+  }
+
   func testGuidedStandingStreamGapDoesNotCreateAnAttempt() {
     var detector = makeArmedGuidedDetector()
     let reset = detector.process(
@@ -2099,7 +2209,7 @@ final class SquatDetectorTests: XCTestCase {
     )
     XCTAssertEqual(
       configuration.guidedAscentAssistFractionPerSecond,
-      0.16,
+      0.20,
       accuracy: 0.000_001
     )
     XCTAssertEqual(
@@ -2147,7 +2257,8 @@ final class SquatDetectorTests: XCTestCase {
 
   private func driveGuidedWaveformToBottom(
     _ detector: inout SquatDetector,
-    startingAt start: TimeInterval = 0
+    startingAt start: TimeInterval = 0,
+    bottomBrakeAccelerationG: Double = -0.06
   ) -> (
     updates: [SquatDetectorUpdate],
     endingTimestamp: TimeInterval
@@ -2173,7 +2284,7 @@ final class SquatDetectorTests: XCTestCase {
       let update = detector.process(
         sample(
           angle: 3,
-          verticalAccelerationG: -0.10,
+          verticalAccelerationG: bottomBrakeAccelerationG,
           timestamp: timestamp
         )
       )

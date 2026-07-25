@@ -56,7 +56,7 @@ struct DashboardView: View {
         .padding(.bottom, 34)
       }
     }
-    .navigationTitle("Rise & Grind")
+    .navigationTitle("Regimen")
     .rgInlineNavigationTitle()
     .sheet(isPresented: $presentsMuteSheet) {
       RGMuteSheet(

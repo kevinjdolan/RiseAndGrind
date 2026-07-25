@@ -3,6 +3,11 @@
 import Foundation
 import RiseAndGrindCore
 
+enum IntroPitchDisposition: String, Sendable {
+  case viewed
+  case skipped
+}
+
 struct SettingsStore: @unchecked Sendable {
   static let shared = SettingsStore()
 
@@ -16,7 +21,7 @@ struct SettingsStore: @unchecked Sendable {
     static let alarmWakeHandoff = "riseAndGrind.alarmWakeHandoff.v1"
     static let importedSounds = "riseAndGrind.importedSounds.v2"
     static let onboardingCompleted = "riseAndGrind.onboardingCompleted.v1"
-    static let introPitchCompleted = "riseAndGrind.introPitchCompleted.v1"
+    static let introPitchDisposition = "riseAndGrind.introPitchDisposition.v1"
     static let automationAcknowledged = "riseAndGrind.automationAcknowledged.v1"
     static let lastNightlyRun = "riseAndGrind.lastNightlyRun.v1"
     static let lastBackgroundRefresh = "riseAndGrind.lastBackgroundRefresh.v1"
@@ -172,18 +177,20 @@ struct SettingsStore: @unchecked Sendable {
     defaults.set(completed, forKey: Key.onboardingCompleted)
   }
 
-  func loadIntroPitchCompleted() -> Bool {
-    if defaults.object(forKey: Key.introPitchCompleted) != nil {
-      return defaults.bool(forKey: Key.introPitchCompleted)
+  func loadIntroPitchDisposition() -> IntroPitchDisposition? {
+    if let rawValue = defaults.string(forKey: Key.introPitchDisposition),
+      let disposition = IntroPitchDisposition(rawValue: rawValue)
+    {
+      return disposition
     }
 
     // Existing users who already finished onboarding should not receive a new
     // first-launch pitch after updating the app.
-    return loadOnboardingCompleted()
+    return loadOnboardingCompleted() ? .viewed : nil
   }
 
-  func saveIntroPitchCompleted(_ completed: Bool) {
-    defaults.set(completed, forKey: Key.introPitchCompleted)
+  func saveIntroPitchDisposition(_ disposition: IntroPitchDisposition) {
+    defaults.set(disposition.rawValue, forKey: Key.introPitchDisposition)
   }
 
   func loadAutomationAcknowledged() -> Bool {

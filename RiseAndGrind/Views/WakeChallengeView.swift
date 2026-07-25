@@ -2,6 +2,7 @@
 
 import AVFoundation
 import CoreMotion
+import Darwin
 import OSLog
 import Observation
 import RiseAndGrindCore
@@ -63,7 +64,46 @@ enum WakeChallengePurpose {
   case settingsTest
 }
 
+private enum SquatGaugeLeg: Equatable {
+  case ready
+  case zeroing
+  case holdTop
+  case down
+  case up
+}
+
+private struct SquatGaugeInstruction {
+  let label: String
+  let text: String
+}
+
 struct WakeChallengeView: View {
+  private static let downInstructions = [
+    "Drop that Thang",
+    "Set it on the Floor",
+    "Get Low (Get Low)",
+    "Touch Grass",
+    "Down We Go!",
+    "Descend, my King",
+    "Dip it till it hit",
+    "Lowkey, Go Low",
+    "Basement Mode",
+    "Take a Seat",
+  ]
+
+  private static let upInstructions = [
+    "Ten Toes Tall",
+    "Rise Up with Fists",
+    "Ascend, My King",
+    "Stand on business",
+    "Climb the Mountain",
+    "Only Way to go is Up!",
+    "Full Send (Up)",
+    "Lowkey Levitate",
+    "Send it Up",
+    "No Cap, Up's What's Up",
+  ]
+
   @Environment(\.scenePhase) private var scenePhase
 
   let request: WakeChallengeRequest
@@ -78,6 +118,7 @@ struct WakeChallengeView: View {
   @State private var isShowingRecoveryConfirmation = false
   @State private var didCompleteSettingsTest = false
   @State private var isShowingCompletionExperience = false
+  @State private var isCompletionFinaleReady = false
   @State private var previousIdleTimerState = false
 
   init(
@@ -100,21 +141,34 @@ struct WakeChallengeView: View {
 
   var body: some View {
     GeometryReader { proxy in
+      let gaugeDiameter = min(
+        CGFloat(360),
+        max(CGFloat(276), proxy.size.width * 0.82)
+      )
+
       RGScreenBackground {
         ZStack {
           ScrollView {
             VStack(spacing: 0) {
               challengeHeader
+                .padding(.bottom, 18)
 
-              Spacer(minLength: 16)
+              Spacer(minLength: 18)
 
-              progressGauge
+              challengeGauge
+                .frame(width: gaugeDiameter, height: gaugeDiameter)
 
-              Spacer(minLength: 20)
+              challengeRecovery
+                .frame(width: gaugeDiameter)
+                .padding(.top, 12)
 
-              challengeStatus
+              #if targetEnvironment(simulator)
+                simulatorSquatButton
+                  .frame(width: gaugeDiameter)
+                  .padding(.top, 12)
+              #endif
 
-              Spacer(minLength: 16)
+              Spacer(minLength: 18)
 
               if isSettingsTest {
                 settingsTestExitButton
@@ -126,9 +180,10 @@ struct WakeChallengeView: View {
                 cannotRightNowButton
               }
             }
-            .frame(minHeight: max(620, proxy.size.height - 60))
-            .padding(.horizontal, 22)
-            .padding(.vertical, 20)
+            .frame(minHeight: max(640, proxy.size.height - 44))
+            .padding(.horizontal, 18)
+            .padding(.top, 16)
+            .padding(.bottom, request.isCanonical ? 78 : 20)
           }
           .scrollIndicators(.hidden)
 
@@ -147,22 +202,15 @@ struct WakeChallengeView: View {
       }
     }
     .overlay {
-      GeometryReader { proxy in
-        ZStack {
-          if isShowingCompletionExperience {
-            ChallengeCompletionExperience {
-              finishCompletionExperience()
-            }
-            .transition(.opacity)
-            .zIndex(100)
-          }
-
-          moneyRain(in: proxy.size)
-            .zIndex(200)
+      if isShowingCompletionExperience {
+        ChallengeCompletionExperience {
+          finishCompletionExperience()
         }
+        .transition(.opacity)
       }
     }
     .task(id: request.id) {
+      isCompletionFinaleReady = false
       guard scenePhase == .active else { return }
       session.start(
         request: request,
@@ -174,16 +222,47 @@ struct WakeChallengeView: View {
     .task(id: session.squats >= request.targetSquats) {
       guard session.squats >= request.targetSquats else { return }
       if isSettingsTest {
-        session.stop(reason: "practice_target_completed")
         coordinator.endPracticeAudio()
         didCompleteSettingsTest = true
-        presentCompletionExperience()
+        isCompletionFinaleReady = true
       } else {
-        session.stop(reason: "challenge_target_completed")
-        if await coordinator.complete() {
-          presentCompletionExperience()
-        }
+        await completeChallengeAndArmFinale()
       }
+    }
+    .task(id: isShowingCompletionExperience) {
+      guard isShowingCompletionExperience else { return }
+      let delay = UIAccessibility.isReduceMotionEnabled ? 0.20 : 0.68
+      try? await Task.sleep(for: .seconds(delay))
+      guard !Task.isCancelled else { return }
+      session.stop(
+        reason:
+          isSettingsTest
+          ? "practice_target_completed"
+          : "challenge_target_completed"
+      )
+    }
+    .onChange(of: session.gaugeLeg) { oldLeg, newLeg in
+      guard oldLeg != newLeg, UIAccessibility.isVoiceOverRunning else {
+        return
+      }
+      let instruction = gaugeInstruction
+      UIAccessibility.post(
+        notification: .announcement,
+        argument: "\(instruction.label). \(instruction.text)"
+      )
+    }
+    .onChange(of: session.canStartGuidance) { _, canStart in
+      guard
+        canStart,
+        session.gaugeLeg == .ready,
+        UIAccessibility.isVoiceOverRunning
+      else {
+        return
+      }
+      UIAccessibility.post(
+        notification: .announcement,
+        argument: "Tap Here when you are in the Upper Squat Position. Ready."
+      )
     }
     .onAppear {
       previousIdleTimerState = UIApplication.shared.isIdleTimerDisabled
@@ -252,7 +331,7 @@ struct WakeChallengeView: View {
   }
 
   private var challengeHeader: some View {
-    VStack(spacing: 9) {
+    VStack(spacing: 8) {
       Label("CAPITAL MOBILIZATION", systemImage: "figure.strengthtraining.functional")
         .font(.caption.weight(.black))
         .tracking(1.7)
@@ -264,111 +343,28 @@ struct WakeChallengeView: View {
         .foregroundStyle(RGTheme.brandGradient)
         .lineLimit(1)
         .minimumScaleFactor(0.72)
-
-      Text(
-        isSettingsTest
-          ? "Hold the iPhone in both hands in front of your chest like a kettlebell. Press Start while upright, then follow the position gauge down and back up. This test cannot change alarms."
-          : "Keep this screen awake and hold the iPhone in both hands like a kettlebell. Press Start while upright; the gauge and haptics will guide every full down-and-up rep."
-      )
-      .font(.subheadline.weight(.semibold))
-      .foregroundStyle(RGTheme.mutedCream)
-      .multilineTextAlignment(.center)
-      .fixedSize(horizontal: false, vertical: true)
     }
   }
 
-  private var progressGauge: some View {
-    VStack(spacing: 13) {
-      HStack(spacing: 20) {
-        ZStack {
-          Circle()
-            .stroke(RGTheme.graphite.opacity(0.8), lineWidth: 16)
-
-          Circle()
-            .trim(from: 0, to: progress)
-            .stroke(
-              RGTheme.brandGradient,
-              style: StrokeStyle(lineWidth: 16, lineCap: .round)
-            )
-            .rotationEffect(.degrees(-90))
-            .shadow(color: RGTheme.magenta.opacity(0.32), radius: 18)
-            .animation(.bouncy(duration: 0.45), value: session.squats)
-
-          Circle()
-            .fill(RGTheme.elevatedInk.opacity(0.95))
-            .padding(23)
-
-          if session.isGuidanceStarted {
-            if session.isZeroingGuidance {
-              VStack(spacing: 9) {
-                ProgressView()
-                  .tint(RGTheme.gold)
-                  .scaleEffect(1.15)
-                Text("HOLD")
-                  .font(.headline.weight(.black))
-                  .tracking(1.3)
-                  .foregroundStyle(RGTheme.cream)
-              }
-            } else {
-              VStack(spacing: 2) {
-                Text("\(session.squats)")
-                  .font(.system(size: 52, weight: .black, design: .rounded))
-                  .monospacedDigit()
-                  .foregroundStyle(RGTheme.cream)
-                  .contentTransition(.numericText())
-
-                Text("OF \(request.targetSquats)")
-                  .font(.caption.weight(.black))
-                  .tracking(1.3)
-                  .foregroundStyle(RGTheme.gold)
-              }
-            }
-          } else {
-            Button {
-              if session.beginGuidance(), !isSettingsTest {
-                coordinator.beginSquatGuidance(for: request.id)
-              }
-            } label: {
-              VStack(spacing: 7) {
-                Image(systemName: "play.fill")
-                  .font(.title2.weight(.black))
-                Text("START")
-                  .font(.headline.weight(.black))
-                  .tracking(1.2)
-              }
-              .foregroundStyle(RGTheme.ink)
-              .frame(width: 116, height: 116)
-              .background(RGTheme.brandGradient, in: Circle())
-              .shadow(color: RGTheme.orange.opacity(0.35), radius: 12)
-            }
-            .buttonStyle(.plain)
-            .disabled(!session.canStartGuidance)
-            .accessibilityHint("Press while standing in your upward position.")
-          }
-        }
-        .frame(width: 210, height: 210)
-
-        SquatCycleGauge(
-          position: session.verticalPosition,
-          isReturning: session.gaugeIsReturning,
-          endpointPulseID: session.gaugeEndpointPulseID,
-          endpointIsTop: session.gaugeEndpointIsTop
-        )
-        .frame(width: 58, height: 210)
+  private var challengeGauge: some View {
+    NestedSquatGauge(
+      squats: session.squats,
+      targetSquats: request.targetSquats,
+      cycleProgress: session.gaugeCycleProgress,
+      cycleID: session.gaugeCycleID,
+      leg: session.gaugeLeg,
+      canStart: session.canStartGuidance,
+      endpointPulseID: session.gaugeEndpointPulseID,
+      endpointIsTop: session.gaugeEndpointIsTop,
+      completionIsReady: isCompletionFinaleReady,
+      onCompletionVideoCue: presentCompletionExperience
+    ) {
+      if session.beginGuidance(), !isSettingsTest {
+        coordinator.beginSquatGuidance(for: request.id)
       }
-
-      Text(
-        session.isZeroingGuidance
-          ? "Hold at the top while the Start pulse clears and zero velocity is measured."
-          : session.isGuidanceStarted
-            ? "Follow the marker through the bottom green zone, then back to the top green zone."
-            : "Press START when you’re in your upward position."
-      )
-      .font(.caption.weight(.bold))
-      .foregroundStyle(RGTheme.mutedCream)
-      .multilineTextAlignment(.center)
     }
-    .accessibilityElement(children: .ignore)
+    .id(request.id)
+    .accessibilityElement(children: .contain)
     .accessibilityLabel("Wake challenge progress")
     .accessibilityValue(
       "\(session.squats) of \(request.targetSquats) squats, position \(Int((session.verticalPosition * 100).rounded())) percent"
@@ -376,44 +372,16 @@ struct WakeChallengeView: View {
   }
 
   @ViewBuilder
-  private var challengeStatus: some View {
-    if didCompleteSettingsTest {
-      statusCard(accent: RGTheme.mint) {
-        Image(systemName: "checkmark.seal.fill")
-          .font(.title.weight(.black))
-          .foregroundStyle(RGTheme.mint)
-        statusCopy(
-          title: "SQUAT TEST PASSED",
-          detail:
-            "The IMU detected \(request.targetSquats) full squats. No alarms were created, cancelled, or changed."
-        )
-      }
-    } else if !isSettingsTest, coordinator.didComplete {
-      statusCard(accent: RGTheme.mint) {
-        Image(systemName: "checkmark.seal.fill")
-          .font(.title.weight(.black))
-          .foregroundStyle(RGTheme.mint)
-        statusCopy(
-          title: "STACK CRUSHED",
-          detail: "You finished the set. The remaining attacks are cancelled."
-        )
-      }
-    } else if !isSettingsTest, coordinator.isCompleting {
-      statusCard(accent: RGTheme.mint) {
-        ProgressView()
-          .tint(RGTheme.mint)
-        statusCopy(
-          title: "CLEARING THE STACK",
-          detail: "Set complete. The remaining attacks are being cancelled."
-        )
-      }
-    } else if !isSettingsTest, let completionError = coordinator.completionError {
+  private var challengeRecovery: some View {
+    if !isSettingsTest, let completionError = coordinator.completionError {
       statusCard(accent: RGTheme.danger) {
         Image(systemName: "exclamationmark.triangle.fill")
           .foregroundStyle(RGTheme.danger)
         statusCopy(title: "CANCELLATION HIT A WALL", detail: completionError)
         Button {
-          Task { _ = await coordinator.complete() }
+          Task {
+            await completeChallengeAndArmFinale()
+          }
         } label: {
           Text("RETRY CANCELLATION")
         }
@@ -435,50 +403,79 @@ struct WakeChallengeView: View {
         }
         .buttonStyle(RGPrimaryButtonStyle())
       }
-    } else {
-      statusCard(accent: session.motionError == nil ? RGTheme.mint : RGTheme.danger) {
-        Image(
-          systemName: session.motionError == nil
-            ? "figure.strengthtraining.functional" : "exclamationmark.triangle.fill"
-        )
-        .font(.title2.weight(.black))
-        .foregroundStyle(session.motionError == nil ? RGTheme.mint : RGTheme.danger)
+    } else if let motionError = session.motionError {
+      statusCard(accent: RGTheme.danger) {
+        Image(systemName: "exclamationmark.triangle.fill")
+          .font(.title2.weight(.black))
+          .foregroundStyle(RGTheme.danger)
         statusCopy(
-          title: session.motionError == nil
-            ? session.actionTitle : "MOTION NEEDS ATTENTION",
-          detail: session.motionError
-            ?? session.motionStatus
+          title: "MOTION NEEDS ATTENTION",
+          detail: motionError
         )
 
-        if session.motionError != nil {
-          HStack(spacing: 10) {
-            Button {
-              session.retryMotion()
-            } label: {
-              Label("RETRY", systemImage: "arrow.clockwise")
-            }
-            .buttonStyle(RGPrimaryButtonStyle())
-
-            Button(action: openSettings) {
-              Image(systemName: "gearshape.fill")
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(RGSecondaryButtonStyle())
-            .accessibilityLabel("Open iPhone Settings")
-          }
-        }
-
-        #if targetEnvironment(simulator)
+        HStack(spacing: 10) {
           Button {
-            session.simulateSquat(target: request.targetSquats)
+            session.retryMotion()
           } label: {
-            Label("SIMULATE SQUAT", systemImage: "figure.strengthtraining.functional")
+            Label("RETRY", systemImage: "arrow.clockwise")
           }
           .buttonStyle(RGPrimaryButtonStyle())
-        #endif
+
+          Button(action: openSettings) {
+            Image(systemName: "gearshape.fill")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(RGSecondaryButtonStyle())
+          .accessibilityLabel("Open iPhone Settings")
+        }
       }
     }
   }
+
+  private var gaugeInstruction: SquatGaugeInstruction {
+    switch session.gaugeLeg {
+    case .ready:
+      SquatGaugeInstruction(
+        label: "START POSITION",
+        text: "Start at the Top"
+      )
+    case .zeroing:
+      SquatGaugeInstruction(
+        label: "HOLD AT THE TOP",
+        text: "Lock It In"
+      )
+    case .holdTop:
+      SquatGaugeInstruction(
+        label: "HOLD AT THE TOP",
+        text: "Stand Tall"
+      )
+    case .down:
+      SquatGaugeInstruction(
+        label: "DOWN",
+        text: Self.downInstructions[
+          session.squats % Self.downInstructions.count
+        ]
+      )
+    case .up:
+      SquatGaugeInstruction(
+        label: "UP",
+        text: Self.upInstructions[
+          session.squats % Self.upInstructions.count
+        ]
+      )
+    }
+  }
+
+  #if targetEnvironment(simulator)
+    private var simulatorSquatButton: some View {
+      Button {
+        session.simulateSquat(target: request.targetSquats)
+      } label: {
+        Label("SIMULATE SQUAT", systemImage: "figure.strengthtraining.functional")
+      }
+      .buttonStyle(RGSecondaryButtonStyle())
+    }
+  #endif
 
   private var settingsTestExitButton: some View {
     Button {
@@ -527,7 +524,14 @@ struct WakeChallengeView: View {
     .frame(maxWidth: .infinity)
     .padding(.horizontal, 14)
     .padding(.vertical, 12)
-    .background(RGTheme.gold.opacity(0.1), in: Capsule())
+    .background(RGTheme.ink.opacity(0.90), in: Capsule())
+    .overlay {
+      Capsule()
+        .stroke(RGTheme.gold.opacity(0.34), lineWidth: 1)
+    }
+    .shadow(color: RGTheme.gold.opacity(0.16), radius: 12)
+    .compositingGroup()
+    .zIndex(2)
     .accessibilityLabel(
       "Final attack. The challenge track stays on until the squat challenge is complete."
     )
@@ -559,9 +563,19 @@ struct WakeChallengeView: View {
   }
 
   private func presentCompletionExperience() {
-    withAnimation(.easeOut(duration: 0.20)) {
+    guard !isShowingCompletionExperience else { return }
+    let duration = UIAccessibility.isReduceMotionEnabled ? 0.20 : 0.68
+    withAnimation(.easeInOut(duration: duration)) {
       isShowingCompletionExperience = true
     }
+  }
+
+  private func completeChallengeAndArmFinale() async {
+    guard await coordinator.complete() else {
+      session.pauseForCompletionRetry()
+      return
+    }
+    isCompletionFinaleReady = true
   }
 
   private func finishCompletionExperience() {
@@ -569,6 +583,7 @@ struct WakeChallengeView: View {
       exitTest()
     } else {
       coordinator.dismissCompletedChallenge()
+      exit(EXIT_SUCCESS)
     }
   }
 
@@ -604,253 +619,1007 @@ struct WakeChallengeView: View {
     }
   }
 
-  private func moneyRain(in size: CGSize) -> some View {
-    ZStack {
-      ForEach(session.moneyDrops) { event in
-        FallingMoneyView(event: event, canvasSize: size)
-      }
-    }
-    .allowsHitTesting(false)
-    .accessibilityHidden(true)
-  }
-
-  private var progress: Double {
-    min(1, Double(session.squats) / Double(max(1, request.targetSquats)))
-  }
 }
 
-private struct SquatCycleGauge: View {
+private struct NestedSquatGauge: View {
+  private static let rotatedColorWheel = [
+    Color(red: 0.000, green: 0.651, blue: 0.318),
+    Color(red: 0.000, green: 0.663, blue: 0.616),
+    Color(red: 0.000, green: 0.447, blue: 0.737),
+    Color(red: 0.247, green: 0.165, blue: 0.557),
+    Color(red: 0.400, green: 0.176, blue: 0.569),
+    Color(red: 0.694, green: 0.122, blue: 0.553),
+    Color(red: 0.929, green: 0.110, blue: 0.141),
+    Color(red: 0.945, green: 0.353, blue: 0.141),
+    Color(red: 0.969, green: 0.576, blue: 0.114),
+    Color(red: 0.992, green: 0.725, blue: 0.075),
+    Color(red: 1.000, green: 0.949, blue: 0.000),
+    Color(red: 0.549, green: 0.776, blue: 0.247),
+    Color(red: 0.000, green: 0.651, blue: 0.318),
+  ]
+
   @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
 
-  let position: Double
-  let isReturning: Bool
+  let squats: Int
+  let targetSquats: Int
+  let cycleProgress: Double
+  let cycleID: Int
+  let leg: SquatGaugeLeg
+  let canStart: Bool
   let endpointPulseID: Int
   let endpointIsTop: Bool
+  let completionIsReady: Bool
+  let onCompletionVideoCue: () -> Void
+  let start: () -> Void
 
-  @State private var displayedPosition: Double
+  @State private var displayedCycleProgress: Double
+  @State private var displayedSquats: Int
   @State private var flashIntensity: CGFloat = 0
-  @State private var sparkProgress: CGFloat = 1
+  @State private var endpointSparkProgress: CGFloat = 1
   @State private var ringProgress: CGFloat = 1
-  @State private var lastSampleTime: TimeInterval?
-  @State private var isAnimatingEndpoint = false
+  @State private var transferIndex: Int?
+  @State private var chargeProgress: CGFloat = 0
+  @State private var flightProgress: CGFloat = 0
+  @State private var transferOpacity: CGFloat = 0
+  @State private var impactIndex: Int?
+  @State private var impactProgress: CGFloat = 1
+  @State private var finaleProgress: CGFloat = 0
+  @State private var apparatusOpacity: CGFloat = 1
+  @State private var apparatusScale: CGFloat = 1
+  @State private var hasStartedFinale = false
 
   init(
-    position: Double,
-    isReturning: Bool,
+    squats: Int,
+    targetSquats: Int,
+    cycleProgress: Double,
+    cycleID: Int,
+    leg: SquatGaugeLeg,
+    canStart: Bool,
     endpointPulseID: Int,
-    endpointIsTop: Bool
+    endpointIsTop: Bool,
+    completionIsReady: Bool,
+    onCompletionVideoCue: @escaping () -> Void,
+    start: @escaping () -> Void
   ) {
-    self.position = position
-    self.isReturning = isReturning
+    self.squats = squats
+    self.targetSquats = targetSquats
+    self.cycleProgress = cycleProgress
+    self.cycleID = cycleID
+    self.leg = leg
+    self.canStart = canStart
     self.endpointPulseID = endpointPulseID
     self.endpointIsTop = endpointIsTop
-    _displayedPosition = State(
-      initialValue: min(1, max(0, position))
+    self.completionIsReady = completionIsReady
+    self.onCompletionVideoCue = onCompletionVideoCue
+    self.start = start
+    _displayedCycleProgress = State(
+      initialValue: min(1, max(0, cycleProgress))
+    )
+    _displayedSquats = State(
+      initialValue: min(max(0, squats), max(1, targetSquats))
     )
   }
 
   var body: some View {
     GeometryReader { proxy in
-      let clampedPosition = min(1, max(0, displayedPosition))
-      let indicatorDiameter = min(30, max(14, proxy.size.width - 16))
-      let indicatorY =
-        (indicatorDiameter / 2)
-        + ((1 - clampedPosition) * max(0, proxy.size.height - indicatorDiameter))
-      let endpointAccent = endpointIsTop ? RGTheme.mint : RGTheme.orange
+      let diameter = min(proxy.size.width, proxy.size.height)
+      let outerLineWidth = max(13, diameter * 0.045)
+      let innerLineWidth = max(11, diameter * 0.038)
+      let innerRingInset = outerLineWidth + 18
+      let innerContentInset =
+        innerRingInset + (innerLineWidth / 2) + 8
+      let coreDiameter = max(0, diameter - (innerContentInset * 2))
+      let innerRadius =
+        (diameter / 2) - innerRingInset - (innerLineWidth / 2)
+      let slotCount = max(1, targetSquats)
+      let outerRadius = max(0, (diameter / 2) - (outerLineWidth / 2))
+      let slotSpacing =
+        (2 * CGFloat.pi * outerRadius) / CGFloat(slotCount)
+      let slotDiameter = min(
+        outerLineWidth * 0.82,
+        max(4, slotSpacing * 0.56)
+      )
+      let gaugeCenter = CGPoint(x: diameter / 2, y: diameter / 2)
+      let endpointAccent = endpointIsTop ? RGTheme.mint : RGTheme.danger
 
       ZStack {
+        ZStack {
+          Circle()
+            .stroke(
+              RGTheme.graphite.opacity(0.68),
+              lineWidth: max(2, outerLineWidth * 0.28)
+            )
+
+          ForEach(0..<slotCount, id: \.self) { index in
+            let angle = SquatGaugeOrbit.angle(
+              for: index,
+              count: slotCount
+            )
+            let point = SquatGaugeOrbit.point(
+              center: gaugeCenter,
+              radius: outerRadius,
+              angle: angle
+            )
+
+            SquatOrbitSlot(
+              isFilled: index < displayedSquats,
+              isImpacting: impactIndex == index,
+              impactProgress: impactProgress,
+              diameter: slotDiameter
+            )
+            .position(point)
+          }
+
+          Circle()
+            .fill(
+              RadialGradient(
+                colors: [
+                  legAccent.opacity(0.17),
+                  RGTheme.elevatedInk.opacity(0.97),
+                  RGTheme.ink,
+                ],
+                center: .top,
+                startRadius: 0,
+                endRadius: diameter * 0.42
+              )
+            )
+            .padding(innerContentInset)
+            .shadow(color: legAccent.opacity(0.18), radius: 18)
+
+          Circle()
+            .stroke(RGTheme.graphite.opacity(0.92), lineWidth: innerLineWidth)
+            .padding(innerRingInset)
+
+          Circle()
+            .trim(from: 0, to: displayedCycleProgress)
+            .stroke(
+              cycleGradient,
+              style: StrokeStyle(
+                lineWidth: innerLineWidth,
+                lineCap: .round
+              )
+            )
+            .padding(innerRingInset)
+            .rotationEffect(.degrees(-90))
+            .shadow(color: legAccent.opacity(0.76), radius: 11)
+
+          if transferIndex != nil {
+            Circle()
+              .stroke(
+                AngularGradient(
+                  colors: [
+                    Color.white,
+                    RGTheme.gold,
+                    RGTheme.orange,
+                    RGTheme.magenta,
+                    Color.white,
+                  ],
+                  center: .center
+                ),
+                style: StrokeStyle(
+                  lineWidth: innerLineWidth * (0.55 + (chargeProgress * 0.65)),
+                  lineCap: .round
+                )
+              )
+              .padding(innerRingInset)
+              .scaleEffect(1 - (chargeProgress * 0.045))
+              .opacity(0.24 + (chargeProgress * 0.70))
+              .blur(radius: chargeProgress * 1.4)
+              .shadow(color: Color.white.opacity(0.86), radius: 9)
+              .shadow(color: RGTheme.magenta.opacity(0.72), radius: 18)
+              .blendMode(.plusLighter)
+          }
+
+          Circle()
+            .stroke(
+              LinearGradient(
+                colors: [Color.white, endpointAccent, RGTheme.gold],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              ),
+              lineWidth: 4
+            )
+            .padding(max(0, innerRingInset - 5))
+            .scaleEffect(1 + (ringProgress * 0.18))
+            .opacity(max(0, 1 - ringProgress))
+            .shadow(color: endpointAccent.opacity(0.96), radius: 12)
+            .blendMode(.plusLighter)
+
+          if !accessibilityReduceMotion {
+            ForEach(0..<20, id: \.self) { index in
+              let angle =
+                (Double(index) / 20.0 * Double.pi * 2)
+                + (index.isMultiple(of: 2) ? 0.08 : -0.08)
+              let travel =
+                innerRadius
+                + (CGFloat(22 + ((index * 7) % 14))
+                  * endpointSparkProgress)
+
+              Capsule()
+                .fill(
+                  LinearGradient(
+                    colors: [Color.white, endpointAccent, RGTheme.gold],
+                    startPoint: .top,
+                    endPoint: .bottom
+                  )
+                )
+                .frame(
+                  width: index.isMultiple(of: 3) ? 3.5 : 2.5,
+                  height: index.isMultiple(of: 3) ? 9 : 6
+                )
+                .rotationEffect(.radians(angle + (.pi / 2)))
+                .position(
+                  x: (diameter / 2) + (CGFloat(cos(angle)) * travel),
+                  y: (diameter / 2) + (CGFloat(sin(angle)) * travel)
+                )
+                .opacity(max(0, 1 - endpointSparkProgress))
+                .shadow(color: RGTheme.gold, radius: 4)
+                .blendMode(.plusLighter)
+            }
+          }
+
+          Circle()
+            .fill(endpointAccent.opacity(0.48))
+            .padding(innerContentInset + 2)
+            .blur(radius: 16)
+            .opacity(flashIntensity)
+            .blendMode(.plusLighter)
+
+          if leg == .ready {
+            startButton(
+              diameter: diameter,
+              coreDiameter: coreDiameter
+            )
+          } else {
+            movementFigure(diameter: diameter)
+          }
+
+          squatCountBadge
+            .offset(y: -diameter * 0.33)
+
+          if leg == .zeroing || leg == .holdTop {
+            HStack(spacing: 8) {
+              ProgressView()
+                .tint(legAccent)
+              Text("HOLD TOP")
+                .font(.caption.weight(.black))
+                .tracking(1.15)
+            }
+            .foregroundStyle(RGTheme.cream)
+            .padding(.horizontal, 15)
+            .padding(.vertical, 10)
+            .background(RGTheme.ink.opacity(0.90), in: Capsule())
+            .overlay {
+              Capsule()
+                .stroke(legAccent.opacity(0.42), lineWidth: 1)
+            }
+            .offset(y: diameter * 0.29)
+            .accessibilityLabel("Hold at the top")
+          }
+
+          if let transferIndex {
+            SquatEnergyTransfer(
+              index: transferIndex,
+              count: slotCount,
+              center: gaugeCenter,
+              innerRadius: innerRadius,
+              outerRadius: outerRadius,
+              orbDiameter: max(12, min(22, slotDiameter * 1.55)),
+              chargeProgress: chargeProgress,
+              flightProgress: flightProgress,
+              opacity: transferOpacity
+            )
+          }
+        }
+        .frame(width: diameter, height: diameter)
+        .opacity(apparatusOpacity)
+        .scaleEffect(apparatusScale)
+
+        if !accessibilityReduceMotion, hasStartedFinale {
+          SquatGaugeFinale(
+            diameter: diameter,
+            progress: finaleProgress
+          )
+          .frame(width: diameter, height: diameter)
+          .allowsHitTesting(false)
+          .accessibilityHidden(true)
+        }
+      }
+      .frame(width: diameter, height: diameter)
+      .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+    }
+    .onChange(of: cycleProgress) { _, newProgress in
+      let clampedProgress = min(1, max(0, newProgress))
+      guard clampedProgress >= displayedCycleProgress else { return }
+      withAnimation(.linear(duration: accessibilityReduceMotion ? 0.01 : 0.08)) {
+        displayedCycleProgress = clampedProgress
+      }
+    }
+    .onChange(of: cycleID) { _, _ in
+      var transaction = Transaction(animation: nil)
+      transaction.disablesAnimations = true
+      withTransaction(transaction) {
+        displayedCycleProgress = min(1, max(0, cycleProgress))
+      }
+    }
+    .task(id: endpointPulseID) {
+      guard endpointPulseID > 0 else { return }
+      flashIntensity = 1
+      endpointSparkProgress = accessibilityReduceMotion ? 1 : 0
+      ringProgress = accessibilityReduceMotion ? 1 : 0
+      if !accessibilityReduceMotion {
+        withAnimation(.easeOut(duration: 0.46)) {
+          endpointSparkProgress = 1
+          ringProgress = 1
+        }
+      }
+      try? await Task.sleep(for: .milliseconds(120))
+      guard !Task.isCancelled else { return }
+      withAnimation(.easeOut(duration: accessibilityReduceMotion ? 0.16 : 0.42)) {
+        flashIntensity = 0
+      }
+    }
+    .task(id: squats) {
+      await animateSquatTransfers()
+    }
+    .task(id: shouldStartFinale) {
+      guard shouldStartFinale else { return }
+      await animateCompletionFinale()
+    }
+  }
+
+  private var shouldStartFinale: Bool {
+    completionIsReady
+      && displayedSquats >= max(1, targetSquats)
+  }
+
+  private func animateSquatTransfers() async {
+    let target = min(max(0, squats), max(1, targetSquats))
+    guard target != displayedSquats else { return }
+    guard target > displayedSquats else {
+      displayedSquats = target
+      return
+    }
+
+    if accessibilityReduceMotion {
+      withAnimation(.easeOut(duration: 0.10)) {
+        displayedSquats = target
+      }
+      return
+    }
+
+    while displayedSquats < target {
+      let nextIndex = displayedSquats
+      transferIndex = nextIndex
+      chargeProgress = 0
+      flightProgress = 0
+      transferOpacity = 1
+      impactIndex = nil
+      impactProgress = 1
+
+      withAnimation(.easeOut(duration: 0.18)) {
+        chargeProgress = 1
+      }
+      guard await pause(for: .milliseconds(180)) else { return }
+
+      withAnimation(
+        .timingCurve(0.22, 0.78, 0.20, 1, duration: 0.52)
+      ) {
+        flightProgress = 1
+      }
+      guard await pause(for: .milliseconds(470)) else { return }
+
+      impactIndex = nextIndex
+      impactProgress = 0
+      await Task.yield()
+      guard !Task.isCancelled else { return }
+      withAnimation(.spring(duration: 0.26, bounce: 0.52)) {
+        displayedSquats = nextIndex + 1
+        transferOpacity = 0
+        impactProgress = 1
+      }
+      guard await pause(for: .milliseconds(190)) else { return }
+
+      transferIndex = nil
+      impactIndex = nil
+    }
+  }
+
+  private func animateCompletionFinale() async {
+    guard !hasStartedFinale else { return }
+    hasStartedFinale = true
+
+    if accessibilityReduceMotion {
+      onCompletionVideoCue()
+      withAnimation(.easeOut(duration: 0.20)) {
+        apparatusOpacity = 0
+        apparatusScale = 1.02
+      }
+      return
+    }
+
+    withAnimation(.spring(duration: 0.24, bounce: 0.48)) {
+      apparatusScale = 1.035
+    }
+    guard await pause(for: .milliseconds(100)) else { return }
+
+    withAnimation(.easeOut(duration: 0.95)) {
+      finaleProgress = 1
+    }
+    withAnimation(.easeInOut(duration: 0.78)) {
+      apparatusOpacity = 0
+      apparatusScale = 1.10
+    }
+
+    guard await pause(for: .milliseconds(280)) else { return }
+    onCompletionVideoCue()
+  }
+
+  private func pause(for duration: Duration) async -> Bool {
+    do {
+      try await Task.sleep(for: duration)
+      return !Task.isCancelled
+    } catch {
+      return false
+    }
+  }
+
+  private var legAccent: Color {
+    switch leg {
+    case .ready:
+      RGTheme.mint
+    case .zeroing:
+      RGTheme.gold
+    case .holdTop:
+      RGTheme.mint
+    case .down:
+      RGTheme.coolBlue
+    case .up:
+      RGTheme.orange
+    }
+  }
+
+  private var cycleGradient: AngularGradient {
+    AngularGradient(
+      colors: Self.rotatedColorWheel,
+      center: .center,
+      startAngle: .zero,
+      endAngle: .degrees(360)
+    )
+  }
+
+  private var chadImageName: String {
+    switch leg {
+    case .ready, .zeroing, .holdTop, .up:
+      "CalibrationChadUp"
+    case .down:
+      "CalibrationChadDown"
+    }
+  }
+
+  private var squatCountBadge: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 4) {
+      Text("\(squats)")
+        .font(.title3.monospacedDigit().weight(.black))
+        .foregroundStyle(RGTheme.cream)
+        .contentTransition(.numericText())
+
+      Text("/ \(targetSquats)")
+        .font(.caption.monospacedDigit().weight(.black))
+        .foregroundStyle(RGTheme.gold)
+    }
+    .padding(.horizontal, 13)
+    .padding(.vertical, 7)
+    .background(RGTheme.ink.opacity(0.94), in: Capsule())
+    .overlay {
+      Capsule()
+        .stroke(RGTheme.gold.opacity(0.34), lineWidth: 1)
+    }
+    .shadow(color: RGTheme.ink.opacity(0.85), radius: 8)
+    .accessibilityHidden(true)
+    .allowsHitTesting(false)
+  }
+
+  private func startButton(
+    diameter: CGFloat,
+    coreDiameter: CGFloat
+  ) -> some View {
+    Button(action: start) {
+      ZStack {
+        Circle()
+          .fill(
+            RadialGradient(
+              colors: [
+                RGTheme.gold.opacity(0.15),
+                RGTheme.orange.opacity(0.20),
+                RGTheme.danger.opacity(0.26),
+              ],
+              center: .center,
+              startRadius: 0,
+              endRadius: coreDiameter * 0.62
+            )
+          )
+
+        Image("CalibrationChadUp")
+          .resizable()
+          .interpolation(.high)
+          .scaledToFit()
+          .frame(
+            width: diameter * 0.42,
+            height: diameter * 0.61
+          )
+          .padding(.vertical, diameter * 0.045)
+          .saturation(0)
+          .contrast(1.15)
+          .opacity(canStart ? 0.48 : 0.32)
+          .blendMode(.multiply)
+          .accessibilityHidden(true)
+
+        VStack(spacing: 2) {
+          if !canStart {
+            ProgressView()
+              .tint(RGTheme.ink)
+          }
+
+          Text(
+            "Tap Here when you are\nin the Upper Squat\nPosition"
+          )
+          .font(.headline.weight(.black))
+          .multilineTextAlignment(.center)
+          .lineLimit(3)
+          .minimumScaleFactor(0.78)
+          .frame(width: coreDiameter * 0.74)
+        }
+        .foregroundStyle(RGTheme.cream)
+        .shadow(color: RGTheme.ink.opacity(0.82), radius: 3, y: 2)
+        .offset(y: diameter * 0.10)
+        .opacity(canStart ? 1 : 0.58)
+      }
+      .frame(width: coreDiameter, height: coreDiameter)
+      .contentShape(Circle())
+      .clipShape(Circle())
+      .overlay {
+        Circle()
+          .stroke(
+            Color.white.opacity(canStart ? 0.32 : 0.18),
+            lineWidth: canStart ? 3 : 1.5
+          )
+      }
+    }
+    .buttonStyle(.plain)
+    .disabled(!canStart)
+    .shadow(
+      color: canStart ? RGTheme.orange.opacity(0.34) : Color.clear,
+      radius: 16
+    )
+    .accessibilityLabel(
+      "Tap Here when you are in the Upper Squat Position"
+    )
+    .accessibilityValue(canStart ? "Ready" : "Preparing motion sensor")
+    .accessibilityHint(
+      canStart
+        ? "Press while standing in Chad's top position."
+        : "Wait while motion sensing gets ready."
+    )
+  }
+
+  private func movementFigure(diameter: CGFloat) -> some View {
+    Image(chadImageName)
+      .resizable()
+      .interpolation(.high)
+      .scaledToFit()
+      .frame(
+        width: diameter * (leg == .down ? 0.50 : 0.42),
+        height: diameter * 0.61
+      )
+      .padding(.vertical, diameter * 0.045)
+      .id(chadImageName)
+      .transition(
+        accessibilityReduceMotion
+          ? .opacity
+          : .opacity.combined(with: .scale(scale: 0.94))
+      )
+      .scaleEffect(
+        accessibilityReduceMotion
+          ? 1
+          : 1 + (flashIntensity * 0.055)
+      )
+      .shadow(color: legAccent.opacity(0.25), radius: 11)
+      .accessibilityHidden(true)
+      .animation(
+        accessibilityReduceMotion ? nil : .easeOut(duration: 0.22),
+        value: chadImageName
+      )
+  }
+
+}
+
+private enum SquatGaugeOrbit {
+  static func angle(for index: Int, count: Int) -> Double {
+    let safeCount = max(1, count)
+    let topGap =
+      safeCount == 1
+      ? 0
+      : Double.pi / Double(safeCount)
+    return
+      (-Double.pi / 2)
+      + topGap
+      + ((Double(index) / Double(safeCount)) * Double.pi * 2)
+  }
+
+  static func point(
+    center: CGPoint,
+    radius: CGFloat,
+    angle: Double
+  ) -> CGPoint {
+    CGPoint(
+      x: center.x + (CGFloat(cos(angle)) * radius),
+      y: center.y + (CGFloat(sin(angle)) * radius)
+    )
+  }
+
+  static func energyPoint(
+    index: Int,
+    count: Int,
+    center: CGPoint,
+    innerRadius: CGFloat,
+    outerRadius: CGFloat,
+    progress: CGFloat
+  ) -> CGPoint {
+    let angle = angle(for: index, count: count)
+    let start = point(center: center, radius: innerRadius, angle: angle)
+    let end = point(center: center, radius: outerRadius, angle: angle)
+    let middleRadius = (innerRadius + outerRadius) / 2
+    let arcDirection: CGFloat = index.isMultiple(of: 2) ? 1 : -1
+    let arcDistance = min(24, max(12, (outerRadius - innerRadius) * 0.56))
+    let control = CGPoint(
+      x: center.x
+        + (CGFloat(cos(angle)) * middleRadius)
+        + (CGFloat(-sin(angle)) * arcDistance * arcDirection),
+      y: center.y
+        + (CGFloat(sin(angle)) * middleRadius)
+        + (CGFloat(cos(angle)) * arcDistance * arcDirection)
+    )
+    let t = min(1, max(0, progress))
+    let inverseT = 1 - t
+    return CGPoint(
+      x: (inverseT * inverseT * start.x)
+        + (2 * inverseT * t * control.x)
+        + (t * t * end.x),
+      y: (inverseT * inverseT * start.y)
+        + (2 * inverseT * t * control.y)
+        + (t * t * end.y)
+    )
+  }
+}
+
+private struct SquatOrbitSlot: View {
+  @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+
+  let isFilled: Bool
+  let isImpacting: Bool
+  let impactProgress: CGFloat
+  let diameter: CGFloat
+
+  var body: some View {
+    ZStack {
+      Circle()
+        .fill(
+          RadialGradient(
+            colors: [
+              Color.white,
+              RGTheme.cream.opacity(0.88),
+              Color.white.opacity(0.62),
+            ],
+            center: .topLeading,
+            startRadius: 0,
+            endRadius: diameter
+          )
+        )
+        .overlay {
+          Circle()
+            .stroke(
+              Color.white.opacity(0.92),
+              lineWidth: max(0.65, diameter * 0.10)
+            )
+        }
+        .shadow(
+          color: Color.black.opacity(0.92),
+          radius: max(1, diameter * 0.24),
+          y: max(0.5, diameter * 0.12)
+        )
+        .opacity(isFilled ? 0 : 1)
+
+      Circle()
+        .fill(
+          RadialGradient(
+            colors: [
+              Color.white,
+              RGTheme.gold,
+              RGTheme.orange,
+              RGTheme.magenta,
+            ],
+            center: .topLeading,
+            startRadius: 0,
+            endRadius: diameter * 0.72
+          )
+        )
+        .overlay {
+          Circle()
+            .stroke(Color.white.opacity(0.86), lineWidth: max(0.6, diameter * 0.08))
+        }
+        .shadow(color: Color.white.opacity(0.92), radius: max(2, diameter * 0.30))
+        .shadow(color: RGTheme.orange.opacity(0.92), radius: max(4, diameter * 0.55))
+        .opacity(isFilled ? 1 : 0)
+
+      if isImpacting {
+        Circle()
+          .stroke(
+            LinearGradient(
+              colors: [Color.white, RGTheme.gold, RGTheme.magenta],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: max(1, diameter * 0.15)
+          )
+          .scaleEffect(0.72 + (impactProgress * 2.25))
+          .opacity(max(0, 1 - impactProgress))
+          .shadow(color: Color.white, radius: max(2, diameter * 0.36))
+          .blendMode(.plusLighter)
+      }
+    }
+    .frame(width: diameter, height: diameter)
+    .scaleEffect(
+      accessibilityReduceMotion
+        ? 1
+        : isFilled ? 1.04 : 0.94
+    )
+    .animation(
+      accessibilityReduceMotion ? nil : .easeOut(duration: 0.20),
+      value: isFilled
+    )
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
+  }
+}
+
+private struct SquatEnergyTransfer: View {
+  let index: Int
+  let count: Int
+  let center: CGPoint
+  let innerRadius: CGFloat
+  let outerRadius: CGFloat
+  let orbDiameter: CGFloat
+  let chargeProgress: CGFloat
+  let flightProgress: CGFloat
+  let opacity: CGFloat
+
+  var body: some View {
+    let start = SquatGaugeOrbit.energyPoint(
+      index: index,
+      count: count,
+      center: center,
+      innerRadius: innerRadius,
+      outerRadius: outerRadius,
+      progress: 0
+    )
+
+    ZStack {
+      ForEach(0..<10, id: \.self) { shard in
+        let angle =
+          (Double(shard) / 10 * Double.pi * 2)
+          + (index.isMultiple(of: 2) ? 0.12 : -0.12)
+        let distance =
+          (1 - chargeProgress)
+          * CGFloat(18 + ((shard * 5) % 13))
+
+        Capsule()
+          .fill(
+            LinearGradient(
+              colors: [Color.white, RGTheme.gold, RGTheme.magenta],
+              startPoint: .top,
+              endPoint: .bottom
+            )
+          )
+          .frame(width: 2.2, height: shard.isMultiple(of: 3) ? 9 : 6)
+          .rotationEffect(.radians(angle + (.pi / 2)))
+          .position(
+            x: start.x + (CGFloat(cos(angle)) * distance),
+            y: start.y + (CGFloat(sin(angle)) * distance)
+          )
+          .opacity(
+            opacity
+              * max(0, 1 - flightProgress)
+              * (0.30 + (chargeProgress * 0.70))
+          )
+          .shadow(color: RGTheme.gold, radius: 4)
+          .blendMode(.plusLighter)
+      }
+
+      ForEach(0..<8, id: \.self) { trailIndex in
+        let lag = CGFloat(trailIndex) * 0.048
+        let trailProgress = min(1, max(0, flightProgress - lag))
+        let point = SquatGaugeOrbit.energyPoint(
+          index: index,
+          count: count,
+          center: center,
+          innerRadius: innerRadius,
+          outerRadius: outerRadius,
+          progress: trailProgress
+        )
+        let layerScale = max(0.42, 1 - (CGFloat(trailIndex) * 0.085))
+
+        Circle()
+          .fill(
+            RadialGradient(
+              colors: [
+                Color.white,
+                RGTheme.gold,
+                RGTheme.orange.opacity(0.92),
+                RGTheme.magenta.opacity(0),
+              ],
+              center: .topLeading,
+              startRadius: 0,
+              endRadius: orbDiameter * 0.72
+            )
+          )
+          .frame(
+            width: orbDiameter * layerScale,
+            height: orbDiameter * layerScale
+          )
+          .scaleEffect(0.30 + (chargeProgress * 0.70))
+          .position(point)
+          .opacity(opacity * max(0.18, 1 - (CGFloat(trailIndex) * 0.13)))
+          .blur(radius: CGFloat(trailIndex) * 0.38)
+          .shadow(
+            color: trailIndex.isMultiple(of: 2) ? RGTheme.gold : RGTheme.magenta,
+            radius: 7 + CGFloat(trailIndex)
+          )
+          .blendMode(.plusLighter)
+          .zIndex(Double(8 - trailIndex))
+      }
+    }
+    .frame(width: center.x * 2, height: center.y * 2)
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
+  }
+}
+
+private struct SquatGaugeFinale: View {
+  let diameter: CGFloat
+  let progress: CGFloat
+
+  var body: some View {
+    let clampedProgress = min(1, max(0, progress))
+    let center = CGPoint(x: diameter / 2, y: diameter / 2)
+    let ignition = min(1, clampedProgress * 8)
+    let fade = max(0, 1 - clampedProgress)
+    let cloudEnvelope = CGFloat(sin(Double(clampedProgress) * Double.pi))
+
+    ZStack {
+      Circle()
+        .fill(Color.white)
+        .frame(width: diameter * 0.64, height: diameter * 0.64)
+        .scaleEffect(0.50 + (clampedProgress * 0.95))
+        .blur(radius: 18 + (clampedProgress * 22))
+        .opacity(ignition * fade * 0.72)
+        .blendMode(.plusLighter)
+
+      ForEach(0..<11, id: \.self) { index in
+        let angle =
+          (Double(index) / 11 * Double.pi * 2)
+          + (index.isMultiple(of: 2) ? 0.16 : -0.10)
+        let cloudSize =
+          diameter
+          * (0.12 + (CGFloat((index * 17) % 8) * 0.009))
+        let cloudRadius =
+          (diameter * 0.16)
+          + (clampedProgress
+            * diameter
+            * (0.25 + (CGFloat((index * 7) % 6) * 0.018)))
+        let cloudColor = color(for: index)
+
+        Circle()
+          .fill(
+            RadialGradient(
+              colors: [
+                Color.white.opacity(0.88),
+                cloudColor.opacity(0.62),
+                cloudColor.opacity(0),
+              ],
+              center: .center,
+              startRadius: 0,
+              endRadius: cloudSize * 0.58
+            )
+          )
+          .frame(width: cloudSize, height: cloudSize)
+          .scaleEffect(0.45 + (clampedProgress * 1.22))
+          .position(
+            x: center.x + (CGFloat(cos(angle)) * cloudRadius),
+            y: center.y + (CGFloat(sin(angle)) * cloudRadius)
+          )
+          .blur(radius: 3 + (clampedProgress * 9))
+          .opacity(
+            cloudEnvelope
+              * (0.48 + (CGFloat(index % 4) * 0.10))
+          )
+          .blendMode(.plusLighter)
+      }
+
+      ForEach(0..<38, id: \.self) { index in
+        let angle =
+          (Double(index) / 38 * Double.pi * 2)
+          + (Double((index * 11) % 9) * 0.025)
+        let sparkRadius =
+          (diameter * 0.20)
+          + (clampedProgress
+            * diameter
+            * (0.38 + (CGFloat((index * 13) % 10) * 0.014)))
+        let sparkOpacity =
+          ignition
+          * fade
+          * (0.62 + (CGFloat(index % 3) * 0.16))
+
         Capsule()
           .fill(
             LinearGradient(
               colors: [
-                RGTheme.mint,
-                RGTheme.gold,
+                Color.white,
+                index.isMultiple(of: 2) ? RGTheme.gold : RGTheme.magenta,
                 RGTheme.orange,
-                RGTheme.danger,
-                RGTheme.orange,
-                RGTheme.gold,
-                RGTheme.mint,
               ],
               startPoint: .top,
               endPoint: .bottom
             )
           )
-          .overlay {
-            Capsule()
-              .stroke(RGTheme.cream.opacity(0.28), lineWidth: 1)
-          }
-          .shadow(color: RGTheme.danger.opacity(0.22), radius: 10)
-
-        Circle()
-          .stroke(
-            LinearGradient(
-              colors: [Color.white, endpointAccent, RGTheme.danger],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            ),
-            lineWidth: 3.5
-          )
           .frame(
-            width: indicatorDiameter * 1.18,
-            height: indicatorDiameter * 1.18
+            width: index.isMultiple(of: 5) ? 4 : 2.4,
+            height: index.isMultiple(of: 4) ? 17 : 10
           )
-          .scaleEffect(1 + (ringProgress * 1.55))
-          .opacity(max(0, 1 - ringProgress))
-          .shadow(color: endpointAccent.opacity(0.92), radius: 7)
+          .rotationEffect(.radians(angle + (.pi / 2)))
+          .position(
+            x: center.x + (CGFloat(cos(angle)) * sparkRadius),
+            y: center.y + (CGFloat(sin(angle)) * sparkRadius)
+          )
+          .opacity(sparkOpacity)
+          .shadow(color: Color.white.opacity(0.88), radius: 3)
+          .shadow(color: RGTheme.orange, radius: 7)
           .blendMode(.plusLighter)
-          .position(x: proxy.size.width / 2, y: indicatorY)
-
-        if !accessibilityReduceMotion {
-          ForEach(0..<16, id: \.self) { index in
-            let angle =
-              (Double(index) / 16.0 * Double.pi * 2)
-              + (index.isMultiple(of: 2) ? 0.08 : -0.08)
-            let travel = CGFloat(28 + ((index * 7) % 17))
-
-            Capsule()
-              .fill(
-                LinearGradient(
-                  colors: [Color.white, RGTheme.gold, RGTheme.orange],
-                  startPoint: .top,
-                  endPoint: .bottom
-                )
-              )
-              .frame(
-                width: index.isMultiple(of: 3) ? 3.5 : 2.5,
-                height: index.isMultiple(of: 3) ? 9 : 6
-              )
-              .rotationEffect(.radians(angle + (.pi / 2)))
-              .position(
-                x: (proxy.size.width / 2)
-                  + (CGFloat(cos(angle)) * travel * sparkProgress),
-                y: indicatorY
-                  + (CGFloat(sin(angle)) * travel * sparkProgress)
-              )
-              .opacity(max(0, 1 - sparkProgress))
-              .shadow(color: RGTheme.gold, radius: 4)
-              .blendMode(.plusLighter)
-          }
-        }
-
-        Circle()
-          .fill(Color.white.opacity(0.52))
-          .frame(
-            width: indicatorDiameter * 1.85,
-            height: indicatorDiameter * 1.85
-          )
-          .blur(radius: 9)
-          .opacity(0.62 + (flashIntensity * 0.38))
-          .blendMode(.plusLighter)
-          .position(x: proxy.size.width / 2, y: indicatorY)
-
-        Circle()
-          .fill(
-            RadialGradient(
-              stops: [
-                .init(color: Color.white.opacity(0.96), location: 0),
-                .init(color: Color.white.opacity(0.72), location: 0.24),
-                .init(color: RGTheme.mint.opacity(0.42), location: 0.58),
-                .init(color: Color.white.opacity(0.10), location: 1),
-              ],
-              center: .topLeading,
-              startRadius: 0,
-              endRadius: indicatorDiameter * 0.74
-            )
-          )
-          .frame(width: indicatorDiameter, height: indicatorDiameter)
-          .overlay {
-            Circle()
-              .fill(
-                RadialGradient(
-                  colors: [
-                    Color.white,
-                    RGTheme.gold,
-                    RGTheme.orange.opacity(0),
-                  ],
-                  center: .center,
-                  startRadius: 0,
-                  endRadius: indicatorDiameter * 0.62
-                )
-              )
-              .opacity(flashIntensity)
-              .blendMode(.plusLighter)
-
-            Circle()
-              .stroke(Color.white.opacity(0.66), lineWidth: 1)
-          }
-          .shadow(
-            color: flashIntensity > 0.01
-              ? endpointAccent.opacity(0.98)
-              : Color.white.opacity(0.64),
-            radius: 8 + (flashIntensity * 15)
-          )
-          .scaleEffect(1 + (flashIntensity * 0.62))
-          .position(x: proxy.size.width / 2, y: indicatorY)
-          .compositingGroup()
       }
+
+      Circle()
+        .stroke(
+          AngularGradient(
+            colors: [
+              Color.white,
+              RGTheme.gold,
+              RGTheme.orange,
+              RGTheme.magenta,
+              Color.white,
+            ],
+            center: .center
+          ),
+          lineWidth: 6
+        )
+        .padding(diameter * 0.08)
+        .scaleEffect(0.76 + (clampedProgress * 0.42))
+        .opacity(ignition * fade)
+        .blur(radius: clampedProgress * 2)
+        .shadow(color: Color.white, radius: 12)
+        .blendMode(.plusLighter)
     }
-    .onChange(of: position) { _, newPosition in
-      smoothPosition(
-        toward: newPosition,
-        isReturning: isReturning
-      )
-    }
-    .task(id: endpointPulseID) {
-      guard endpointPulseID > 0 else { return }
-      isAnimatingEndpoint = true
-      flashIntensity = 1
-      sparkProgress = accessibilityReduceMotion ? 1 : 0
-      ringProgress = accessibilityReduceMotion ? 1 : 0
-      if !accessibilityReduceMotion {
-        withAnimation(.easeOut(duration: 0.46)) {
-          sparkProgress = 1
-          ringProgress = 1
-        }
-      }
-      withAnimation(
-        .easeOut(duration: accessibilityReduceMotion ? 0.01 : 0.10)
-      ) {
-        displayedPosition = endpointIsTop ? 1 : 0
-      }
-      try? await Task.sleep(for: .milliseconds(120))
-      guard !Task.isCancelled else { return }
-      isAnimatingEndpoint = false
-      lastSampleTime = nil
-      withAnimation(.easeOut(duration: accessibilityReduceMotion ? 0.16 : 0.42)) {
-        flashIntensity = 0
-      }
-    }
-    .accessibilityHidden(true)
   }
 
-  private func smoothPosition(
-    toward newPosition: Double,
-    isReturning: Bool
-  ) {
-    guard !isAnimatingEndpoint else { return }
-    let target = min(1, max(0, newPosition))
-    guard !accessibilityReduceMotion else {
-      displayedPosition = target
-      return
-    }
-
-    let now = ProcessInfo.processInfo.systemUptime
-    let elapsed = lastSampleTime.map { now - $0 } ?? (1.0 / 50.0)
-    lastSampleTime = now
-    let deltaTime = min(0.06, max(1.0 / 120.0, elapsed))
-    let delta = target - displayedPosition
-    let responseTime = isReturning ? 0.055 : 0.065
-    let response = 1 - exp(-deltaTime / responseTime)
-    let filteredStep = delta * response
-    let maximumStep = 4.5 * deltaTime
-    let nextPosition =
-      displayedPosition
-      + min(
-        maximumStep,
-        max(-maximumStep, filteredStep)
-      )
-    withAnimation(.linear(duration: 0.055)) {
-      displayedPosition = nextPosition
+  private func color(for index: Int) -> Color {
+    switch index % 4 {
+    case 0:
+      RGTheme.gold
+    case 1:
+      RGTheme.orange
+    case 2:
+      RGTheme.magenta
+    default:
+      RGTheme.cream
     }
   }
 }
@@ -870,6 +1639,7 @@ private struct ChallengeCompletionExperience: View {
   @State private var currentItem: AVPlayerItem?
   @State private var playbackTimeObserver: Any?
   @State private var isShowingMessage = false
+  @State private var isShowingSkipButton = false
   @State private var backgroundDimOpacity = 0.0
   @State private var hasFinishedPlayback = false
 
@@ -886,9 +1656,14 @@ private struct ChallengeCompletionExperience: View {
           .opacity(backgroundDimOpacity)
           .animation(.linear(duration: 0.12), value: backgroundDimOpacity)
 
-        completionMessage
+        completionCopy
           .opacity(isShowingMessage ? 1 : 0)
-          .allowsHitTesting(isShowingMessage)
+          .accessibilityHidden(!isShowingMessage)
+
+        completionSkipButton
+          .opacity(isShowingSkipButton ? 1 : 0)
+          .allowsHitTesting(isShowingSkipButton)
+          .accessibilityHidden(!isShowingSkipButton)
       }
       .frame(width: proxy.size.width, height: proxy.size.height)
     }
@@ -896,6 +1671,14 @@ private struct ChallengeCompletionExperience: View {
     .ignoresSafeArea()
     .onAppear {
       loadAndPlay()
+    }
+    .task {
+      isShowingSkipButton = false
+      await Task.yield()
+      guard !Task.isCancelled else { return }
+      withAnimation(.easeOut(duration: 0.24)) {
+        isShowingSkipButton = true
+      }
     }
     .onDisappear {
       removePlaybackTimeObserver()
@@ -942,11 +1725,11 @@ private struct ChallengeCompletionExperience: View {
     }
   }
 
-  private var completionMessage: some View {
+  private var completionCopy: some View {
     VStack(spacing: 0) {
       Spacer()
 
-      Text("Pain Fuels Progress.")
+      Text("Pain Fuels Progress")
         .font(.system(size: 44, weight: .black, design: .rounded))
         .foregroundStyle(Color.white)
         .multilineTextAlignment(.center)
@@ -960,18 +1743,26 @@ private struct ChallengeCompletionExperience: View {
         .padding(.top, 14)
 
       Spacer()
-
-      Button(action: finish) {
-        Text("Rest when rich.")
-          .font(.headline.weight(.black))
-          .frame(maxWidth: .infinity)
-      }
-      .buttonStyle(RGPrimaryButtonStyle())
-      .padding(.bottom, 12)
     }
     .padding(.horizontal, 28)
     .padding(.vertical, 42)
     .accessibilityElement(children: .contain)
+  }
+
+  private var completionSkipButton: some View {
+    VStack {
+      Spacer()
+
+      Button(action: finish) {
+        Text("You Can Rest When You're Rich")
+          .font(.headline.weight(.black))
+          .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(RGPrimaryButtonStyle())
+      .accessibilityLabel("Skip congratulations video")
+      .padding(.horizontal, 28)
+      .padding(.bottom, 54)
+    }
   }
 
   private func loadAndPlay() {
@@ -1124,7 +1915,6 @@ private enum SquatTestHaptic {
 @MainActor
 @Observable
 private final class WakeChallengeSquatSession {
-  private static let maximumVisibleMoneyDrops = 16
   private static let telemetryRefreshInterval = 0.10
   private static let guidanceHapticStep = 0.25
   private static let guidanceHapticMinimumInterval = 0.125
@@ -1162,8 +1952,9 @@ private final class WakeChallengeSquatSession {
   private(set) var canStartGuidance = false
   private(set) var lastAttemptLabel = "—"
   private(set) var diagnosticLogRelativePath: String?
-  private(set) var moneyDrops: [MoneyDropEvent] = []
-  private(set) var gaugeIsReturning = false
+  private(set) var gaugeLeg: SquatGaugeLeg = .ready
+  private(set) var gaugeCycleProgress = 0.0
+  private(set) var gaugeCycleID = 0
   private(set) var gaugeEndpointPulseID = 0
   private(set) var gaugeEndpointIsTop = true
 
@@ -1174,7 +1965,7 @@ private final class WakeChallengeSquatSession {
   private let guidanceHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
 
   @ObservationIgnored
-  private let endpointHapticGenerator = UIImpactFeedbackGenerator(style: .rigid)
+  private let endpointHapticGenerator = UIImpactFeedbackGenerator(style: .heavy)
 
   @ObservationIgnored
   private let diagnosticRecorder = SquatChallengeDiagnosticRecorder()
@@ -1192,9 +1983,6 @@ private final class WakeChallengeSquatSession {
   private var startupWatchdog: Task<Void, Never>?
 
   @ObservationIgnored
-  private var moneyDropCleanupTask: Task<Void, Never>?
-
-  @ObservationIgnored
   private var diagnosticTask: Task<Void, Never>?
 
   private var detector = SquatDetector()
@@ -1202,7 +1990,6 @@ private final class WakeChallengeSquatSession {
   private var diagnosticSampleIndex = 0
   private var calibrationProfile: SquatCalibrationProfile?
   private var targetSquats = 1
-  private var eventSequence = 0
   private var lastMotionUpdateAt: Date?
   private var lastTelemetryTimestamp: TimeInterval?
   private var attemptStartedAt: TimeInterval?
@@ -1287,9 +2074,7 @@ private final class WakeChallengeSquatSession {
     prepareHapticsIfNeeded()
     if isNewRequest {
       squats = 0
-      moneyDrops = []
-      eventSequence = 0
-      gaugeIsReturning = false
+      gaugeLeg = .ready
       gaugeEndpointPulseID = 0
       gaugeEndpointIsTop = true
       maximumDropMeters = 0
@@ -1377,6 +2162,23 @@ private final class WakeChallengeSquatSession {
       "Motion pauses while the app is inactive. Return upright and press Start again."
   }
 
+  func pauseForCompletionRetry() {
+    guard activeRequestID != nil else { return }
+    appendDiagnosticEvent(
+      "completion_retry_waiting",
+      details: ["squats": "\(squats)"]
+    )
+    stopDeviceMotion()
+    resetDetector()
+    resetGuidance()
+    motionError = nil
+    actionTitle = "SET COMPLETE"
+    phaseLabel = "RETRY"
+    tiltDegrees = nil
+    motionStatus =
+      "The set is complete. Retry cancellation to continue to the celebration."
+  }
+
   func stop(reason: String = "stopped") {
     stopDeviceMotion()
     if let diagnosticSessionID {
@@ -1388,17 +2190,15 @@ private final class WakeChallengeSquatSession {
     activeRequestID = nil
     resetGuidance()
     onSquatCompleted = {}
-    moneyDropCleanupTask?.cancel()
-    moneyDropCleanupTask = nil
   }
 
   #if targetEnvironment(simulator)
     func simulateSquat(target: Int) {
       guard isGuidanceStarted, squats < target else { return }
+      advanceGaugeCycleProgress(to: 1)
       squats += 1
       motionStatus = "Squat \(squats) simulated."
       signalGaugeEndpoint(isTop: true)
-      bankMoneyDrop()
       onSquatCompleted()
     }
   #endif
@@ -1410,6 +2210,7 @@ private final class WakeChallengeSquatSession {
       isGuidanceStarted = true
       isZeroingGuidance = false
       canStartGuidance = true
+      gaugeLeg = .down
       verticalPosition = Self.guidanceConfiguration.initialTopPosition
       motionStatus = "Top set. Follow the marker down and back up."
       actionTitle = "SQUAT DOWN"
@@ -1440,7 +2241,7 @@ private final class WakeChallengeSquatSession {
       verticalAccelerationBiasG = 0
       detectorIsStationary = false
       isHapticQuarantined = false
-      gaugeIsReturning = false
+      gaugeLeg = .zeroing
       lastGuidancePosition = verticalPosition
       lastGuidanceHapticStep = 0
       lastGuidanceHapticTimestamp = nil
@@ -1588,7 +2389,8 @@ private final class WakeChallengeSquatSession {
     verticalAccelerationBiasG = 0
     detectorIsStationary = false
     isHapticQuarantined = false
-    gaugeIsReturning = false
+    gaugeLeg = .ready
+    resetGaugeCycleProgress()
     lastGuidancePosition = verticalPosition
     lastGuidanceHapticStep = 0
     lastGuidanceHapticTimestamp = nil
@@ -2005,7 +2807,24 @@ private final class WakeChallengeSquatSession {
     verticalAccelerationBiasG = update.verticalAccelerationBiasG
     detectorIsStationary = update.isStationary
     isHapticQuarantined = update.isHapticQuarantined
-    gaugeIsReturning = update.phase == .returning
+    guard isGuidanceStarted else {
+      gaugeLeg = .ready
+      return
+    }
+    guard !isZeroingGuidance else {
+      gaugeLeg = .zeroing
+      return
+    }
+    switch update.phase {
+    case .down, .returning:
+      gaugeLeg = .up
+    case .descending:
+      gaugeLeg = .down
+    case .standing:
+      gaugeLeg = update.isReadyForDescent ? .down : .holdTop
+    case .calibrating, .cooldown:
+      gaugeLeg = .holdTop
+    }
   }
 
   private func receive(_ sample: WakeMotionSample) {
@@ -2070,6 +2889,7 @@ private final class WakeChallengeSquatSession {
     squats = min(update.repCount, targetSquats)
     maximumDropMeters = update.maximumVerticalDropMeters
     applyDebugTelemetry(update)
+    updateGaugeCycleProgress(using: update)
     if update.event == .attemptBegan || update.event == .attemptRejected {
       resetGuidanceHapticCycle(at: update.verticalPosition)
     }
@@ -2108,7 +2928,6 @@ private final class WakeChallengeSquatSession {
 
     if squats > previousSquats {
       signalGaugeEndpoint(isTop: true)
-      bankMoneyDrop()
       onSquatCompleted()
       appendDiagnosticEvent(
         "rep_counted",
@@ -2309,31 +3128,65 @@ private final class WakeChallengeSquatSession {
     endpointHapticGenerator.prepare()
   }
 
-  private func bankMoneyDrop() {
-    eventSequence += 1
-    moneyDrops.append(MoneyDropEvent(sequence: eventSequence))
-    if moneyDrops.count > Self.maximumVisibleMoneyDrops {
-      moneyDrops.removeFirst(moneyDrops.count - Self.maximumVisibleMoneyDrops)
-    }
-
-    moneyDropCleanupTask?.cancel()
-    let requestID = activeRequestID
-    moneyDropCleanupTask = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(2.4))
-      guard
-        !Task.isCancelled,
-        let self,
-        self.activeRequestID == requestID
-      else {
-        return
-      }
-      self.moneyDrops.removeAll()
-    }
-  }
-
   private func signalGaugeEndpoint(isTop: Bool) {
     gaugeEndpointIsTop = isTop
     gaugeEndpointPulseID &+= 1
+  }
+
+  private func updateGaugeCycleProgress(
+    using update: SquatDetectorUpdate
+  ) {
+    if update.event == .attemptBegan {
+      resetGaugeCycleProgress()
+    }
+
+    let configuration = Self.guidanceConfiguration
+    let candidate: Double?
+    switch update.phase {
+    case .descending:
+      let descent =
+        (configuration.initialTopPosition - update.verticalPosition)
+        / max(
+          0.01,
+          configuration.initialTopPosition
+            - configuration.bottomCompletionPosition
+        )
+      candidate = 0.5 * min(1, max(0, descent))
+    case .down:
+      candidate = 0.5
+    case .returning:
+      let ascent =
+        (update.verticalPosition - configuration.bottomCompletionPosition)
+        / max(
+          0.01,
+          configuration.topCompletionPosition
+            - configuration.bottomCompletionPosition
+        )
+      candidate = 0.5 + (0.5 * min(1, max(0, ascent)))
+    case .calibrating, .standing, .cooldown:
+      candidate = nil
+    }
+
+    if let candidate {
+      advanceGaugeCycleProgress(to: candidate)
+    }
+    if update.event == .bottomReached || update.didReachBottom {
+      advanceGaugeCycleProgress(to: 0.5)
+    }
+    if update.event == .repCounted || update.didCountRep {
+      advanceGaugeCycleProgress(to: 1)
+    }
+  }
+
+  private func advanceGaugeCycleProgress(to candidate: Double) {
+    let clampedCandidate = min(1, max(0, candidate))
+    guard clampedCandidate > gaugeCycleProgress else { return }
+    gaugeCycleProgress = clampedCandidate
+  }
+
+  private func resetGaugeCycleProgress() {
+    gaugeCycleProgress = 0
+    gaugeCycleID &+= 1
   }
 
   private func failMotion(_ message: String) {
@@ -2435,55 +3288,6 @@ private final class WakeChallengeSquatSession {
       return false
     }
     return !usageDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-  }
-}
-
-private struct MoneyDropEvent: Identifiable {
-  let id = UUID()
-  let sequence: Int
-}
-
-private struct FallingMoneyView: View {
-  let event: MoneyDropEvent
-  let canvasSize: CGSize
-
-  @State private var hasFallen = false
-
-  var body: some View {
-    Image(
-      systemName: event.sequence.isMultiple(of: 3)
-        ? "banknote.fill" : "dollarsign.circle.fill"
-    )
-    .font(
-      .system(
-        size: event.sequence.isMultiple(of: 3) ? 52 : 44,
-        weight: .black
-      )
-    )
-    .foregroundStyle(event.sequence.isMultiple(of: 2) ? RGTheme.mint : RGTheme.gold)
-    .rotationEffect(.degrees(hasFallen ? endingRotation : -endingRotation * 0.25))
-    .position(x: horizontalPosition, y: hasFallen ? canvasSize.height + 85 : -75)
-    .opacity(hasFallen ? 0.28 : 1)
-    .shadow(color: RGTheme.gold.opacity(0.55), radius: 12)
-    .onAppear {
-      withAnimation(.easeIn(duration: fallDuration)) {
-        hasFallen = true
-      }
-    }
-  }
-
-  private var horizontalPosition: CGFloat {
-    let usableWidth = max(1, canvasSize.width - 104)
-    let fraction = CGFloat((event.sequence * 67) % 101) / 100
-    return 52 + (usableWidth * fraction)
-  }
-
-  private var endingRotation: Double {
-    Double(((event.sequence * 97) % 520) - 260)
-  }
-
-  private var fallDuration: Double {
-    1.45 + (Double(event.sequence % 5) * 0.12)
   }
 }
 

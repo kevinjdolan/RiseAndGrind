@@ -12,6 +12,7 @@ struct SetupView: View {
   let calendarAuthorization: String
   let notificationAuthorization: String
   let motionAuthorization: String
+  let requiredPermissionsReady: Bool
   let automationAcknowledged: Bool
   let lastNightlyRun: Date?
   let lastBackgroundRefresh: Date?
@@ -34,63 +35,7 @@ struct SetupView: View {
     RGScreenBackground {
       ScrollView {
         LazyVStack(spacing: 18) {
-          RGCard(accent: RGTheme.gold) {
-            VStack(alignment: .leading, spacing: 16) {
-              RGSectionHeading(
-                "Required access",
-                eyebrow: "Permission portfolio",
-                detail:
-                  "Alarm, full Calendar, Notification, and Motion access stay mandatory."
-              )
-
-              RGPermissionRow(
-                icon: "alarm.fill",
-                title: "AlarmKit",
-                status: alarmAuthorization
-              )
-              RGPermissionRow(
-                icon: "calendar",
-                title: "Calendar",
-                status: calendarAuthorization
-              )
-              RGPermissionRow(
-                icon: "bell.badge.fill",
-                title: "Notifications",
-                status: notificationAuthorization
-              )
-              RGPermissionRow(
-                icon: "figure.strengthtraining.functional",
-                title: "Motion & Fitness",
-                status: motionAuthorization
-              )
-
-              HStack(spacing: 10) {
-                Button {
-                  isAwaitingResult = true
-                  Task { @MainActor in
-                    actionResult = await requestPermissions()
-                    isAwaitingResult = false
-                  }
-                } label: {
-                  HStack {
-                    if isBusy {
-                      ProgressView().tint(RGTheme.ink)
-                    } else {
-                      Image(systemName: "checkmark.shield.fill")
-                    }
-                    Text("VERIFY")
-                  }
-                }
-                .buttonStyle(RGPrimaryButtonStyle())
-                .disabled(isBusy)
-
-                Button(action: openSettings) {
-                  Label("Settings", systemImage: "gearshape.fill")
-                }
-                .buttonStyle(RGSecondaryButtonStyle())
-              }
-            }
-          }
+          requiredAccessCard
 
           automationCard
           wakeChallengeCard
@@ -116,7 +61,7 @@ struct SetupView: View {
         .padding(.bottom, 34)
       }
     }
-    .navigationTitle("Setup")
+    .navigationTitle("Rig")
     .rgInlineNavigationTitle()
     .sheet(item: $actionResult) { result in
       RGActionResultSheet(result: result)
@@ -158,93 +103,142 @@ struct SetupView: View {
     isWorking || isAwaitingResult
   }
 
-  private var automationCard: some View {
-    RGCard(accent: RGTheme.mint) {
-      VStack(alignment: .leading, spacing: 14) {
-        HStack(alignment: .top) {
-          RGSectionHeading(
-            "The nightly handoff",
-            eyebrow: "Shortcuts automation",
-            detail:
-              "A daily Personal Automation runs Prepare Tomorrow’s Barrage while the app is closed."
-          )
-          Spacer(minLength: 10)
-          RGStatusPill(
-            text: automationStatus.text,
-            color: automationStatus.color,
-            icon: automationStatus.icon
-          )
+  private var requiredAccessCard: some View {
+    RGCard(accent: requiredPermissionsReady ? RGTheme.mint : RGTheme.gold) {
+      if requiredPermissionsReady {
+        HStack(spacing: 12) {
+          Text("Required Access")
+            .font(.headline.weight(.black))
+            .foregroundStyle(RGTheme.cream)
+
+          Spacer()
+
+          Image(systemName: "checkmark.circle.fill")
+            .font(.title2.weight(.bold))
+            .foregroundStyle(RGTheme.mint)
+            .accessibilityHidden(true)
         }
-
-        if let lastNightlyRun {
-          Label(
-            "Last ran \(lastNightlyRun.formatted(date: .abbreviated, time: .shortened))",
-            systemImage:
-              isNightlyRunCurrent
-              ? "clock.badge.checkmark.fill" : "clock.badge.exclamationmark.fill"
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Required Access")
+        .accessibilityValue("Granted")
+      } else {
+        VStack(alignment: .leading, spacing: 16) {
+          RGSectionHeading(
+            "Required Access",
+            eyebrow: "Permission portfolio",
+            detail:
+              "Alarm, full Calendar, Notification, and Motion access stay mandatory."
           )
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(isNightlyRunCurrent ? RGTheme.cream : RGTheme.orange)
 
-          if !isNightlyRunCurrent {
-            Text(
-              "The daily heartbeat is overdue. The automation may be disabled or missing."
-            )
-            .font(.caption)
-            .foregroundStyle(RGTheme.orange)
+          RGPermissionRow(
+            icon: "alarm.fill",
+            title: "AlarmKit",
+            status: alarmAuthorization
+          )
+          RGPermissionRow(
+            icon: "calendar",
+            title: "Calendar",
+            status: calendarAuthorization
+          )
+          RGPermissionRow(
+            icon: "bell.badge.fill",
+            title: "Notifications",
+            status: notificationAuthorization
+          )
+          RGPermissionRow(
+            icon: "figure.strengthtraining.functional",
+            title: "Motion & Fitness",
+            status: motionAuthorization
+          )
+
+          HStack(spacing: 10) {
+            Button {
+              isAwaitingResult = true
+              Task { @MainActor in
+                actionResult = await requestPermissions()
+                isAwaitingResult = false
+              }
+            } label: {
+              HStack {
+                if isBusy {
+                  ProgressView().tint(RGTheme.ink)
+                } else {
+                  Image(systemName: "checkmark.shield.fill")
+                }
+                Text("VERIFY")
+              }
+            }
+            .buttonStyle(RGPrimaryButtonStyle())
+            .disabled(isBusy)
+
+            Button(action: openSettings) {
+              Label("Settings", systemImage: "gearshape.fill")
+            }
+            .buttonStyle(RGSecondaryButtonStyle())
           }
-        } else {
+        }
+      }
+    }
+  }
+
+  private var automationCard: some View {
+    RGCard(accent: hasRecentCalendarTrackingRun ? RGTheme.mint : RGTheme.orange) {
+      VStack(alignment: .leading, spacing: 14) {
+        RGSectionHeading("Calendar Tracking")
+
+        trackingRunRow("Last Automation Run", date: lastNightlyRun)
+        trackingRunRow("Last Background Run", date: lastBackgroundRefresh)
+
+        if !hasRecentCalendarTrackingRun {
           Label(
-            "No automatic run recorded yet",
+            "No Rise & Grind Triggers have fired in the last 24 hours",
             systemImage: "clock.badge.exclamationmark.fill"
           )
           .font(.subheadline.weight(.semibold))
           .foregroundStyle(RGTheme.orange)
-        }
+          .lineLimit(1)
+          .minimumScaleFactor(0.70)
+          .allowsTightening(true)
 
-        if let lastBackgroundRefresh {
-          Label(
-            "Background safety check ran \(lastBackgroundRefresh.formatted(date: .abbreviated, time: .shortened))",
-            systemImage: "arrow.clockwise.circle.fill"
-          )
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(RGTheme.mutedCream)
-        } else {
-          Label(
-            "No background safety check recorded yet",
-            systemImage: "arrow.clockwise.circle"
-          )
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(RGTheme.mutedCream)
-        }
+          RGShortcutAutomationLinks()
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-        RGShortcutAutomationLinks()
-          .frame(maxWidth: .infinity, alignment: .leading)
-
-        if !automationAcknowledged {
-          Button(action: acknowledgeAutomation) {
-            Label("I SET IT UP", systemImage: "checkmark.seal.fill")
+          if !automationAcknowledged {
+            Button(action: acknowledgeAutomation) {
+              Label("I SET IT UP", systemImage: "checkmark.seal.fill")
+            }
+            .buttonStyle(RGPrimaryButtonStyle())
           }
-          .buttonStyle(RGPrimaryButtonStyle())
         }
-
-        Text(
-          "iOS requires you to create Personal Automations yourself; apps cannot create or inspect them silently."
-        )
-        .font(.caption)
-        .foregroundStyle(RGTheme.mutedCream)
       }
     }
+  }
+
+  private func trackingRunRow(_ title: String, date: Date?) -> some View {
+    HStack(alignment: .firstTextBaseline, spacing: 10) {
+      Text("\(title):")
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(RGTheme.cream)
+        .lineLimit(1)
+
+      Spacer(minLength: 8)
+
+      Text(date?.formatted(date: .abbreviated, time: .shortened) ?? "Never")
+        .font(.caption.monospacedDigit().weight(.semibold))
+        .foregroundStyle(date == nil ? RGTheme.orange : RGTheme.mutedCream)
+        .multilineTextAlignment(.trailing)
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+    }
+    .accessibilityElement(children: .combine)
   }
 
   private var alarmTestCard: some View {
     RGCard(accent: RGTheme.magenta) {
       VStack(alignment: .leading, spacing: 16) {
         RGSectionHeading(
-          "Test the attack stack",
-          eyebrow: "Live alarm test",
-          detail:
-            "The first alarm fires in one minute, then another every minute using your active sound pool. Your nightly barrage stays untouched."
+          "Test Alarms at 1 Minute Intervals",
+          eyebrow: "Live alarm test"
         )
 
         Stepper(value: $testAlarmCount, in: 1...12) {
@@ -290,9 +284,7 @@ struct SetupView: View {
       VStack(alignment: .leading, spacing: 16) {
         RGSectionHeading(
           "Squat Challenge",
-          eyebrow: "Wake Up button consequence",
-          detail:
-            "Tap Wake Up, Loser! and complete this many phone-counted squats to cancel the remaining attacks. Calibration and challenges both use the same two-handed kettlebell hold."
+          eyebrow: "Wake Up button consequence"
         )
 
         Stepper(
@@ -406,22 +398,11 @@ struct SetupView: View {
     testAlarmCount == 1 ? "ARM 1 TEST ALARM" : "ARM \(testAlarmCount) TEST ALARMS"
   }
 
-  private var isNightlyRunCurrent: Bool {
-    guard let lastNightlyRun else { return false }
-    return lastNightlyRun > Date.now.addingTimeInterval(-36 * 60 * 60)
-  }
-
-  private var automationStatus: (text: String, color: Color, icon: String) {
-    if isNightlyRunCurrent {
-      return ("Recent run", RGTheme.mint, "checkmark.circle.fill")
-    }
-    if lastNightlyRun != nil {
-      return ("Overdue", RGTheme.orange, "exclamationmark.circle.fill")
-    }
-    if automationAcknowledged {
-      return ("Unverified", RGTheme.orange, "questionmark.circle.fill")
-    }
-    return ("Not confirmed", RGTheme.orange, "exclamationmark.circle.fill")
+  private var hasRecentCalendarTrackingRun: Bool {
+    let cutoff = Date.now.addingTimeInterval(-24 * 60 * 60)
+    return [lastNightlyRun, lastBackgroundRefresh]
+      .compactMap { $0 }
+      .contains { $0 >= cutoff }
   }
 
   private func run(_ action: @escaping @MainActor () async -> RGActionResult?) {

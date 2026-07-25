@@ -1,19 +1,22 @@
 // Plays the one-time pre-onboarding pitch with an unmistakable escape hatch.
 
 import AVFoundation
+import OSLog
 import SwiftUI
 import UIKit
 
 struct IntroPitchView: View {
   @Environment(\.scenePhase) private var scenePhase
 
-  let complete: () -> Void
+  let complete: (IntroPitchDisposition) -> Void
 
   @State private var player = AVPlayer()
   @State private var currentItem: AVPlayerItem?
   @State private var playbackTimeObserver: Any?
   @State private var activeCaptionIndex: Int?
   @State private var hasFinished = false
+  @State private var isShowingLogo = true
+  @State private var lastTracedSecond = -1
 
   var body: some View {
     ZStack {
@@ -23,6 +26,7 @@ struct IntroPitchView: View {
       IntroPitchVideoPlayer(player: player)
         .ignoresSafeArea()
         .accessibilityHidden(true)
+        .opacity(isShowingLogo ? 0 : 1)
 
       LinearGradient(
         colors: [
@@ -36,6 +40,7 @@ struct IntroPitchView: View {
       .ignoresSafeArea()
       .allowsHitTesting(false)
       .accessibilityHidden(true)
+      .opacity(isShowingLogo ? 0 : 1)
 
       GeometryReader { proxy in
         VStack(spacing: 10) {
@@ -49,71 +54,78 @@ struct IntroPitchView: View {
                 )
             }
           }
-          .frame(height: 88)
+          .frame(width: proxy.size.width * 0.70, height: 52)
 
-          Button(action: finishPitch) {
-            HStack(spacing: 10) {
+          Button {
+            finishPitch(as: .skipped)
+          } label: {
+            HStack(spacing: 12) {
+              Text("Shut Up Chad")
+                .font(.subheadline.weight(.black))
+                .lineLimit(1)
+
               Image(systemName: "forward.end.fill")
-                .font(.headline.weight(.black))
-
-              VStack(spacing: 1) {
-                Text("SKIP INTRO")
-                  .font(.caption2.weight(.black))
-                  .tracking(1.4)
-
-                Text("Shut up Chad, I'm here to Lock In")
-                  .font(.subheadline.weight(.black))
-                  .multilineTextAlignment(.center)
-                  .lineLimit(2)
-                  .minimumScaleFactor(0.76)
-              }
+                .font(.subheadline.weight(.black))
             }
             .foregroundStyle(RGTheme.cream)
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 56)
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 18)
+            .frame(minHeight: 52)
             .background(
               LinearGradient(
                 colors: [RGTheme.orange, RGTheme.danger],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
               ),
-              in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+              in: Capsule()
             )
-            .overlay {
-              RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(RGTheme.cream.opacity(0.86), lineWidth: 1.5)
-            }
-            .shadow(color: RGTheme.danger.opacity(0.52), radius: 16, y: 6)
+            .shadow(color: RGTheme.danger.opacity(0.45), radius: 12, y: 5)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Shut up Chad, I'm here to Lock In")
+          .accessibilityLabel("Shut Up Chad")
           .accessibilityHint("Stops the introduction and begins onboarding")
         }
-        .frame(width: proxy.size.width * 0.70)
         .frame(maxWidth: .infinity)
-        .padding(.top, proxy.size.height * 0.40)
+        .padding(.top, proxy.size.height * 0.45)
         .animation(
           .spring(duration: 0.22, bounce: 0.28),
           value: activeCaptionIndex
         )
       }
       .ignoresSafeArea()
+      .opacity(isShowingLogo ? 0 : 1)
+      .allowsHitTesting(!isShowingLogo)
+
+      if isShowingLogo {
+        IntroPitchLogoSplash()
+          .transition(.opacity)
+          .zIndex(2)
+      }
     }
+    .animation(.easeInOut(duration: 0.28), value: isShowingLogo)
     .preferredColorScheme(.dark)
-    .onAppear {
-      loadAndPlay()
+    .task {
+      await prepareAndStart()
+    }
+    .task(id: isShowingLogo) {
+      await tracePlaybackHeartbeat()
     }
     .onDisappear {
+      IntroPitchTrace.record("view disappeared; \(playbackSummary())")
       removePlaybackTimeObserver()
       player.pause()
       player.replaceCurrentItem(with: nil)
       currentItem = nil
     }
     .onChange(of: scenePhase) { _, newPhase in
+      IntroPitchTrace.record(
+        "scene phase changed to \(String(describing: newPhase)); \(playbackSummary())"
+      )
       guard !hasFinished else { return }
-      if newPhase == .active {
+      if newPhase == .active, !isShowingLogo {
         player.play()
+        IntroPitchTrace.record(
+          "foreground resume requested; \(playbackSummary())"
+        )
       } else {
         player.pause()
       }
@@ -130,7 +142,21 @@ struct IntroPitchView: View {
       else {
         return
       }
-      finishPitch()
+      finishPitch(as: .viewed)
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.playbackStalledNotification
+      )
+    ) { notification in
+      guard
+        let currentItem,
+        let stalledItem = notification.object as? AVPlayerItem,
+        stalledItem === currentItem
+      else {
+        return
+      }
+      IntroPitchTrace.record("playback stalled; \(playbackSummary())")
     }
     .onReceive(
       NotificationCenter.default.publisher(
@@ -144,7 +170,7 @@ struct IntroPitchView: View {
       else {
         return
       }
-      finishPitch()
+      handlePlaybackFailure(failedItem)
     }
   }
 
@@ -153,10 +179,51 @@ struct IntroPitchView: View {
     return IntroPitchCaptionLibrary.cues[activeCaptionIndex]
   }
 
-  private func loadAndPlay() {
-    guard !hasFinished else { return }
+  private func prepareAndStart() async {
+    IntroPitchTrace.startSession()
+    guard prepareVideo() else { return }
+
+    do {
+      try await Task.sleep(for: .seconds(3))
+    } catch {
+      IntroPitchTrace.record("logo preroll task cancelled")
+      return
+    }
+
+    guard !Task.isCancelled, !hasFinished else { return }
+    IntroPitchTrace.record("logo preroll elapsed; \(playbackSummary())")
+    withAnimation(.easeInOut(duration: 0.28)) {
+      isShowingLogo = false
+    }
+
+    guard UIApplication.shared.applicationState == .active else {
+      IntroPitchTrace.record(
+        "waiting for active application before playback; \(playbackSummary())"
+      )
+      return
+    }
+    player.play()
+    IntroPitchTrace.record("play requested; \(playbackSummary())")
+  }
+
+  private func tracePlaybackHeartbeat() async {
+    guard !isShowingLogo else { return }
+    while !Task.isCancelled, !hasFinished {
+      do {
+        try await Task.sleep(for: .seconds(1))
+      } catch {
+        return
+      }
+      guard !Task.isCancelled, !hasFinished else { return }
+      IntroPitchTrace.record("playback heartbeat; \(playbackSummary())")
+    }
+  }
+
+  private func prepareVideo() -> Bool {
+    guard !hasFinished else { return false }
     removePlaybackTimeObserver()
-    activeCaptionIndex = 0
+    activeCaptionIndex = nil
+    lastTracedSecond = -1
     guard
       let url =
         Bundle.main.url(
@@ -166,8 +233,9 @@ struct IntroPitchView: View {
         )
         ?? Bundle.main.url(forResource: "IntroPitch", withExtension: "mp4")
     else {
-      finishPitch()
-      return
+      IntroPitchTrace.record("IntroPitch.mp4 was not found in the app bundle")
+      handlePlaybackFailure()
+      return false
     }
 
     try? AVAudioSession.sharedInstance().setCategory(
@@ -178,9 +246,11 @@ struct IntroPitchView: View {
 
     let item = AVPlayerItem(url: url)
     currentItem = item
+    player.automaticallyWaitsToMinimizeStalling = true
     player.replaceCurrentItem(with: item)
     installPlaybackTimeObserver()
-    player.play()
+    IntroPitchTrace.record("video prepared; \(playbackSummary())")
+    return true
   }
 
   private func installPlaybackTimeObserver() {
@@ -205,14 +275,151 @@ struct IntroPitchView: View {
     let seconds = time.seconds
     guard seconds.isFinite else { return }
     activeCaptionIndex = IntroPitchCaptionLibrary.index(at: seconds)
+    let tracedSecond = Int(seconds)
+    if tracedSecond != lastTracedSecond {
+      lastTracedSecond = tracedSecond
+      IntroPitchTrace.record("playback advanced; \(playbackSummary())")
+    }
   }
 
-  private func finishPitch() {
+  private func handlePlaybackFailure(_ failedItem: AVPlayerItem? = nil) {
+    let error = failedItem?.error?.localizedDescription ?? "none reported"
+    IntroPitchTrace.record(
+      "playback failed; error=\(error); \(playbackSummary())"
+    )
+    removePlaybackTimeObserver()
+    player.pause()
+    activeCaptionIndex = nil
+  }
+
+  private func finishPitch(as disposition: IntroPitchDisposition) {
     guard !hasFinished else { return }
+    IntroPitchTrace.record(
+      "intro marked \(disposition.rawValue); \(playbackSummary())"
+    )
     hasFinished = true
     removePlaybackTimeObserver()
     player.pause()
-    complete()
+    complete(disposition)
+  }
+
+  private func playbackSummary() -> String {
+    let itemStatus: String
+    switch currentItem?.status {
+    case .unknown:
+      itemStatus = "unknown"
+    case .readyToPlay:
+      itemStatus = "ready"
+    case .failed:
+      itemStatus = "failed"
+    case nil:
+      itemStatus = "none"
+    @unknown default:
+      itemStatus = "future"
+    }
+
+    let timeControlStatus: String
+    switch player.timeControlStatus {
+    case .paused:
+      timeControlStatus = "paused"
+    case .waitingToPlayAtSpecifiedRate:
+      timeControlStatus = "waiting"
+    case .playing:
+      timeControlStatus = "playing"
+    @unknown default:
+      timeControlStatus = "future"
+    }
+
+    let time = player.currentTime().seconds
+    let currentSeconds = time.isFinite ? String(format: "%.3f", time) : "invalid"
+    let waitingReason = player.reasonForWaitingToPlay?.rawValue ?? "none"
+    return
+      "time=\(currentSeconds) item=\(itemStatus) player=\(timeControlStatus) waiting=\(waitingReason)"
+  }
+}
+
+private struct IntroPitchLogoSplash: View {
+  var body: some View {
+    ZStack {
+      RadialGradient(
+        colors: [
+          RGTheme.orange.opacity(0.28),
+          RGTheme.danger.opacity(0.10),
+          Color.black,
+        ],
+        center: .center,
+        startRadius: 24,
+        endRadius: 360
+      )
+      .ignoresSafeArea()
+
+      VStack(spacing: 20) {
+        Image("BrandHero")
+          .resizable()
+          .scaledToFit()
+          .frame(width: 220, height: 220)
+          .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+          .shadow(color: RGTheme.orange.opacity(0.48), radius: 28)
+
+        Text("RISE & GRIND")
+          .font(.system(.title2, design: .rounded, weight: .black))
+          .tracking(3.2)
+          .foregroundStyle(
+            LinearGradient(
+              colors: [RGTheme.gold, RGTheme.orange, RGTheme.danger],
+              startPoint: .leading,
+              endPoint: .trailing
+            )
+          )
+      }
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Rise and Grind")
+  }
+}
+
+private enum IntroPitchTrace {
+  private static let logger = Logger(
+    subsystem: "com.kevin.riseandgrind.alarmkit",
+    category: "IntroPitch"
+  )
+  private static let queue = DispatchQueue(
+    label: "com.kevin.riseandgrind.intro-pitch-trace"
+  )
+
+  static func startSession() {
+    record("=== intro session started ===")
+  }
+
+  static func record(_ message: String) {
+    logger.notice("\(message, privacy: .public)")
+    queue.async {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      let line = "\(formatter.string(from: .now)) \(message)\n"
+      guard let data = line.data(using: .utf8) else { return }
+      let fileManager = FileManager.default
+      guard
+        let cachesDirectory = fileManager.urls(
+          for: .cachesDirectory,
+          in: .userDomainMask
+        ).first
+      else {
+        return
+      }
+      let traceURL = cachesDirectory.appendingPathComponent(
+        "IntroPitchTrace.log",
+        isDirectory: false
+      )
+      if !fileManager.fileExists(atPath: traceURL.path) {
+        try? data.write(to: traceURL, options: .atomic)
+        return
+      }
+      guard let handle = try? FileHandle(forWritingTo: traceURL) else { return }
+      defer { try? handle.close() }
+      _ = try? handle.seekToEnd()
+      try? handle.write(contentsOf: data)
+    }
   }
 }
 
@@ -231,30 +438,11 @@ private struct IntroPitchCaption: View {
         )
       )
       .multilineTextAlignment(.center)
-      .lineLimit(3)
-      .minimumScaleFactor(0.70)
-      .padding(.horizontal, 14)
-      .padding(.vertical, 9)
+      .lineLimit(1)
+      .minimumScaleFactor(0.42)
+      .allowsTightening(true)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(
-        Color.black.opacity(0.68),
-        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-      )
-      .overlay {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(
-            LinearGradient(
-              colors: [
-                RGTheme.orange.opacity(0.95),
-                RGTheme.danger.opacity(0.95),
-              ],
-              startPoint: .leading,
-              endPoint: .trailing
-            ),
-            lineWidth: 2
-          )
-      }
-      .shadow(color: Color.black.opacity(0.88), radius: 7, y: 4)
+      .shadow(color: Color.black.opacity(0.9), radius: 3, y: 2)
       .accessibilityLabel(cue.text.localizedCapitalized)
   }
 }
@@ -458,6 +646,7 @@ private struct IntroPitchVideoPlayer: UIViewRepresentable {
     _ uiView: IntroPitchPlayerUIView,
     context: Context
   ) {
+    guard uiView.playerLayer.player !== player else { return }
     uiView.playerLayer.player = player
   }
 }

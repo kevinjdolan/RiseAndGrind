@@ -118,16 +118,82 @@ struct SoundLibrary: Sendable {
     let accessibleCopy = try await Self.makeAccessibleTemporaryCopy(of: source)
     defer { try? FileManager.default.removeItem(at: accessibleCopy) }
 
+    let identifier = UUID().uuidString.lowercased()
+    let editableSourceFileName = "ImportedSource-\(identifier).m4a"
+    let editableSource = try Self.soundsDirectory()
+      .appendingPathComponent(editableSourceFileName)
+
+    do {
+      try await Self.extractFullAudio(from: accessibleCopy, destination: editableSource)
+      let normalizedRange = try await Self.normalizedTimeRange(
+        requestedTimeRange,
+        for: editableSource
+      )
+      let extractedAudio = try await Self.extractAudio(
+        from: editableSource,
+        requestedTimeRange: normalizedRange
+      )
+      defer { try? FileManager.default.removeItem(at: extractedAudio) }
+
+      return try await createImportedSound(
+        from: extractedAudio,
+        displayName: Self.resolvedDisplayName(displayName, source: source),
+        identifier: identifier,
+        editableSourceFileName: editableSourceFileName,
+        timeRange: normalizedRange
+      )
+    } catch {
+      try? FileManager.default.removeItem(at: editableSource)
+      throw error
+    }
+  }
+
+  func updateImportedVideoAudio(
+    _ sound: AlarmSoundChoice,
+    timeRange requestedTimeRange: CMTimeRange,
+    displayName: String
+  ) async throws -> AlarmSoundChoice {
+    guard sound.id.hasPrefix("imported-"), let fileName = sound.fileName,
+      let editableSource = editableSourceURL(for: sound)
+    else {
+      throw SoundLibraryError.unreadableFile
+    }
+
+    let normalizedRange = try await Self.normalizedTimeRange(
+      requestedTimeRange,
+      for: editableSource
+    )
     let extractedAudio = try await Self.extractAudio(
-      from: accessibleCopy,
-      requestedTimeRange: requestedTimeRange
+      from: editableSource,
+      requestedTimeRange: normalizedRange
     )
     defer { try? FileManager.default.removeItem(at: extractedAudio) }
 
-    return try await createImportedSound(
-      from: extractedAudio,
-      displayName: Self.resolvedDisplayName(displayName, source: source)
+    let temporaryAlarm = try Self.importsDirectory()
+      .appendingPathComponent(UUID().uuidString)
+      .appendingPathExtension("wav")
+    defer { try? FileManager.default.removeItem(at: temporaryAlarm) }
+
+    try await Task.detached(priority: .userInitiated) {
+      try AlarmAudioTranscoder.transcode(source: extractedAudio, destination: temporaryAlarm)
+    }.value
+
+    let alarmDestination = try Self.soundsDirectory().appendingPathComponent(fileName)
+    try await Task.detached(priority: .userInitiated) {
+      let data = try Data(contentsOf: temporaryAlarm)
+      try data.write(to: alarmDestination, options: .atomic)
+    }.value
+
+    let updated = AlarmSoundChoice(
+      id: sound.id,
+      displayName: Self.resolvedDisplayName(displayName, source: editableSource),
+      fileName: fileName,
+      editableSourceFileName: sound.editableSourceFileName ?? fileName,
+      clipStartSeconds: normalizedRange.start.seconds,
+      clipDurationSeconds: normalizedRange.duration.seconds
     )
+    await ImportedSoundPersistence.shared.append(updated)
+    return updated
   }
 
   func previewURL(for sound: AlarmSoundChoice) -> URL? {
@@ -153,10 +219,23 @@ struct SoundLibrary: Sendable {
     previewURL(for: sound)
   }
 
-  private func createImportedSound(from source: URL, displayName: String) async throws
-    -> AlarmSoundChoice
-  {
-    let identifier = UUID().uuidString.lowercased()
+  func editableSourceURL(for sound: AlarmSoundChoice) -> URL? {
+    guard sound.id.hasPrefix("imported-") else { return nil }
+    let sourceFileName = sound.editableSourceFileName ?? sound.fileName
+    guard let sourceFileName, let soundsDirectory = try? Self.soundsDirectory() else {
+      return nil
+    }
+    let candidate = soundsDirectory.appendingPathComponent(sourceFileName)
+    return FileManager.default.fileExists(atPath: candidate.path) ? candidate : nil
+  }
+
+  private func createImportedSound(
+    from source: URL,
+    displayName: String,
+    identifier: String = UUID().uuidString.lowercased(),
+    editableSourceFileName: String? = nil,
+    timeRange: CMTimeRange? = nil
+  ) async throws -> AlarmSoundChoice {
     let fileName = "Imported-\(identifier).wav"
     let destination = try Self.soundsDirectory().appendingPathComponent(fileName)
 
@@ -172,7 +251,10 @@ struct SoundLibrary: Sendable {
     let choice = AlarmSoundChoice(
       id: "imported-\(identifier)",
       displayName: displayName,
-      fileName: fileName
+      fileName: fileName,
+      editableSourceFileName: editableSourceFileName,
+      clipStartSeconds: timeRange?.start.seconds,
+      clipDurationSeconds: timeRange?.duration.seconds
     )
     await ImportedSoundPersistence.shared.append(choice)
     return choice
@@ -288,6 +370,27 @@ struct SoundLibrary: Sendable {
     }.value
   }
 
+  private static func extractFullAudio(from source: URL, destination: URL) async throws {
+    let asset = AVURLAsset(url: source)
+    let tracks = try await asset.loadTracks(withMediaType: .audio)
+    guard !tracks.isEmpty else { throw SoundLibraryError.noAudioTrack }
+    guard
+      let exportSession = AVAssetExportSession(
+        asset: asset,
+        presetName: AVAssetExportPresetAppleM4A
+      )
+    else {
+      throw SoundLibraryError.unsupportedFile
+    }
+
+    do {
+      try await exportSession.export(to: destination, as: .m4a)
+    } catch {
+      try? FileManager.default.removeItem(at: destination)
+      throw SoundLibraryError.conversionFailed
+    }
+  }
+
   private static func extractAudio(
     from source: URL,
     requestedTimeRange: CMTimeRange
@@ -318,6 +421,15 @@ struct SoundLibrary: Sendable {
       try? FileManager.default.removeItem(at: destination)
       throw SoundLibraryError.conversionFailed
     }
+  }
+
+  private static func normalizedTimeRange(
+    _ requested: CMTimeRange,
+    for source: URL
+  ) async throws -> CMTimeRange {
+    let asset = AVURLAsset(url: source)
+    let duration = try await asset.load(.duration)
+    return try normalizedTimeRange(requested, assetDuration: duration)
   }
 
   private static func normalizedTimeRange(

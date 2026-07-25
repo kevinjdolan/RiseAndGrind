@@ -425,7 +425,7 @@ struct RGScheduledAlarmList: View {
     RGCard(accent: cardAccent) {
       VStack(alignment: .leading, spacing: 14) {
         HStack {
-          Text("UPCOMING ATTACKS")
+          Text("UPCOMING ALARMS")
             .font(.caption.weight(.black))
             .tracking(1.5)
             .foregroundStyle(RGTheme.gold)

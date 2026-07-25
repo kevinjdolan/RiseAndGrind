@@ -236,7 +236,7 @@ public struct SquatDetectorConfiguration: Equatable, Sendable {
     guidedMinimumReturnFraction: Double = 0.80,
     guidedLobeEvidenceDuration: TimeInterval = 0.06,
     guidedMinimumHalfCycleDuration: TimeInterval = 0.35,
-    guidedAscentAssistFractionPerSecond: Double = 0.16,
+    guidedAscentAssistFractionPerSecond: Double = 0.20,
     guidedQualifiedTopBrakeMinimumPosition: Double = 0.30,
     guidedEndpointVelocityFraction: Double = 0.40,
     guidedTopSettlingWindowDuration: TimeInterval = 0.14,
@@ -485,6 +485,11 @@ public struct SquatDetectorUpdate: Equatable, Sendable {
   public let repCount: Int
   public let event: SquatDetectorEvent?
   public let didCountRep: Bool
+  /// Whether the detector is armed to accept a new downward movement.
+  ///
+  /// A standing phase can still require a quiet top rearm after a rejected
+  /// attempt, so consumers should use this signal instead of phase alone.
+  public let isReadyForDescent: Bool
   public let tiltDegrees: Double?
   /// Nominal bottom-to-top cycle scale, in meters (`H`).
   ///
@@ -521,6 +526,7 @@ public struct SquatDetectorUpdate: Equatable, Sendable {
     repCount: Int,
     event: SquatDetectorEvent? = nil,
     didCountRep: Bool,
+    isReadyForDescent: Bool,
     tiltDegrees: Double?,
     verticalRangeMeters: Double,
     maximumVerticalDropMeters: Double,
@@ -541,6 +547,7 @@ public struct SquatDetectorUpdate: Equatable, Sendable {
     self.repCount = repCount
     self.event = event
     self.didCountRep = didCountRep
+    self.isReadyForDescent = isReadyForDescent
     self.tiltDegrees = tiltDegrees
     self.verticalRangeMeters = verticalRangeMeters
     self.maximumVerticalDropMeters = maximumVerticalDropMeters
@@ -682,6 +689,8 @@ public struct SquatDetector: Sendable {
   private var guidedLegStartedAt: TimeInterval?
   private var guidedBottomReachedAt: TimeInterval?
   private var guidedBottomCandidateReachedAt: TimeInterval?
+  private var guidedBottomCandidateVelocity = 0.0
+  private var guidedPendingAscentVelocity = 0.0
   private var guidedCompletedDescentDuration: TimeInterval?
   private var guidedCycleState: SquatGuidedCycleState?
   private var cooldownEndsAt: TimeInterval?
@@ -703,7 +712,11 @@ public struct SquatDetector: Sendable {
   private var didObserveGuidedTopBraking = false
   private var guidedBottomBrakeEvidenceDuration = 0.0
   private var guidedTopBrakeEvidenceDuration = 0.0
+  private var guidedTopBrakeStartedPosition: Double?
+  private var guidedAscentDriveEvidenceDuration = 0.0
+  private var guidedMaximumAscentDriveEvidenceDuration = 0.0
   private var guidedBottomEndpointEvidenceSeen = false
+  private var guidedBottomBrakePeakG = 0.0
   private var guidedTopCandidateReached = false
   private var guidedTopCandidateReachedAt: TimeInterval?
   private var guidedAscentAssistIsEligible = false
@@ -1402,6 +1415,18 @@ public struct SquatDetector: Sendable {
       )
     }
 
+    if guidedCycleState == .ascending, guidedPendingAscentVelocity > 0 {
+      verticalVelocity = min(
+        verticalVelocity,
+        -guidedPendingAscentVelocity
+      )
+      maximumUpwardVelocity = max(
+        maximumUpwardVelocity,
+        guidedPendingAscentVelocity
+      )
+      guidedPendingAscentVelocity = 0
+    }
+
     let translatesPosition =
       guidedCycleState != .bottomWait && !guidedTopCandidateReached
     let directedAccelerationG = observeGuidedCycleFrame(
@@ -1421,6 +1446,11 @@ public struct SquatDetector: Sendable {
         maximumDownwardVelocity >= configuration.minimumDownwardVelocity
       let hasMeaningfulLiveTravel =
         maximumVerticalDrop >= minimumGuidedBottomTravelMeters
+        || (
+          guidedBottomBrakePeakG >= strongGuidedEndpointAccelerationG
+            && maximumVerticalDrop
+              >= minimumGuidedBottomLatchTravelMeters
+        )
       let endpointVelocityLimit = max(
         0.025,
         maximumDownwardVelocity
@@ -1448,6 +1478,14 @@ public struct SquatDetector: Sendable {
         && guidedBottomEndpointEvidenceSeen
       if hasBottomEndpointEvidence, guidedBottomCandidateReachedAt == nil {
         guidedBottomCandidateReachedAt = sample.timestamp
+        guidedBottomCandidateVelocity = verticalVelocity
+      } else if hasBottomEndpointEvidence {
+        let acceleration =
+          directedAccelerationG * Self.metersPerSecondSquaredPerG
+        guidedBottomCandidateVelocity += acceleration * frame.deltaTime
+        guidedBottomCandidateVelocity *= exp(
+          -configuration.velocityDampingPerSecond * frame.deltaTime
+        )
       }
       let hasConfirmedBottomEndpoint =
         guidedBottomCandidateReachedAt.map {
@@ -1471,7 +1509,28 @@ public struct SquatDetector: Sendable {
           status: "Keep lowering through one deliberate motion."
         )
       }
+      let candidateStartedAt =
+        guidedBottomCandidateReachedAt ?? sample.timestamp
+      let measuredUpwardHandoffVelocity = max(
+        0,
+        -guidedBottomCandidateVelocity
+      )
+      let carriesFluidReversal =
+        measuredUpwardHandoffVelocity
+        >= minimumGuidedAscentHandoffVelocity
       latchGuidedBottom(at: sample.timestamp)
+      if carriesFluidReversal {
+        beginGuidedAscent(
+          at: candidateStartedAt,
+          pendingUpwardVelocity: min(
+            maximumGuidedAscentHandoffVelocity,
+            measuredUpwardHandoffVelocity
+          )
+        )
+        // The endpoint event itself remains visually pinned at the bottom.
+        // The measured reversal is applied after the haptic quarantine.
+        phase = .down
+      }
       return update(
         event: .bottomReached,
         didReachBottom: true,
@@ -1578,7 +1637,7 @@ public struct SquatDetector: Sendable {
       let hasMeaningfulAscent =
         verticalRangeTracker.heightMeters
         >= minimumGuidedBottomTravelMeters
-      let endpointVelocityLimit = max(
+      let measuredEndpointVelocityLimit = max(
         0.025,
         min(
           0.12,
@@ -1586,12 +1645,24 @@ public struct SquatDetector: Sendable {
             * configuration.guidedEndpointVelocityFraction
         )
       )
+      let assistedEndpointVelocityLimit =
+        guidedAscentAssistIsEligible
+        ? verticalRangeTracker.rangeMeters
+          * configuration.guidedAscentAssistFractionPerSecond
+          * 1.05
+        : 0
+      let endpointVelocityLimit = max(
+        measuredEndpointVelocityLimit,
+        assistedEndpointVelocityLimit
+      )
       let reachedTolerantTop =
         verticalRangeTracker.heightMeters
         >= minimumGuidedTolerantTopHeightMeters
       let reachedConfiguredTop =
         verticalRangeTracker.normalizedPosition
         >= configuration.topCompletionPosition
+      let reachedHardTop =
+        verticalRangeTracker.normalizedPosition >= 0.98
       let hasReachedTopVelocity =
         currentVerticalVelocity <= endpointVelocityLimit
         || (
@@ -1608,6 +1679,11 @@ public struct SquatDetector: Sendable {
           reachedTolerantTop
             && sawFinalBrake
             && currentVerticalVelocity <= endpointVelocityLimit
+        )
+        || (
+          reachedHardTop
+            && hasGuidedSettledMotion
+            && !guidedAscentBrakeWasPremature
         )
       let topIsAlreadySettled = hasGuidedSettledMotion
       if hasMinimumAscentDuration,
@@ -1650,11 +1726,14 @@ public struct SquatDetector: Sendable {
     guidedLegStartedAt = nil
     guidedBottomReachedAt = timestamp
     guidedBottomCandidateReachedAt = nil
+    guidedBottomCandidateVelocity = 0
+    guidedPendingAscentVelocity = 0
     didReachGuidedBottom = true
     sawBottomBrake = true
     guidedTopCandidateReached = false
     guidedTopCandidateReachedAt = nil
     guidedBottomEndpointEvidenceSeen = false
+    guidedBottomBrakePeakG = 0
     guidedAscentBrakeWasPremature = false
     maximumUpwardVelocity = 0
     pinGuidedBottom()
@@ -1675,18 +1754,23 @@ public struct SquatDetector: Sendable {
   }
 
   private mutating func beginGuidedAscent(
-    at timestamp: TimeInterval
+    at timestamp: TimeInterval,
+    pendingUpwardVelocity: Double = 0
   ) {
     guidedCycleState = .ascending
     guidedLegStartedAt = timestamp
     guidedAscentAssistIsEligible = false
     guidedAscentBrakeWasPremature = false
+    guidedAscentDriveEvidenceDuration = 0
+    guidedMaximumAscentDriveEvidenceDuration = 0
     sawFinalBrake = false
     guidedTopCandidateReached = false
     guidedTopCandidateReachedAt = nil
     guidedBottomEndpointEvidenceSeen = false
+    guidedBottomCandidateVelocity = 0
     maximumUpwardVelocity = 0
     pinGuidedBottom()
+    guidedPendingAscentVelocity = max(0, pendingUpwardVelocity)
     filteredVerticalAccelerationG = 0
     resetGuidedLobeEvidence()
     resetStationaryWindow()
@@ -1709,8 +1793,12 @@ public struct SquatDetector: Sendable {
     guidedCycleState = .bottomWait
     guidedLegStartedAt = nil
     guidedBottomReachedAt = timestamp
+    guidedBottomCandidateVelocity = 0
+    guidedPendingAscentVelocity = 0
     guidedAscentAssistIsEligible = false
     guidedAscentBrakeWasPremature = false
+    guidedAscentDriveEvidenceDuration = 0
+    guidedMaximumAscentDriveEvidenceDuration = 0
     sawFinalBrake = false
     maximumUpwardVelocity = 0
     guidedTopCandidateReached = false
@@ -1726,6 +1814,8 @@ public struct SquatDetector: Sendable {
   private mutating func resetGuidedLobeEvidence() {
     guidedBottomBrakeEvidenceDuration = 0
     guidedTopBrakeEvidenceDuration = 0
+    guidedTopBrakeStartedPosition = nil
+    guidedAscentDriveEvidenceDuration = 0
     didObserveGuidedBottomBraking = false
     didObserveGuidedTopBraking = false
     resetGuidedWaveformFilter()
@@ -1935,10 +2025,15 @@ public struct SquatDetector: Sendable {
     guidedLegStartedAt = usesGuidedThresholds ? timestamp : nil
     guidedBottomReachedAt = nil
     guidedBottomCandidateReachedAt = nil
+    guidedBottomCandidateVelocity = 0
+    guidedPendingAscentVelocity = 0
     guidedCompletedDescentDuration = nil
     guidedBottomEndpointEvidenceSeen = false
+    guidedBottomBrakePeakG = 0
     guidedAscentAssistIsEligible = false
     guidedAscentBrakeWasPremature = false
+    guidedAscentDriveEvidenceDuration = 0
+    guidedMaximumAscentDriveEvidenceDuration = 0
     guidedCycleState = usesGuidedThresholds ? .descending : nil
     self.verticalAccelerationDirection =
       verticalAccelerationDirection >= 0 ? 1 : -1
@@ -1983,10 +2078,15 @@ public struct SquatDetector: Sendable {
     guidedLegStartedAt = nil
     guidedBottomReachedAt = nil
     guidedBottomCandidateReachedAt = nil
+    guidedBottomCandidateVelocity = 0
+    guidedPendingAscentVelocity = 0
     guidedCompletedDescentDuration = nil
     guidedBottomEndpointEvidenceSeen = false
+    guidedBottomBrakePeakG = 0
     guidedAscentAssistIsEligible = false
     guidedAscentBrakeWasPremature = false
+    guidedAscentDriveEvidenceDuration = 0
+    guidedMaximumAscentDriveEvidenceDuration = 0
     guidedCycleState = nil
     verticalRangeTracker.snapToTop()
     verticalVelocity = 0
@@ -2147,9 +2247,10 @@ public struct SquatDetector: Sendable {
         if guidedAscentAssistIsEligible,
           maximumUpwardVelocity >= configuration.minimumUpwardVelocity,
           verticalRangeTracker.heightMeters
-            >= minimumGuidedBottomTravelMeters,
+            >= minimumGuidedBottomTravelMeters * 0.5,
           verticalRangeTracker.heightMeters
-            < minimumGuidedTolerantTopHeightMeters
+            < verticalRangeTracker.rangeMeters
+              * configuration.topCompletionPosition
         {
           let assistedUpwardVelocity =
             verticalRangeTracker.rangeMeters
@@ -2220,22 +2321,38 @@ public struct SquatDetector: Sendable {
     guard usesGuidedThresholds else { return }
     let threshold = configuration.guidedWaveformLobeThresholdG
     if directedAccelerationG < -threshold {
+      if guidedCycleState == .ascending {
+        guidedAscentDriveEvidenceDuration += deltaTime
+        guidedMaximumAscentDriveEvidenceDuration = max(
+          guidedMaximumAscentDriveEvidenceDuration,
+          guidedAscentDriveEvidenceDuration
+        )
+      }
       guidedBottomBrakeEvidenceDuration += deltaTime
       didObserveGuidedBottomBraking =
         guidedBottomBrakeEvidenceDuration
         >= configuration.guidedLobeEvidenceDuration
-      if didObserveGuidedBottomBraking,
-        guidedCycleState == .descending
-      {
-        sawBottomBrake = true
+      if guidedCycleState == .descending {
+        guidedBottomBrakePeakG = max(
+          guidedBottomBrakePeakG,
+          -directedAccelerationG
+        )
+        if didObserveGuidedBottomBraking {
+          sawBottomBrake = true
+        }
       }
     } else {
+      guidedAscentDriveEvidenceDuration = 0
       guidedBottomBrakeEvidenceDuration = 0
       didObserveGuidedBottomBraking = false
     }
 
     if directedAccelerationG > threshold {
       let wasObservingTopBraking = didObserveGuidedTopBraking
+      if guidedTopBrakeEvidenceDuration == 0 {
+        guidedTopBrakeStartedPosition =
+          verticalRangeTracker.normalizedPosition
+      }
       guidedTopBrakeEvidenceDuration += deltaTime
       didObserveGuidedTopBraking =
         guidedTopBrakeEvidenceDuration
@@ -2243,21 +2360,39 @@ public struct SquatDetector: Sendable {
       if didObserveGuidedTopBraking,
         guidedCycleState == .ascending
       {
-        if !wasObservingTopBraking {
+        if !wasObservingTopBraking || guidedAscentBrakeWasPremature {
           let brakePosition = verticalRangeTracker.normalizedPosition
+          let hasTrustedLowPositionBrake =
+            brakePosition >= minimumStrongGuidedTopBrakePosition
+            && (
+              directedAccelerationG
+                >= strongGuidedEndpointAccelerationG
+                || guidedMaximumAscentDriveEvidenceDuration
+                  >= minimumGuidedAscentDriveForRequalification
+            )
+          let mayRequalifyNearThreshold =
+            (guidedTopBrakeStartedPosition ?? brakePosition)
+            >= configuration.guidedQualifiedTopBrakeMinimumPosition
+              - configuration.positionHysteresis
+            || guidedMaximumAscentDriveEvidenceDuration
+              >= minimumGuidedAscentDriveForRequalification
           if brakePosition
             >= configuration.guidedQualifiedTopBrakeMinimumPosition
+            && (!guidedAscentBrakeWasPremature
+              || mayRequalifyNearThreshold)
+            || hasTrustedLowPositionBrake
           {
             guidedAscentAssistIsEligible = true
             guidedAscentBrakeWasPremature = false
             sawFinalBrake = true
-          } else {
+          } else if !wasObservingTopBraking {
             guidedAscentBrakeWasPremature = true
           }
         }
       }
     } else {
       guidedTopBrakeEvidenceDuration = 0
+      guidedTopBrakeStartedPosition = nil
       didObserveGuidedTopBraking = false
     }
   }
@@ -2815,6 +2950,48 @@ public struct SquatDetector: Sendable {
     )
   }
 
+  /// Tolerant live travel accepted only when a distinctly strong bottom
+  /// braking lobe supports the same ordered descent.
+  private var minimumGuidedBottomLatchTravelMeters: Double {
+    max(0.05, minimumGuidedBottomTravelMeters * 0.68)
+  }
+
+  /// Strong endpoint motion can resolve integration undercount without making
+  /// ordinary hand bounces eligible for optimistic endpoint handling.
+  private var strongGuidedEndpointAccelerationG: Double {
+    max(0.11, configuration.guidedWaveformLobeThresholdG * 5)
+  }
+
+  /// A strong top brake may qualify below the normal position gate once the
+  /// measured ascent has visibly cleared the bottom.
+  private var minimumStrongGuidedTopBrakePosition: Double {
+    max(
+      0.08,
+      configuration.guidedQualifiedTopBrakeMinimumPosition * 0.33
+    )
+  }
+
+  /// A long, ordered upward drive may requalify a braking lobe that began
+  /// below the ordinary position gate. Short shallow bounces remain excluded.
+  private var minimumGuidedAscentDriveForRequalification: TimeInterval {
+    max(0.50, configuration.guidedMinimumHalfCycleDuration + 0.10)
+  }
+
+  /// Measured reversal speed required to carry a fluid bottom transition
+  /// through endpoint debounce and the haptic quarantine.
+  private var minimumGuidedAscentHandoffVelocity: Double {
+    max(0.08, configuration.minimumUpwardVelocity * 1.25)
+  }
+
+  /// A bounded handoff prevents an endpoint impulse from becoming an
+  /// unrealistic jump while retaining the user's measured upward momentum.
+  private var maximumGuidedAscentHandoffVelocity: Double {
+    min(
+      0.30,
+      max(0.12, verticalRangeTracker.rangeMeters * 0.40)
+    )
+  }
+
   /// Return travel needed when a brake or quiet window infers the live top.
   private var minimumGuidedReturnTravelMeters: Double {
     max(
@@ -2915,10 +3092,15 @@ public struct SquatDetector: Sendable {
     guidedLegStartedAt = nil
     guidedBottomReachedAt = nil
     guidedBottomCandidateReachedAt = nil
+    guidedBottomCandidateVelocity = 0
+    guidedPendingAscentVelocity = 0
     guidedCompletedDescentDuration = nil
     guidedBottomEndpointEvidenceSeen = false
+    guidedBottomBrakePeakG = 0
     guidedAscentAssistIsEligible = false
     guidedAscentBrakeWasPremature = false
+    guidedAscentDriveEvidenceDuration = 0
+    guidedMaximumAscentDriveEvidenceDuration = 0
     guidedCycleState = nil
     verticalVelocity = 0
     if !usesGuidedThresholds {
@@ -3033,6 +3215,12 @@ public struct SquatDetector: Sendable {
       repCount: repCount,
       event: event,
       didCountRep: didCountRep,
+      isReadyForDescent:
+        phase == .standing
+        && (!usesGuidedThresholds
+          || (hasConfirmedGuidedStanding && !requiresQuietGuidedTop))
+        && cooldownEndsAt == nil
+        && cycleStartedAt == nil,
       tiltDegrees: tiltDegrees,
       verticalRangeMeters: verticalRangeTracker.rangeMeters,
       maximumVerticalDropMeters: displayedMaximumVerticalDrop,

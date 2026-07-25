@@ -12,6 +12,7 @@ enum RGTheme {
   static let orange = Color(red: 1.000, green: 0.315, blue: 0.075)
   static let magenta = Color(red: 0.970, green: 0.075, blue: 0.435)
   static let mint = Color(red: 0.310, green: 0.960, blue: 0.690)
+  static let coolBlue = Color(red: 0.110, green: 0.610, blue: 1.000)
   static let danger = Color(red: 1.000, green: 0.265, blue: 0.250)
 
   static let brandGradient = LinearGradient(

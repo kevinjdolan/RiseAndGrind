@@ -5,6 +5,11 @@ import SwiftUI
 
 struct BarrageView: View {
   @Binding var settings: RiseAndGrindSettings
+  let scheduledAlarms: [ScheduledAlarmRecord]
+  let scheduledTestAlarms: [ScheduledAlarmRecord]
+  let scheduledPowerNaps: [ScheduledAlarmRecord]
+  let mutedAlarms: [ScheduledAlarmRecord]
+  let muteState: AlarmMuteState?
 
   var body: some View {
     RGScreenBackground {
@@ -12,7 +17,7 @@ struct BarrageView: View {
         LazyVStack(spacing: 18) {
           RGCard(accent: RGTheme.magenta) {
             VStack(alignment: .leading, spacing: 16) {
-              RGSectionHeading("Attack Stack Configuration")
+              RGSectionHeading("Alarm Stack Config")
               RGLadderEditor(
                 count: $settings.barrage.alarmCount,
                 spacingMinutes: $settings.barrage.spacingMinutes,
@@ -21,22 +26,23 @@ struct BarrageView: View {
             }
           }
 
-          RGScenarioSimulator(
-            count: settings.barrage.alarmCount,
-            spacingMinutes: settings.barrage.spacingMinutes,
-            finalWarningMinutes: settings.barrage.finalWarningMinutes,
-            grindHour: settings.grindHour,
-            grindMinute: settings.grindMinute,
-            eventBufferMinutes: settings.eventBufferMinutes
+          RGScheduledAlarmList(
+            alarms: activeScheduledAlarms,
+            mutedAlarms: mutedAlarms,
+            muteState: muteState
           )
-
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
         .padding(.bottom, 34)
       }
     }
-    .navigationTitle("Attack Stack Configuration")
+    .navigationTitle("Stack")
     .rgInlineNavigationTitle()
+  }
+
+  private var activeScheduledAlarms: [ScheduledAlarmRecord] {
+    (scheduledAlarms + scheduledTestAlarms + scheduledPowerNaps)
+      .sorted { $0.fireDate < $1.fireDate }
   }
 }

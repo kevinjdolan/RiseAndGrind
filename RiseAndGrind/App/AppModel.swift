@@ -51,7 +51,7 @@ final class AppModel {
   private(set) var notificationAuthorization = "Checking…"
   private(set) var motionAuthorization = "Checking…"
   private(set) var onboardingCompleted: Bool
-  private(set) var introPitchCompleted: Bool
+  private(set) var introPitchDisposition: IntroPitchDisposition?
   private(set) var automationAcknowledged: Bool
   private(set) var lastNightlyRun: Date?
   private(set) var lastBackgroundRefresh: Date?
@@ -88,7 +88,7 @@ final class AppModel {
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
-    introPitchCompleted = store.loadIntroPitchCompleted()
+    introPitchDisposition = store.loadIntroPitchDisposition()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
     lastBackgroundRefresh = store.loadLastBackgroundRefresh()
@@ -109,6 +109,10 @@ final class AppModel {
 
   var isAppReady: Bool {
     onboardingCompleted && requiredPermissionsReady && squatCalibrationReady
+  }
+
+  var hasHandledIntroPitch: Bool {
+    introPitchDisposition != nil
   }
 
   var nextAlarmFireDate: Date? {
@@ -143,7 +147,7 @@ final class AppModel {
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
-    introPitchCompleted = store.loadIntroPitchCompleted()
+    introPitchDisposition = store.loadIntroPitchDisposition()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
     lastBackgroundRefresh = store.loadLastBackgroundRefresh()
@@ -230,10 +234,10 @@ final class AppModel {
     automationAcknowledged = true
   }
 
-  func completeIntroPitch() {
-    guard !introPitchCompleted else { return }
-    store.saveIntroPitchCompleted(true)
-    introPitchCompleted = true
+  func recordIntroPitch(_ disposition: IntroPitchDisposition) {
+    guard introPitchDisposition == nil else { return }
+    store.saveIntroPitchDisposition(disposition)
+    introPitchDisposition = disposition
   }
 
   func completeOnboarding() {
@@ -342,7 +346,7 @@ final class AppModel {
     availableSounds = SoundLibrary().allSounds()
     lastSummary = nil
     onboardingCompleted = false
-    introPitchCompleted = false
+    introPitchDisposition = nil
     automationAcknowledged = false
     lastNightlyRun = nil
     lastBackgroundRefresh = nil
@@ -495,7 +499,7 @@ final class AppModel {
     }
   }
 
-  func importVideo(from url: URL, timeRange: CMTimeRange) async {
+  func importVideo(from url: URL, timeRange: CMTimeRange, displayName: String) async {
     guard !isImporting else { return }
     isImporting = true
     errorMessage = nil
@@ -504,9 +508,33 @@ final class AppModel {
     do {
       let sound = try await SoundLibrary().importVideoAudio(
         from: url,
-        timeRange: timeRange
+        timeRange: timeRange,
+        displayName: displayName
       )
       finishImport(sound)
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  func editImportedVideo(
+    _ sound: AlarmSoundChoice,
+    timeRange: CMTimeRange,
+    displayName: String
+  ) async {
+    guard !isImporting else { return }
+    isImporting = true
+    errorMessage = nil
+    defer { isImporting = false }
+
+    stopSoundPreview()
+    do {
+      let updated = try await SoundLibrary().updateImportedVideoAudio(
+        sound,
+        timeRange: timeRange,
+        displayName: displayName
+      )
+      finishImport(updated)
     } catch {
       errorMessage = error.localizedDescription
     }
