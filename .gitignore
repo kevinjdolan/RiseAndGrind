@@ -39,3 +39,7 @@ Diagnostics/CalibrationLogs/
 
 # Local research and throwaway artifacts
 /tmp/
+
+# Python bytecode cache
+__pycache__/
+*.pyc

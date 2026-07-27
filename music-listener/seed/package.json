@@ -1,0 +1,8 @@
+{
+  "name": "music-listener-seed",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node seed.mjs"
+  }
+}

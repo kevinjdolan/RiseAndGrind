@@ -119,8 +119,31 @@ def vulgarity_score(track: dict[str, Any]) -> int:
     return score
 
 
-def validate_catalog_v4(catalog: list[dict[str, Any]]) -> list[str]:
+# Per-tier vulgarity caps. v4 shipped nearly clean; v5 deliberately builds a
+# clean-to-filthy gradient in the top tiers (the app ranks by this score).
+DEFAULT_VULGARITY_LIMITS = {
+    "soothing": 0,
+    "relaxing": 0,
+    "motivating": 0,
+    "energizing": 2,
+    "abrasive": 2,
+}
+V5_VULGARITY_LIMITS = {
+    "soothing": 0,
+    "relaxing": 0,
+    "motivating": 1,
+    "energizing": 3,
+    "abrasive": 16,
+}
+BANNED_WORDS = {"bitch", "cunt", "slut", "whore", "pussy", "dick", "asshole"}
+
+
+def validate_catalog_v4(
+    catalog: list[dict[str, Any]],
+    vulgarity_limits: dict[str, int] | None = None,
+) -> list[str]:
     """Return a list of human-readable validation problems (empty when valid)."""
+    limits = vulgarity_limits or DEFAULT_VULGARITY_LIMITS
     problems: list[str] = []
     if len(catalog) != TOTAL_SONGS:
         problems.append(f"Expected {TOTAL_SONGS} tracks, found {len(catalog)}")
@@ -200,11 +223,17 @@ def validate_catalog_v4(catalog: list[dict[str, Any]]) -> list[str]:
             if not str(track.get(text_key, "")).strip():
                 problems.append(f"{label}: empty {text_key}")
         score = vulgarity_score(track)
-        limit = 2 if track["intensityTier"] in ("energizing", "abrasive") else 0
+        limit = limits.get(track["intensityTier"], 0)
         if score > limit:
             problems.append(
                 f"{label}: vulgarity score {score} exceeds tier limit {limit}"
             )
+        lowered = " ".join(
+            [track["displayName"], *track["performedLyrics"]]
+        ).lower()
+        for banned in BANNED_WORDS:
+            if re.search(rf"[^a-z]{banned}[^a-z]|^{banned}\b|\b{banned}$", lowered):
+                problems.append(f"{label}: contains banned word '{banned}'")
     return problems
 
 
