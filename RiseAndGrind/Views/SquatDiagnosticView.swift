@@ -386,8 +386,7 @@ private enum SquatDiagnosticStage: Int, CaseIterable {
 
   var shouldRearmDetectorAtStart: Bool {
     switch self {
-    case
-      .variedSquats,
+    case .variedSquats,
       .failureReproduction,
       .stillnessControl,
       .armsOnlyControl,
@@ -1267,6 +1266,11 @@ private final class SquatDiagnosticCaptureSession {
   @ObservationIgnored
   private var diagnosticTask: Task<Void, Never>?
 
+  @ObservationIgnored
+  private var emergencyShakeMotionSourceToken:
+    EmergencyShakeMuteService
+      .ExternalMotionSourceToken?
+
   private var generation: UUID?
   private var sessionID: UUID?
   private var detector = SquatDetector()
@@ -1316,6 +1320,8 @@ private final class SquatDiagnosticCaptureSession {
       return
     }
 
+    emergencyShakeMotionSourceToken =
+      EmergencyShakeMuteService.shared.acquireExternalMotionSource()
     let sessionID = UUID()
     let generation = UUID()
     self.sessionID = sessionID
@@ -1603,6 +1609,10 @@ private final class SquatDiagnosticCaptureSession {
     isFinishing = true
     isRecording = false
     motionManager.stopDeviceMotionUpdates()
+    EmergencyShakeMuteService.shared.releaseExternalMotionSource(
+      emergencyShakeMotionSourceToken
+    )
+    emergencyShakeMotionSourceToken = nil
     altimeter.stopRelativeAltitudeUpdates()
     stopMicrophone(deactivateSession: true)
     generation = nil
@@ -1741,6 +1751,12 @@ private final class SquatDiagnosticCaptureSession {
     guard let packet, let sessionID else { return }
 
     let motion = packet.motion
+    if let emergencyShakeMotionSourceToken {
+      EmergencyShakeMuteService.shared.receive(
+        motion,
+        from: emergencyShakeMotionSourceToken
+      )
+    }
     recentMotionSamples.append(motion)
     if recentMotionSamples.count > Self.recentTopSampleCount {
       recentMotionSamples.removeFirst(

@@ -35,9 +35,7 @@ struct SetupView: View {
     RGScreenBackground {
       ScrollView {
         LazyVStack(spacing: 18) {
-          requiredAccessCard
-
-          automationCard
+          appHealthCard
           wakeChallengeCard
           alarmTestCard
           factoryResetCard
@@ -103,114 +101,144 @@ struct SetupView: View {
     isWorking || isAwaitingResult
   }
 
-  private var requiredAccessCard: some View {
-    RGCard(accent: requiredPermissionsReady ? RGTheme.mint : RGTheme.gold) {
-      if requiredPermissionsReady {
+  private var appHealthCard: some View {
+    RGCard(accent: appHealthIsGood ? RGTheme.mint : RGTheme.orange) {
+      if appHealthIsGood {
         HStack(spacing: 12) {
-          Text("Required Access")
-            .font(.headline.weight(.black))
-            .foregroundStyle(RGTheme.cream)
-
-          Spacer()
-
-          Image(systemName: "checkmark.circle.fill")
+          Image(systemName: "heart.text.square.fill")
             .font(.title2.weight(.bold))
             .foregroundStyle(RGTheme.mint)
-            .accessibilityHidden(true)
+            .frame(width: 34, height: 34)
+            .background(RGTheme.mint.opacity(0.13), in: Circle())
+
+          VStack(alignment: .leading, spacing: 2) {
+            Text("App Health")
+              .font(.headline.weight(.black))
+              .foregroundStyle(RGTheme.cream)
+            Text("Access and calendar tracking are healthy")
+              .font(.caption)
+              .foregroundStyle(RGTheme.mutedCream)
+              .lineLimit(1)
+          }
+
+          Spacer(minLength: 8)
+
+          RGStatusPill(text: "Healthy", color: RGTheme.mint, icon: "checkmark.circle.fill")
+            .fixedSize(horizontal: true, vertical: false)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Required Access")
-        .accessibilityValue("Granted")
+        .accessibilityLabel("App Health")
+        .accessibilityValue("Access and calendar tracking are healthy")
       } else {
         VStack(alignment: .leading, spacing: 16) {
           RGSectionHeading(
-            "Required Access",
-            eyebrow: "Permission portfolio",
+            "App Health",
+            eyebrow: "Access & calendar tracking",
             detail:
-              "Alarm, full Calendar, Notification, and Motion access stay mandatory."
+              "Keep required access on and confirm Rise & Grind has checked your calendar recently."
           )
 
-          RGPermissionRow(
-            icon: "alarm.fill",
-            title: "AlarmKit",
-            status: alarmAuthorization
-          )
-          RGPermissionRow(
-            icon: "calendar",
-            title: "Calendar",
-            status: calendarAuthorization
-          )
-          RGPermissionRow(
-            icon: "bell.badge.fill",
-            title: "Notifications",
-            status: notificationAuthorization
-          )
-          RGPermissionRow(
-            icon: "figure.strengthtraining.functional",
-            title: "Motion & Fitness",
-            status: motionAuthorization
-          )
+          if requiredPermissionsReady {
+            healthStatusRow(
+              title: "Required Access",
+              detail: "Alarm, Calendar, Notifications, and Motion are ready.",
+              icon: "checkmark.shield.fill",
+              color: RGTheme.mint
+            )
+          } else {
+            RGPermissionRow(icon: "alarm.fill", title: "AlarmKit", status: alarmAuthorization)
+            RGPermissionRow(icon: "calendar", title: "Calendar", status: calendarAuthorization)
+            RGPermissionRow(
+              icon: "bell.badge.fill",
+              title: "Notifications",
+              status: notificationAuthorization
+            )
+            RGPermissionRow(
+              icon: "figure.strengthtraining.functional",
+              title: "Motion & Fitness",
+              status: motionAuthorization
+            )
 
-          HStack(spacing: 10) {
-            Button {
-              isAwaitingResult = true
-              Task { @MainActor in
-                actionResult = await requestPermissions()
-                isAwaitingResult = false
-              }
-            } label: {
-              HStack {
-                if isBusy {
-                  ProgressView().tint(RGTheme.ink)
-                } else {
-                  Image(systemName: "checkmark.shield.fill")
+            HStack(spacing: 10) {
+              Button {
+                isAwaitingResult = true
+                Task { @MainActor in
+                  actionResult = await requestPermissions()
+                  isAwaitingResult = false
                 }
-                Text("VERIFY")
+              } label: {
+                HStack {
+                  if isBusy {
+                    ProgressView().tint(RGTheme.ink)
+                  } else {
+                    Image(systemName: "checkmark.shield.fill")
+                  }
+                  Text("VERIFY")
+                }
               }
-            }
-            .buttonStyle(RGPrimaryButtonStyle())
-            .disabled(isBusy)
+              .buttonStyle(RGPrimaryButtonStyle())
+              .disabled(isBusy)
 
-            Button(action: openSettings) {
-              Label("Settings", systemImage: "gearshape.fill")
+              Button(action: openSettings) {
+                Label("Settings", systemImage: "gearshape.fill")
+              }
+              .buttonStyle(RGSecondaryButtonStyle())
             }
-            .buttonStyle(RGSecondaryButtonStyle())
+          }
+
+          Divider().overlay(RGTheme.cream.opacity(0.12))
+
+          trackingRunRow("Last Automation Run", date: lastNightlyRun)
+          trackingRunRow("Last Background Run", date: lastBackgroundRefresh)
+
+          if !hasRecentCalendarTrackingRun {
+            Label(
+              "No Rise & Grind trigger has fired in the last 24 hours",
+              systemImage: "clock.badge.exclamationmark.fill"
+            )
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(RGTheme.orange)
+            .lineLimit(1)
+            .minimumScaleFactor(0.70)
+            .allowsTightening(true)
+
+            RGShortcutAutomationLinks()
+              .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !automationAcknowledged {
+              Button(action: acknowledgeAutomation) {
+                Label("I SET IT UP", systemImage: "checkmark.seal.fill")
+              }
+              .buttonStyle(RGPrimaryButtonStyle())
+            }
           }
         }
       }
     }
   }
 
-  private var automationCard: some View {
-    RGCard(accent: hasRecentCalendarTrackingRun ? RGTheme.mint : RGTheme.orange) {
-      VStack(alignment: .leading, spacing: 14) {
-        RGSectionHeading("Calendar Tracking")
+  private var appHealthIsGood: Bool {
+    requiredPermissionsReady && hasRecentCalendarTrackingRun
+  }
 
-        trackingRunRow("Last Automation Run", date: lastNightlyRun)
-        trackingRunRow("Last Background Run", date: lastBackgroundRefresh)
-
-        if !hasRecentCalendarTrackingRun {
-          Label(
-            "No Rise & Grind Triggers have fired in the last 24 hours",
-            systemImage: "clock.badge.exclamationmark.fill"
-          )
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(RGTheme.orange)
-          .lineLimit(1)
-          .minimumScaleFactor(0.70)
-          .allowsTightening(true)
-
-          RGShortcutAutomationLinks()
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-          if !automationAcknowledged {
-            Button(action: acknowledgeAutomation) {
-              Label("I SET IT UP", systemImage: "checkmark.seal.fill")
-            }
-            .buttonStyle(RGPrimaryButtonStyle())
-          }
-        }
+  private func healthStatusRow(
+    title: String,
+    detail: String,
+    icon: String,
+    color: Color
+  ) -> some View {
+    Label {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(.subheadline.weight(.bold))
+          .foregroundStyle(RGTheme.cream)
+        Text(detail)
+          .font(.caption)
+          .foregroundStyle(RGTheme.mutedCream)
       }
+    } icon: {
+      Image(systemName: icon)
+        .foregroundStyle(color)
     }
   }
 
@@ -322,28 +350,41 @@ struct SetupView: View {
         Divider()
           .overlay(RGTheme.graphite)
 
-        Button {
-          isShowingSquatCalibration = true
-        } label: {
-          Label(
-            model.settings.squatCalibration == nil
-              ? "CALIBRATE MY SQUAT" : "RECALIBRATE MY SQUAT",
-            systemImage: "scope"
+        HStack(spacing: 10) {
+          Button {
+            isShowingSquatCalibration = true
+          } label: {
+            Label(
+              model.settings.squatCalibration == nil
+                ? "CALIBRATE" : "RECALIBRATE",
+              systemImage: "scope"
+            )
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
+          }
+          .buttonStyle(
+            RGConditionalAccentButtonStyle(
+              isEmphasized: model.settings.squatCalibration == nil,
+              tint: RGTheme.orange
+            )
           )
-        }
-        .buttonStyle(RGPrimaryButtonStyle())
-        .disabled(isBusy)
+          .disabled(isBusy)
 
-        Button {
-          beginSquatPractice()
-        } label: {
-          Label(
-            "PRACTICE MY SQUAT",
-            systemImage: "figure.strengthtraining.functional"
+          Button {
+            beginSquatPractice()
+          } label: {
+            Label("PRACTICE", systemImage: "figure.strengthtraining.functional")
+              .lineLimit(1)
+              .minimumScaleFactor(0.72)
+          }
+          .buttonStyle(
+            RGConditionalAccentButtonStyle(
+              isEmphasized: model.settings.squatCalibration != nil,
+              tint: RGTheme.orange
+            )
           )
+          .disabled(isBusy)
         }
-        .buttonStyle(RGSecondaryButtonStyle())
-        .disabled(isBusy)
 
         if let squatCalibration = model.settings.squatCalibration {
           HStack {

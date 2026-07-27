@@ -144,6 +144,35 @@ struct RGPrimaryButtonStyle: ButtonStyle {
   }
 }
 
+struct RGConditionalAccentButtonStyle: ButtonStyle {
+  let isEmphasized: Bool
+  let tint: Color
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline.weight(isEmphasized ? .black : .bold))
+      .foregroundStyle(isEmphasized ? RGTheme.ink : RGTheme.cream)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 13)
+      .frame(minHeight: 54)
+      .background(
+        isEmphasized
+          ? tint.opacity(configuration.isPressed ? 0.82 : 1)
+          : RGTheme.graphite.opacity(configuration.isPressed ? 0.95 : 0.68),
+        in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+      )
+      .overlay {
+        RoundedRectangle(cornerRadius: 15, style: .continuous)
+          .stroke(
+            isEmphasized ? Color.clear : RGTheme.cream.opacity(0.13),
+            lineWidth: 1
+          )
+      }
+      .scaleEffect(configuration.isPressed ? 0.975 : 1)
+      .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+  }
+}
+
 struct RGSecondaryButtonStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label

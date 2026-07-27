@@ -105,6 +105,7 @@ struct ContentView: View {
           settings: $model.settings,
           muteState: model.muteState,
           riseTime: model.riseTime,
+          scheduledPowerNaps: model.scheduledPowerNaps,
           isWorking: model.isWorking,
           schedulePowerNap: { fireDate in
             await model.schedulePowerNap(at: fireDate) != nil

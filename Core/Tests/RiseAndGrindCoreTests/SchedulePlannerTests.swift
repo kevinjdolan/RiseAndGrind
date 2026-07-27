@@ -171,8 +171,8 @@ final class SchedulePlannerTests: XCTestCase {
     XCTAssertEqual(tooHigh.wakeChallengeSquatCount, 100)
   }
 
-  func testAllOneHundredBuiltInSongsAreSelectedByDefault() {
-    XCTAssertEqual(RiseAndGrindSettings.defaultSelectedSoundIDs.count, 100)
+  func testAllThreeHundredTwentyBuiltInSongsAreSelectedByDefault() {
+    XCTAssertEqual(RiseAndGrindSettings.defaultSelectedSoundIDs.count, 500)
     XCTAssertEqual(
       RiseAndGrindSettings.defaults.selectedSoundIDs,
       RiseAndGrindSettings.defaultSelectedSoundIDs
@@ -412,6 +412,27 @@ final class SchedulePlannerTests: XCTestCase {
     )
 
     XCTAssertEqual(plan.alarms.map(\.sound.id), ["first", "second", "first", "second", "first"])
+  }
+
+  func testDeterministicSoundOrderIsStableForTargetDate() throws {
+    let target = try XCTUnwrap(
+      calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
+    )
+    let alpha = AlarmSoundChoice(id: "alpha", displayName: "Alpha", fileName: "Alpha.wav")
+    let beta = AlarmSoundChoice(id: "beta", displayName: "Beta", fileName: "Beta.wav")
+    let gamma = AlarmSoundChoice(id: "gamma", displayName: "Gamma", fileName: "Gamma.wav")
+
+    let first = SchedulePlanner.deterministicSoundOrder(
+      [gamma, alpha, beta],
+      targetDate: target
+    )
+    let second = SchedulePlanner.deterministicSoundOrder(
+      [beta, gamma, alpha],
+      targetDate: target
+    )
+
+    XCTAssertEqual(first.map(\.id), second.map(\.id))
+    XCTAssertEqual(first.map(\.id), ["beta", "gamma", "alpha"])
   }
 
   func testExactNormalTimeIsNotEarly() throws {

@@ -119,6 +119,7 @@ struct WakeChallengeView: View {
   @State private var didCompleteSettingsTest = false
   @State private var isShowingCompletionExperience = false
   @State private var isCompletionFinaleReady = false
+  @State private var isShowingIdleCoinCue = false
   @State private var previousIdleTimerState = false
 
   init(
@@ -151,34 +152,50 @@ struct WakeChallengeView: View {
           ScrollView {
             VStack(spacing: 0) {
               challengeHeader
-                .padding(.bottom, 18)
+                .opacity(isShowingIdleCoinCue ? 0.18 : 1)
 
-              Spacer(minLength: 18)
+              Spacer(minLength: 14)
 
               challengeGauge
                 .frame(width: gaugeDiameter, height: gaugeDiameter)
 
+              if session.gaugeLeg == .ready {
+                Text("Find your top position, and press the button")
+                  .font(.headline.weight(.bold))
+                  .foregroundStyle(RGTheme.cream)
+                  .multilineTextAlignment(.center)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .padding(.top, 16)
+                  .opacity(isShowingIdleCoinCue ? 0.24 : 1)
+                  .transition(.opacity.combined(with: .move(edge: .top)))
+              }
+
               challengeRecovery
                 .frame(width: gaugeDiameter)
                 .padding(.top, 12)
+                .opacity(isShowingIdleCoinCue ? 0.18 : 1)
 
               #if targetEnvironment(simulator)
                 simulatorSquatButton
                   .frame(width: gaugeDiameter)
                   .padding(.top, 12)
+                  .opacity(isShowingIdleCoinCue ? 0.18 : 1)
               #endif
 
               Spacer(minLength: 18)
 
-              if isSettingsTest {
-                settingsTestExitButton
-              } else if request.isCanonical {
-                Color.clear
-                  .frame(height: 52)
-                  .accessibilityHidden(true)
-              } else {
-                cannotRightNowButton
+              Group {
+                if isSettingsTest {
+                  settingsTestExitButton
+                } else if request.isCanonical {
+                  Color.clear
+                    .frame(height: 52)
+                    .accessibilityHidden(true)
+                } else {
+                  cannotRightNowButton
+                }
               }
+              .opacity(isShowingIdleCoinCue ? 0.18 : 1)
             }
             .frame(minHeight: max(640, proxy.size.height - 44))
             .padding(.horizontal, 18)
@@ -192,11 +209,13 @@ struct WakeChallengeView: View {
               .frame(height: min(255, proxy.size.height * 0.34))
               .frame(maxHeight: .infinity, alignment: .bottom)
               .ignoresSafeArea(edges: .bottom)
+              .opacity(isShowingIdleCoinCue ? 0.12 : 1)
 
             finalAlarmLockNotice
               .padding(.horizontal, 22)
               .padding(.bottom, 18)
               .frame(maxHeight: .infinity, alignment: .bottom)
+              .opacity(isShowingIdleCoinCue ? 0.18 : 1)
           }
         }
       }
@@ -240,6 +259,21 @@ struct WakeChallengeView: View {
           ? "practice_target_completed"
           : "challenge_target_completed"
       )
+    }
+    .task(id: "\(session.gaugeLeg == .ready)-\(scenePhase == .active)") {
+      resetIdleCoinCue()
+      guard session.gaugeLeg == .ready, scenePhase == .active else { return }
+
+      do {
+        try await Task.sleep(for: .seconds(8))
+      } catch {
+        return
+      }
+      guard !Task.isCancelled, session.gaugeLeg == .ready else { return }
+
+      withAnimation(.easeInOut(duration: 0.28)) {
+        isShowingIdleCoinCue = true
+      }
     }
     .onChange(of: session.gaugeLeg) { oldLeg, newLeg in
       guard oldLeg != newLeg, UIAccessibility.isVoiceOverRunning else {
@@ -343,7 +377,32 @@ struct WakeChallengeView: View {
         .foregroundStyle(RGTheme.brandGradient)
         .lineLimit(1)
         .minimumScaleFactor(0.72)
+
+      challengeCounter
+        .padding(.top, 7)
     }
+  }
+
+  private var challengeCounter: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 4) {
+      Text("\(session.squats)")
+        .font(.title3.monospacedDigit().weight(.black))
+        .foregroundStyle(RGTheme.cream)
+        .contentTransition(.numericText())
+
+      Text("/ \(request.targetSquats)")
+        .font(.caption.monospacedDigit().weight(.black))
+        .foregroundStyle(RGTheme.gold)
+    }
+    .padding(.horizontal, 13)
+    .padding(.vertical, 7)
+    .background(RGTheme.ink.opacity(0.94), in: Capsule())
+    .overlay {
+      Capsule()
+        .stroke(RGTheme.gold.opacity(0.34), lineWidth: 1)
+    }
+    .shadow(color: RGTheme.ink.opacity(0.85), radius: 8)
+    .accessibilityHidden(true)
   }
 
   private var challengeGauge: some View {
@@ -356,6 +415,7 @@ struct WakeChallengeView: View {
       canStart: session.canStartGuidance,
       endpointPulseID: session.gaugeEndpointPulseID,
       endpointIsTop: session.gaugeEndpointIsTop,
+      attentionCueIsActive: isShowingIdleCoinCue,
       completionIsReady: isCompletionFinaleReady,
       onCompletionVideoCue: presentCompletionExperience
     ) {
@@ -369,6 +429,15 @@ struct WakeChallengeView: View {
     .accessibilityValue(
       "\(session.squats) of \(request.targetSquats) squats, position \(Int((session.verticalPosition * 100).rounded())) percent"
     )
+  }
+
+  @MainActor
+  private func resetIdleCoinCue() {
+    var transaction = Transaction(animation: nil)
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+      isShowingIdleCoinCue = false
+    }
   }
 
   @ViewBuilder
@@ -648,6 +717,7 @@ private struct NestedSquatGauge: View {
   let canStart: Bool
   let endpointPulseID: Int
   let endpointIsTop: Bool
+  let attentionCueIsActive: Bool
   let completionIsReady: Bool
   let onCompletionVideoCue: () -> Void
   let start: () -> Void
@@ -677,6 +747,7 @@ private struct NestedSquatGauge: View {
     canStart: Bool,
     endpointPulseID: Int,
     endpointIsTop: Bool,
+    attentionCueIsActive: Bool,
     completionIsReady: Bool,
     onCompletionVideoCue: @escaping () -> Void,
     start: @escaping () -> Void
@@ -689,6 +760,7 @@ private struct NestedSquatGauge: View {
     self.canStart = canStart
     self.endpointPulseID = endpointPulseID
     self.endpointIsTop = endpointIsTop
+    self.attentionCueIsActive = attentionCueIsActive
     self.completionIsReady = completionIsReady
     self.onCompletionVideoCue = onCompletionVideoCue
     self.start = start
@@ -865,17 +937,15 @@ private struct NestedSquatGauge: View {
             .opacity(flashIntensity)
             .blendMode(.plusLighter)
 
-          if leg == .ready {
-            startButton(
-              diameter: diameter,
-              coreDiameter: coreDiameter
-            )
-          } else {
-            movementFigure(diameter: diameter)
+          if attentionCueIsActive {
+            Circle()
+              .fill(Color.black.opacity(0.78))
+              .frame(width: diameter, height: diameter)
+              .transition(.opacity)
+              .allowsHitTesting(false)
           }
 
-          squatCountBadge
-            .offset(y: -diameter * 0.33)
+          squatCoin(coreDiameter: coreDiameter)
 
           if leg == .zeroing || leg == .holdTop {
             HStack(spacing: 8) {
@@ -1088,150 +1158,165 @@ private struct NestedSquatGauge: View {
     )
   }
 
-  private var chadImageName: String {
+  private var coinImageName: String {
     switch leg {
-    case .ready, .zeroing, .holdTop, .up:
-      "CalibrationChadUp"
-    case .down:
-      "CalibrationChadDown"
+    case .ready, .up:
+      "SquatCoinUp"
+    case .zeroing, .holdTop, .down:
+      "SquatCoinDown"
     }
   }
 
-  private var squatCountBadge: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 4) {
-      Text("\(squats)")
-        .font(.title3.monospacedDigit().weight(.black))
-        .foregroundStyle(RGTheme.cream)
-        .contentTransition(.numericText())
-
-      Text("/ \(targetSquats)")
-        .font(.caption.monospacedDigit().weight(.black))
-        .foregroundStyle(RGTheme.gold)
-    }
-    .padding(.horizontal, 13)
-    .padding(.vertical, 7)
-    .background(RGTheme.ink.opacity(0.94), in: Capsule())
-    .overlay {
-      Capsule()
-        .stroke(RGTheme.gold.opacity(0.34), lineWidth: 1)
-    }
-    .shadow(color: RGTheme.ink.opacity(0.85), radius: 8)
-    .accessibilityHidden(true)
-    .allowsHitTesting(false)
-  }
-
-  private func startButton(
-    diameter: CGFloat,
-    coreDiameter: CGFloat
-  ) -> some View {
+  private func squatCoin(coreDiameter: CGFloat) -> some View {
     Button(action: start) {
-      ZStack {
-        Circle()
-          .fill(
-            RadialGradient(
-              colors: [
-                RGTheme.gold.opacity(0.15),
-                RGTheme.orange.opacity(0.20),
-                RGTheme.danger.opacity(0.26),
-              ],
-              center: .center,
-              startRadius: 0,
-              endRadius: coreDiameter * 0.62
-            )
-          )
-
-        Image("CalibrationChadUp")
-          .resizable()
-          .interpolation(.high)
-          .scaledToFit()
-          .frame(
-            width: diameter * 0.42,
-            height: diameter * 0.61
-          )
-          .padding(.vertical, diameter * 0.045)
-          .saturation(0)
-          .contrast(1.15)
-          .opacity(canStart ? 0.48 : 0.32)
-          .blendMode(.multiply)
-          .accessibilityHidden(true)
-
-        VStack(spacing: 2) {
-          if !canStart {
-            ProgressView()
-              .tint(RGTheme.ink)
-          }
-
-          Text(
-            "Tap Here when you are\nin the Upper Squat\nPosition"
-          )
-          .font(.headline.weight(.black))
-          .multilineTextAlignment(.center)
-          .lineLimit(3)
-          .minimumScaleFactor(0.78)
-          .frame(width: coreDiameter * 0.74)
-        }
-        .foregroundStyle(RGTheme.cream)
-        .shadow(color: RGTheme.ink.opacity(0.82), radius: 3, y: 2)
-        .offset(y: diameter * 0.10)
-        .opacity(canStart ? 1 : 0.58)
-      }
-      .frame(width: coreDiameter, height: coreDiameter)
-      .contentShape(Circle())
-      .clipShape(Circle())
-      .overlay {
-        Circle()
-          .stroke(
-            Color.white.opacity(canStart ? 0.32 : 0.18),
-            lineWidth: canStart ? 3 : 1.5
-          )
-      }
+      FlippingSquatCoin(
+        imageName: coinImageName,
+        diameter: coreDiameter,
+        accent: legAccent,
+        endpointPulse: flashIntensity,
+        isReady: leg != .ready || canStart,
+        attentionCueIsActive: attentionCueIsActive
+      )
     }
-    .buttonStyle(.plain)
-    .disabled(!canStart)
-    .shadow(
-      color: canStart ? RGTheme.orange.opacity(0.34) : Color.clear,
-      radius: 16
-    )
+    .buttonStyle(RGSquatCoinButtonStyle())
+    .disabled(leg != .ready || !canStart)
     .accessibilityLabel(
-      "Tap Here when you are in the Upper Squat Position"
+      leg == .ready
+        ? "Set top squat position"
+        : "Target \(leg == .up ? "top" : "bottom") squat position"
     )
-    .accessibilityValue(canStart ? "Ready" : "Preparing motion sensor")
+    .accessibilityValue(
+      leg == .ready
+        ? (canStart ? "Ready" : "Preparing motion sensor")
+        : "\(squats) of \(targetSquats) squats"
+    )
     .accessibilityHint(
-      canStart
-        ? "Press while standing in Chad's top position."
-        : "Wait while motion sensing gets ready."
+      leg == .ready
+        ? canStart
+          ? "Press while standing in your top squat position."
+          : "Wait while motion sensing gets ready."
+        : ""
     )
   }
 
-  private func movementFigure(diameter: CGFloat) -> some View {
-    Image(chadImageName)
-      .resizable()
-      .interpolation(.high)
-      .scaledToFit()
-      .frame(
-        width: diameter * (leg == .down ? 0.50 : 0.42),
-        height: diameter * 0.61
+}
+
+private struct FlippingSquatCoin: View {
+  @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+
+  let imageName: String
+  let diameter: CGFloat
+  let accent: Color
+  let endpointPulse: CGFloat
+  let isReady: Bool
+  let attentionCueIsActive: Bool
+
+  @State private var displayedImageName: String
+  @State private var rotationDegrees = 0.0
+  @State private var attentionProgress: CGFloat = 0
+
+  init(
+    imageName: String,
+    diameter: CGFloat,
+    accent: Color,
+    endpointPulse: CGFloat,
+    isReady: Bool,
+    attentionCueIsActive: Bool
+  ) {
+    self.imageName = imageName
+    self.diameter = diameter
+    self.accent = accent
+    self.endpointPulse = endpointPulse
+    self.isReady = isReady
+    self.attentionCueIsActive = attentionCueIsActive
+    _displayedImageName = State(initialValue: imageName)
+  }
+
+  var body: some View {
+    ZStack {
+      RGSquatCoinAttentionGlow(
+        diameter: diameter,
+        progress: attentionProgress,
+        isActive: attentionCueIsActive
       )
-      .padding(.vertical, diameter * 0.045)
-      .id(chadImageName)
-      .transition(
-        accessibilityReduceMotion
-          ? .opacity
-          : .opacity.combined(with: .scale(scale: 0.94))
+
+      RGSquatCoinFace(
+        imageName: displayedImageName,
+        diameter: diameter,
+        accent: attentionCueIsActive ? RGTheme.gold : accent,
+        isReady: isReady
       )
+      .overlay {
+        if attentionCueIsActive {
+          Circle()
+            .fill(RGTheme.gold.opacity(0.10 + (attentionProgress * 0.12)))
+            .blendMode(.softLight)
+        }
+      }
       .scaleEffect(
         accessibilityReduceMotion
           ? 1
-          : 1 + (flashIntensity * 0.055)
+          : 1 + (attentionProgress * 0.065)
       )
-      .shadow(color: legAccent.opacity(0.25), radius: 11)
-      .accessibilityHidden(true)
-      .animation(
-        accessibilityReduceMotion ? nil : .easeOut(duration: 0.22),
-        value: chadImageName
-      )
+    }
+    .rotation3DEffect(
+      .degrees(rotationDegrees),
+      axis: (x: 0, y: 1, z: 0),
+      perspective: 0.52
+    )
+    .scaleEffect(1 + (endpointPulse * 0.045))
+    .task(id: imageName) {
+      await flip(to: imageName)
+    }
+    .task(id: attentionCueIsActive) {
+      resetAttentionGlow()
+      guard attentionCueIsActive else { return }
+      withAnimation(
+        .easeInOut(duration: accessibilityReduceMotion ? 1.35 : 0.72)
+          .repeatForever(autoreverses: true)
+      ) {
+        attentionProgress = 1
+      }
+    }
   }
 
+  @MainActor
+  private func flip(to nextImageName: String) async {
+    guard displayedImageName != nextImageName else { return }
+
+    if accessibilityReduceMotion {
+      withAnimation(.easeOut(duration: 0.16)) {
+        displayedImageName = nextImageName
+      }
+      return
+    }
+
+    withAnimation(.easeIn(duration: 0.17)) {
+      rotationDegrees = 90
+    }
+    try? await Task.sleep(for: .milliseconds(170))
+    guard !Task.isCancelled else { return }
+
+    var transaction = Transaction(animation: nil)
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+      displayedImageName = nextImageName
+      rotationDegrees = -90
+    }
+
+    withAnimation(.easeOut(duration: 0.21)) {
+      rotationDegrees = 0
+    }
+  }
+
+  @MainActor
+  private func resetAttentionGlow() {
+    var transaction = Transaction(animation: nil)
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+      attentionProgress = 0
+    }
+  }
 }
 
 private enum SquatGaugeOrbit {
@@ -1977,6 +2062,11 @@ private final class WakeChallengeSquatSession {
   private var activeGeneration: UUID?
 
   @ObservationIgnored
+  private var emergencyShakeMotionSourceToken:
+    EmergencyShakeMuteService
+      .ExternalMotionSourceToken?
+
+  @ObservationIgnored
   private var activeRequestID: UUID?
 
   @ObservationIgnored
@@ -2309,6 +2399,8 @@ private final class WakeChallengeSquatSession {
       return
     }
 
+    emergencyShakeMotionSourceToken =
+      EmergencyShakeMuteService.shared.acquireExternalMotionSource()
     let generation = UUID()
     activeGeneration = generation
     resetDetector()
@@ -2852,6 +2944,12 @@ private final class WakeChallengeSquatSession {
     startupWatchdog?.cancel()
     startupWatchdog = nil
     latestMotionSample = motion
+    if let emergencyShakeMotionSourceToken {
+      EmergencyShakeMuteService.shared.receive(
+        motion,
+        from: emergencyShakeMotionSourceToken
+      )
+    }
     if isZeroingGuidance {
       receiveGuidanceZeroingSample(
         motion,
@@ -3207,6 +3305,10 @@ private final class WakeChallengeSquatSession {
   private func stopDeviceMotion() {
     activeGeneration = nil
     motionManager.stopDeviceMotionUpdates()
+    EmergencyShakeMuteService.shared.releaseExternalMotionSource(
+      emergencyShakeMotionSourceToken
+    )
+    emergencyShakeMotionSourceToken = nil
     startupWatchdog?.cancel()
     startupWatchdog = nil
   }

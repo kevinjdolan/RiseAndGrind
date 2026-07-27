@@ -4,7 +4,7 @@ import Foundation
 import RiseAndGrindCore
 
 enum AlarmSemantics {
-  static let currentVersion = 8
+  static let currentVersion = 11
 }
 
 enum ScheduledAlarmOwner: String, Codable, Sendable {
@@ -25,7 +25,7 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
   let ordinal: Int
   let total: Int
   let title: String
-  let soundChoice: AlarmSoundChoice
+  var soundChoice: AlarmSoundChoice
   let expiresAt: Date
   var retryCount: Int
 

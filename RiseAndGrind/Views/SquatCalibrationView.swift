@@ -65,6 +65,15 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
     }
   }
 
+  var coinImageName: String {
+    switch self {
+    case .depth:
+      "SquatCoinDown"
+    case .standing, .returned, .complete:
+      "SquatCoinUp"
+    }
+  }
+
   var videoAssetName: String? {
     switch self {
     case .standing:
@@ -353,6 +362,7 @@ private struct SquatDiagnosticFlagRow: View {
 struct SquatCalibrationView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
 
   let onComplete: @MainActor (SquatCalibrationProfile) -> Void
 
@@ -363,6 +373,8 @@ struct SquatCalibrationView: View {
   @State private var activeCaptionIndex: Int?
   @State private var isInstructionFinished = false
   @State private var instructionVideoError: String?
+  @State private var isShowingIdleCaptureCue = false
+  @State private var idleCaptureCueProgress: CGFloat = 0
 
   init(
     onComplete: @escaping @MainActor (SquatCalibrationProfile) -> Void = { _ in }
@@ -374,10 +386,12 @@ struct SquatCalibrationView: View {
     RGScreenBackground {
       VStack(spacing: 0) {
         header
+          .opacity(isShowingIdleCaptureCue ? 0.18 : 1)
 
         ScrollView {
           VStack(spacing: 14) {
             instructionVideoCall
+              .opacity(isShowingIdleCaptureCue ? 0.12 : 1)
             if session.stage != .complete {
               capturePanel
             }
@@ -385,6 +399,7 @@ struct SquatCalibrationView: View {
               resultCard(result)
             }
             actionArea
+              .opacity(isShowingIdleCaptureCue ? 0.18 : 1)
           }
           .padding(.horizontal, 18)
           .padding(.top, 14)
@@ -414,6 +429,42 @@ struct SquatCalibrationView: View {
     }
     .onChange(of: session.stage) { _, newStage in
       playInstructionVideo(for: newStage)
+    }
+    .task(
+      id:
+        "\(session.stage.rawValue)-\(session.isCapturePending)-\(scenePhase == .active)"
+    ) {
+      resetIdleCaptureCue()
+      guard
+        session.stage != .complete,
+        !session.isCapturePending,
+        scenePhase == .active
+      else {
+        return
+      }
+
+      do {
+        try await Task.sleep(for: .seconds(8))
+      } catch {
+        return
+      }
+      guard
+        !Task.isCancelled,
+        session.stage != .complete,
+        !session.isCapturePending
+      else {
+        return
+      }
+
+      withAnimation(.easeInOut(duration: 0.28)) {
+        isShowingIdleCaptureCue = true
+      }
+      withAnimation(
+        .easeInOut(duration: accessibilityReduceMotion ? 1.35 : 0.72)
+          .repeatForever(autoreverses: true)
+      ) {
+        idleCaptureCueProgress = 1
+      }
     }
     .onChange(of: session.completedResult) { _, result in
       guard let result else { return }
@@ -938,6 +989,7 @@ struct SquatCalibrationView: View {
         .foregroundStyle(RGTheme.cream)
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
+        .opacity(isShowingIdleCaptureCue ? 0.22 : 1)
 
       poseCaptureControl
     }
@@ -976,6 +1028,12 @@ struct SquatCalibrationView: View {
         .rotationEffect(.degrees(-90))
         .animation(.linear(duration: 0.08), value: session.captureProgress)
 
+      if isShowingIdleCaptureCue {
+        Circle()
+          .fill(Color.black.opacity(0.80))
+          .allowsHitTesting(false)
+      }
+
       if session.stage == .complete {
         ZStack {
           Circle()
@@ -989,54 +1047,70 @@ struct SquatCalibrationView: View {
         Button {
         } label: {
           ZStack {
-            Circle()
-              .fill(
-                RadialGradient(
-                  colors: [
-                    session.stage.accent.opacity(
-                      session.isCapturePending ? 0.48 : 0.30
-                    ),
-                    RGTheme.elevatedInk.opacity(0.98),
-                  ],
-                  center: .center,
-                  startRadius: 3,
-                  endRadius: 100
-                )
-              )
-
-            Image(session.stage.poseImageName)
-              .resizable()
-              .interpolation(.high)
-              .scaledToFit()
-              .padding(.horizontal, 43)
-              .padding(.top, 14)
-              .padding(.bottom, 38)
-              .accessibilityHidden(true)
-
-            LinearGradient(
-              colors: [Color.clear, Color.black.opacity(0.72)],
-              startPoint: .center,
-              endPoint: .bottom
+            RGSquatCoinAttentionGlow(
+              diameter: 192,
+              progress: idleCaptureCueProgress,
+              isActive: isShowingIdleCaptureCue
             )
-            .clipShape(Circle())
-            .allowsHitTesting(false)
+
+            RGSquatCoinFace(
+              imageName: session.stage.coinImageName,
+              diameter: 192,
+              accent:
+                isShowingIdleCaptureCue
+                ? RGTheme.gold
+                : session.stage.accent,
+              isReady: session.canCapture || session.isCapturePending
+            )
+            .overlay {
+              if isShowingIdleCaptureCue {
+                Circle()
+                  .fill(
+                    RGTheme.gold.opacity(
+                      0.10 + (idleCaptureCueProgress * 0.12)
+                    )
+                  )
+                  .blendMode(.softLight)
+              }
+            }
+            .scaleEffect(
+              accessibilityReduceMotion
+                ? 1
+                : 1 + (idleCaptureCueProgress * 0.065)
+            )
 
             VStack(spacing: 0) {
               Spacer()
-
               Text(session.actionTitle)
                 .font(.caption.weight(.black))
                 .tracking(0.65)
                 .foregroundStyle(RGTheme.cream)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .padding(.horizontal, 22)
-                .padding(.bottom, 17)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(RGTheme.ink.opacity(0.92), in: Capsule())
+                .overlay {
+                  Capsule()
+                    .stroke(
+                      isShowingIdleCaptureCue
+                        ? RGTheme.gold.opacity(0.92)
+                        : session.stage.accent.opacity(0.48),
+                      lineWidth: 1
+                    )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 8)
             }
           }
-          .padding(17)
+          .rotationEffect(.degrees(captureTremorPhase * 0.65))
+          .offset(x: captureTremorPhase * 1.25)
+          .animation(
+            .linear(duration: 0.08),
+            value: session.captureProgress
+          )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(RGSquatCoinHoldButtonStyle())
         .contentShape(Circle())
         .allowsHitTesting(session.canCapture || session.isCapturePending)
         .onLongPressGesture(
@@ -1060,6 +1134,21 @@ struct SquatCalibrationView: View {
     .frame(width: 226, height: 226)
     .scaleEffect(session.isCapturePending ? 1.015 : 1)
     .animation(.easeInOut(duration: 0.16), value: session.isCapturePending)
+  }
+
+  private var captureTremorPhase: Double {
+    guard session.isCapturePending else { return 0 }
+    return cos(session.captureProgress * .pi * 10)
+  }
+
+  @MainActor
+  private func resetIdleCaptureCue() {
+    var transaction = Transaction(animation: nil)
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+      isShowingIdleCaptureCue = false
+      idleCaptureCueProgress = 0
+    }
   }
 
   private func playInstructionVideo(for stage: SquatCalibrationUIStage) {
@@ -1291,6 +1380,11 @@ private final class SquatCalibrationViewSession {
   private var activeGeneration: UUID?
 
   @ObservationIgnored
+  private var emergencyShakeMotionSourceToken:
+    EmergencyShakeMuteService
+      .ExternalMotionSourceToken?
+
+  @ObservationIgnored
   private let diagnosticRecorder: SquatCalibrationDiagnosticRecorder
 
   @ObservationIgnored
@@ -1372,6 +1466,8 @@ private final class SquatCalibrationViewSession {
       return
     }
 
+    emergencyShakeMotionSourceToken =
+      EmergencyShakeMuteService.shared.acquireExternalMotionSource()
     let generation = UUID()
     activeGeneration = generation
     isMotionReady = false
@@ -1618,6 +1714,12 @@ private final class SquatCalibrationViewSession {
       rotationRate: rotationRate,
       timestamp: timestamp
     )
+    if let emergencyShakeMotionSourceToken {
+      EmergencyShakeMuteService.shared.receive(
+        motion,
+        from: emergencyShakeMotionSourceToken
+      )
+    }
     let rawDeviceData = SquatCalibrationRawDeviceData(
       motionTimestampSeconds: timestamp,
       callbackWallTimeUnixSeconds: packet.callbackWallTime.timeIntervalSince1970,
@@ -1781,6 +1883,7 @@ private final class SquatCalibrationViewSession {
       status = "Calibration saved."
       resetCaptureState()
       isRunActive = false
+      stopMotion()
       publishLatestDiagnostics()
       recordEvent(
         "calibration_completed",
@@ -1883,6 +1986,10 @@ private final class SquatCalibrationViewSession {
     diagnosticStartupTask = nil
     activeGeneration = nil
     motionManager.stopDeviceMotionUpdates()
+    EmergencyShakeMuteService.shared.releaseExternalMotionSource(
+      emergencyShakeMotionSourceToken
+    )
+    emergencyShakeMotionSourceToken = nil
     isMotionReady = false
   }
 

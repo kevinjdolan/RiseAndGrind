@@ -15,6 +15,28 @@ public enum SchedulePlannerError: Error, Equatable, LocalizedError {
 }
 
 public enum SchedulePlanner {
+  /// Produces a repeatable sound rotation for a particular alarm target.
+  public static func deterministicSoundOrder(
+    _ sounds: [AlarmSoundChoice],
+    targetDate: Date
+  ) -> [AlarmSoundChoice] {
+    guard sounds.count > 1 else { return sounds }
+
+    var ordered = sounds.sorted { lhs, rhs in
+      lhs.id == rhs.id ? lhs.displayName < rhs.displayName : lhs.id < rhs.id
+    }
+    let targetMilliseconds =
+      (targetDate.timeIntervalSinceReferenceDate * 1_000).rounded()
+    var state = UInt64(bitPattern: Int64(targetMilliseconds))
+
+    for index in stride(from: ordered.count - 1, through: 1, by: -1) {
+      state = state &* 6_364_136_223_846_793_005 &+ 1_442_695_040_888_963_407
+      let swapIndex = Int(state % UInt64(index + 1))
+      ordered.swapAt(index, swapIndex)
+    }
+    return ordered
+  }
+
   public static func isEnabled(
     on date: Date,
     enabledDays: Set<GrindDay>,

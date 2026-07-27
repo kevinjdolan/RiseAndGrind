@@ -32,6 +32,8 @@ actor NightlyCoordinator {
         isMuted: false
       )
     }
+    try Task.checkCancellation()
+    try await AlarmScheduler.shared.recoverDismissedAlarms(now: now)
 
     if await AlarmScheduler.shared.isAlarmInteractionInFlight(now: now) {
       return activeInteractionResult(now: now)
@@ -77,6 +79,7 @@ actor NightlyCoordinator {
       on: grindDate,
       now: now
     )
+    try Task.checkCancellation()
     if await AlarmScheduler.shared.isAlarmInteractionInFlight(now: now) {
       return activeInteractionResult(now: now)
     }
@@ -100,7 +103,11 @@ actor NightlyCoordinator {
       alarmCount: settings.barrage.alarmCount,
       spacingMinutes: settings.barrage.spacingMinutes,
       finalWarningMinutes: settings.barrage.finalWarningMinutes,
-      sounds: selectedSounds(for: settings),
+      sounds: AlarmMusicTierPolicy.soundSequence(
+        from: selectedSounds(for: settings),
+        alarmCount: settings.barrage.alarmCount,
+        targetDate: targetDate
+      ),
       reason: reason
     )
     let plan = fullPlan.keepingAlarms(after: now)
@@ -136,7 +143,7 @@ actor NightlyCoordinator {
       )
     }
 
-    return try await schedule(plan: plan, usedEarlyMeeting: usedEarlyMeeting)
+    return try await schedule(plan: plan, usedEarlyMeeting: usedEarlyMeeting, now: now)
   }
 
   func cancelBarrage() async throws {
@@ -159,9 +166,18 @@ actor NightlyCoordinator {
 
   private func schedule(
     plan: AlarmPlan,
-    usedEarlyMeeting: Bool
+    usedEarlyMeeting: Bool,
+    now: Date
   ) async throws -> ReconciliationResult {
-    let records = try await AlarmScheduler.shared.replace(with: plan)
+    let records: [ScheduledAlarmRecord]
+    if let existingRecords = try await AlarmScheduler.shared.existingBarrageRecords(
+      matching: plan,
+      now: now
+    ) {
+      records = existingRecords
+    } else {
+      records = try await AlarmScheduler.shared.replace(with: plan)
+    }
     SettingsStore.shared.saveAlarmSemanticsVersion(AlarmSemantics.currentVersion)
     let summary = Self.summary(for: plan, usedEarlyMeeting: usedEarlyMeeting)
     SettingsStore.shared.saveLastSummary(summary)
@@ -176,7 +192,7 @@ actor NightlyCoordinator {
   }
 
   private func selectedSounds(for settings: RiseAndGrindSettings) -> [AlarmSoundChoice] {
-    SoundLibrary().selectedSounds(for: settings).shuffled()
+    SoundLibrary().selectedSounds(for: settings)
   }
 
   private func activeInteractionResult(now: Date) -> ReconciliationResult {

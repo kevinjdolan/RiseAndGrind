@@ -392,6 +392,19 @@ final class WakeChallengeCoordinator {
     playbackError = nil
   }
 
+  func stopForEmergencyMute() {
+    isPracticeAudioActive = false
+    stopSourceSound()
+    alarmHaptics.stop()
+    store.clearWakeChallenge()
+    activeSessionRequestID = nil
+    pending = nil
+    isCompleting = false
+    didComplete = false
+    completionError = nil
+    playbackError = nil
+  }
+
   func resetForFactoryReset() {
     isPracticeAudioActive = false
     stopSourceSound()

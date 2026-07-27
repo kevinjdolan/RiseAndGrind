@@ -122,6 +122,14 @@ final class AppModel {
   }
 
   func refresh(reportErrors: Bool = true) async {
+    AlarmEventJournal.shared.record(
+      "app_refresh_started",
+      source: "AppModel.refresh",
+      details: ["reportErrors": String(reportErrors)]
+    )
+    await AlarmScheduler.shared.recordDiagnosticSnapshot(
+      reason: "AppModel.refresh.preflight"
+    )
     await AlarmScheduler.shared.sweepExpiredWakeHandoff()
     WakeChallengeCoordinator.shared.reload()
     alarmAuthorization = await AlarmScheduler.shared.authorizationLabel()
@@ -156,6 +164,16 @@ final class AppModel {
       await CalendarService.shared.hasFullAccess()
       ? "Authorized"
       : Self.calendarAuthorizationLabel
+    AlarmEventJournal.shared.record(
+      "app_refresh_completed",
+      source: "AppModel.refresh",
+      details: [
+        "alarmAuthorization": alarmAuthorization,
+        "barrageCount": String(scheduledAlarms.count),
+        "powerNapCount": String(scheduledPowerNaps.count),
+        "testCount": String(scheduledTestAlarms.count),
+      ]
+    )
   }
 
   func refreshAndReconcileSilently() async {
@@ -164,32 +182,72 @@ final class AppModel {
   }
 
   func reconcileSilently(queueIfBusy: Bool = false) async {
-    guard isAppReady else { return }
-    guard await !AlarmScheduler.shared.isAlarmInteractionInFlight() else { return }
+    guard isAppReady else {
+      AlarmEventJournal.shared.record(
+        "reconcile_skipped",
+        source: "AppModel.reconcileSilently",
+        details: ["reason": "appNotReady"]
+      )
+      return
+    }
     guard !isWorking else {
       if queueIfBusy {
         automaticReconciliationPending = true
       }
+      AlarmEventJournal.shared.record(
+        "reconcile_deferred",
+        source: "AppModel.reconcileSilently",
+        details: [
+          "queued": String(queueIfBusy),
+          "reason": "operationInProgress",
+        ]
+      )
       return
     }
 
+    AlarmEventJournal.shared.record(
+      "reconcile_started",
+      source: "AppModel.reconcileSilently",
+      details: ["queueIfBusy": String(queueIfBusy)]
+    )
     isWorking = true
     defer { finishOperation() }
 
     do {
       let result = try await NightlyCoordinator.shared.reconcileTomorrow()
       apply(result, clearError: false)
+      AlarmEventJournal.shared.record(
+        "reconcile_succeeded",
+        source: "AppModel.reconcileSilently",
+        details: [
+          "alarmCount": String(result.records.count),
+          "muted": String(result.isMuted),
+        ]
+      )
     } catch {
       reloadAndPruneScheduledAlarms()
       reloadMuteState()
+      AlarmEventJournal.shared.record(
+        "reconcile_failed",
+        source: "AppModel.reconcileSilently",
+        details: ["error": error.localizedDescription]
+      )
     }
   }
 
   func monitorAlarmUpdates() async {
+    AlarmEventJournal.shared.record(
+      "alarm_observer_subscribed",
+      source: "AppModel.monitorAlarmUpdates"
+    )
     for await alarms in AlarmManager.shared.alarmUpdates {
       await AlarmScheduler.shared.processAlarmUpdates(alarms)
       reloadAndPruneScheduledAlarms()
     }
+    AlarmEventJournal.shared.record(
+      "alarm_observer_ended",
+      source: "AppModel.monitorAlarmUpdates"
+    )
   }
 
   func requestRequiredPermissions() async {
@@ -360,7 +418,11 @@ final class AppModel {
     defer { finishOperation() }
 
     do {
-      let sounds = SoundLibrary().selectedSounds(for: settings).shuffled()
+      let sounds = AlarmMusicTierPolicy.soundSequence(
+        from: SoundLibrary().selectedSounds(for: settings),
+        alarmCount: count,
+        targetDate: .now
+      )
       let records = try await AlarmScheduler.shared.replaceTestSequence(
         count: count,
         sounds: sounds

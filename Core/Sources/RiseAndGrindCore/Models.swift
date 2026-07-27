@@ -63,11 +63,32 @@ public enum AlarmMuteState: Codable, Equatable, Sendable {
   }
 }
 
+public enum AlarmIntensityTier: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
+  case soothing
+  case relaxing
+  case motivating
+  case energizing
+  case abrasive
+
+  public var id: String { rawValue }
+
+  public var displayName: String {
+    switch self {
+    case .soothing: "Soothing"
+    case .relaxing: "Relaxing"
+    case .motivating: "Motivating"
+    case .energizing: "Energizing"
+    case .abrasive: "Abrasive"
+    }
+  }
+}
+
 public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
   public let id: String
   public let displayName: String
   public let artistName: String?
   public let genreName: String?
+  public let intensityTier: AlarmIntensityTier?
   public let fileName: String?
   public let previewFileName: String?
   public let editableSourceFileName: String?
@@ -79,6 +100,7 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
     displayName: String,
     artistName: String? = nil,
     genreName: String? = nil,
+    intensityTier: AlarmIntensityTier? = nil,
     fileName: String?,
     previewFileName: String? = nil,
     editableSourceFileName: String? = nil,
@@ -89,6 +111,7 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
     self.displayName = displayName
     self.artistName = artistName
     self.genreName = genreName
+    self.intensityTier = intensityTier
     self.fileName = fileName
     self.previewFileName = previewFileName
     self.editableSourceFileName = editableSourceFileName
@@ -155,32 +178,9 @@ public struct RiseAndGrindSettings: Codable, Equatable, Sendable {
   public static let wakeChallengeSquatCountRange = 1...100
 
   public static let defaultSelectedSoundIDs: Set<String> = Set(
-    [
-      "air_raid_arsenal",
-      "industrial_panic",
-      "brass_knuckle_march",
-      "emergency_rave",
-      "jackhammer_jubilee",
-      "siren_storm",
-      "circuit_breaker",
-      "factory_floor_frenzy",
-      "alarm_bell_assault",
-      "neon_fire_drill",
-      "percussion_overload",
-      "hornet_nest",
-      "boiler_room_barrage",
-      "buzzsaw_breakbeat",
-      "cymbal_crash_course",
-      "diesel_drumline",
-      "electric_shock",
-      "firehouse_fanfare",
-      "metallic_mayhem",
-      "pressure_valve",
-      "subway_screech",
-      "warning_signal",
-      "wake_up_warpath",
-      "sonic_defibrillator",
-    ] + (25...100).map { String(format: "rise_track_%03d", $0) }
+    AlarmIntensityTier.allCases.flatMap { tier in
+      (1...100).map { String(format: "%@_%03d", tier.rawValue, $0) }
+    }
   )
 
   public var grindHour: Int

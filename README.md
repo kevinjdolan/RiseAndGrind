@@ -62,34 +62,37 @@ The intent records its last successful run so Setup can show whether it has ever
 
 ## Sound library
 
-The checked-in library contains 100 original tracks generated with Google’s `lyria-3-clip-preview` model. Each track has a title, fictional artist, one-to-three-word genre label, complete authored lyrics, and a compact performed excerpt. The catalog ranges across abrasive or high-energy metal, punk, hardcore, hip hop, EDM, techno, disco, ska, big band, and experimental jazz. Twelve entries are explicitly adult, consensual female slut-pride anthems centered on sexual agency.
+The checked-in library contains 500 original tracks generated with Google’s `lyria-3-clip-preview` model. Each of the five ordered intensity tiers—Soothing, Relaxing, Motivating, Energizing, and Abrasive—contains 100 hand-authored songs with a distinct title, fictional artist, genre, comic premise, and per-song lyrics written as deadpan hustle-culture satire. Every tier splits its vocals 50/50 between female and male leads, and the catalog spans roughly 200 genre traditions across 45 languages—from kankyō ongaku, bossa nova, and Celtic harp through amapiano, bhangra, gqom, and singeli to gabber, uptempo hardcore, and Slavic hardbass.
 
-Every runtime asset in `RiseAndGrind/Resources/Sounds` is exactly 29 seconds and authored as a continuous loop instead of a song with a final cadence. Post-processing crossfades the boundary so AlarmKit can repeat it naturally, and the Sounds tab uses the same file for a continuous preview until playback is stopped or the user changes tabs. The compact phone-speaker format is mono, 44.1 kHz IMA4 audio in a CAF container, with each file under 800 KiB (the validator caps files at 800,000 bytes). All 100 tracks are selected by default.
+Every runtime asset in `RiseAndGrind/Resources/Sounds` is exactly 29 seconds and authored as a continuous loop instead of a song with a final cadence. Post-processing crossfades the boundary so AlarmKit can repeat it naturally, and the Sounds tab uses the same file for a continuous preview until playback is stopped or the user changes tabs. The compact phone-speaker format is mono, 22.05 kHz IMA4 audio in a CAF container, with each file under 410,000 bytes. All 500 tracks are selected by default and displayed in collapsed tier groups.
 
-There is deliberately no `RiseAndGrind/Resources/SoundMasters` directory or separate preview-master collection. The single validated CAF asset is the alarm and preview source for each built-in track.
+Untouched high-fidelity Lyria masters are retained under ignored `scratch_data/TieredMusicMastersV4`; they stay outside the application resource tree. The single validated compact CAF asset is the alarm and preview source for each built-in track.
 
 The library’s reproducibility and provenance artifacts are:
 
 - `RiseAndGrind/Resources/Sounds/manifest.json`: the runtime manifest, audio format, loop flags, titles, fictional artists, genres, lyrics, and default selection.
-- `GeneratedSamples/RiseAndGrind_100_Alarm_Catalog.json`: the complete authored generation catalog and vocal direction for all 100 tracks.
-- `GeneratedSamples/LyriaResponses/*.json`: per-track non-secret Lyria interaction metadata and timed-lyric evidence.
-- `GeneratedSamples/LyriaResponses/verification.json`: duration, codec, sample count, file size, loudness, loop-seam, checksum, and generation evidence for every installed asset.
+- `scratch_data/music_catalog_v4.json`: the authored 500-song catalog (canonical), with `scratch_data/music_catalog_v4.yaml` as its reviewer-friendly YAML rendering.
+- `scratch_data/TieredLyriaResponsesV4`: per-track non-secret Lyria interaction metadata and full verification evidence.
+- `scratch_data/TieredMusicMastersV4`: untouched high-fidelity model output used to derive compact app loops.
+- `scratch_data/TieredAppAudioV4`: the staged, validated CAF loops that `scripts/install_music_library_v4.py` swaps into the app bundle only once all 500 validate.
+- `scratch_data/ElevenLabsMusicSamples`: a 50-song ElevenLabs Music comparison sample (10 per tier) with matching mastered loops; never bundled.
 
-The reproducible generator uses the Gemini Interactions REST API documented in [Google’s Lyria documentation](https://ai.google.dev/gemini-api/docs/music-generation). Its validation requires the exact track count and duration, IMA4/CAF encoding, mono 44.1 kHz audio, bounded loudness and peak, the size limit, a bounded loop seam, and matching timed-lyric generation evidence.
+The resumable generator uses the Gemini Interactions REST API documented in [Google’s Lyria documentation](https://ai.google.dev/gemini-api/docs/music-generation). It retains each validated master and non-secret response record before deriving the delivery asset, and finalizes the staged runtime manifest only after all 500 tracks validate. Generation prompts deliberately omit the fictional artist name: Google’s input filter rejects person-like names, and the vocalist and genre fields already specify everything audible.
 
 Validate the checked-in library without an API call:
 
 ```sh
-python3 scripts/generate_lyria_sounds.py --verify-only
+python3 scripts/install_music_library_v4.py --check
 ```
 
-Regenerate missing or invalid assets with a configured `GEMINI_API_KEY`:
+Regenerate missing or invalid assets with a configured `GEMINI_API_KEY`, then install:
 
 ```sh
-python3 scripts/generate_lyria_sounds.py
+python3 scripts/generate_music_library_v4.py
+python3 scripts/install_music_library_v4.py
 ```
 
-Use `--force` to replace already-valid files, `--only SOUND_ID` to target one catalog entry, or `--workers N` to set generation concurrency. A complete generation run rewrites the manifest, catalog, and verification report and removes obsolete WAV, MP3, and text-only response artifacts.
+Use `--force` to replace already-valid files, `--only ID` or `--only-tier TIER` to target part of the catalog, and `--workers N` to set generation concurrency. Interrupted runs reuse validated masters and evidence.
 
 ## Custom imports
 
@@ -156,12 +159,12 @@ RiseAndGrind/
 ├── RiseAndGrind/
 │   ├── App/                     # entry point, observable model, theme
 │   ├── Intents/                 # nightly background App Intent
-│   ├── Resources/               # artwork and 100 AlarmKit-ready CAF loops
+│   ├── Resources/               # artwork, voice lines, and 500 AlarmKit-ready CAF loops
 │   ├── Services/                # AlarmKit, EventKit, media, persistence
 │   ├── Views/                   # onboarding and five product tabs
 │   └── PrivacyInfo.xcprivacy
-├── GeneratedSamples/            # authored catalog and Lyria/verification evidence
-├── scripts/                     # Lyria catalog, generator, and verification
+├── scratch_data/                # ignored Lyria masters and verification evidence
+├── scripts/                     # tiered Lyria catalog, generator, and verification
 ├── Package.swift
 ├── RiseAndGrind.xcodeproj       # generated by XcodeGen
 └── project.yml                  # project source of truth

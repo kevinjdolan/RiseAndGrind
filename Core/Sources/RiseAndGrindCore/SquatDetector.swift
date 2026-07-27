@@ -1446,11 +1446,9 @@ public struct SquatDetector: Sendable {
         maximumDownwardVelocity >= configuration.minimumDownwardVelocity
       let hasMeaningfulLiveTravel =
         maximumVerticalDrop >= minimumGuidedBottomTravelMeters
-        || (
-          guidedBottomBrakePeakG >= strongGuidedEndpointAccelerationG
-            && maximumVerticalDrop
-              >= minimumGuidedBottomLatchTravelMeters
-        )
+        || (guidedBottomBrakePeakG >= strongGuidedEndpointAccelerationG
+          && maximumVerticalDrop
+            >= minimumGuidedBottomLatchTravelMeters)
       let endpointVelocityLimit = max(
         0.025,
         maximumDownwardVelocity
@@ -1461,15 +1459,13 @@ public struct SquatDetector: Sendable {
       let reachedConfiguredBottom =
         verticalRangeTracker.normalizedPosition
         <= configuration.bottomCompletionPosition
-          + configuration.positionHysteresis
+        + configuration.positionHysteresis
       // Debounce the brake edge without asking the user to hold the squat.
       let requiredBottomConfirmationDuration = 0.12
       if sawBottomBrake
-        || (
-          reachedConfiguredBottom
-            && directedAccelerationG
-              <= -configuration.guidedStartIntentAccelerationG
-        )
+        || (reachedConfiguredBottom
+          && directedAccelerationG
+            <= -configuration.guidedStartIntentAccelerationG)
       {
         guidedBottomEndpointEvidenceSeen = true
       }
@@ -1665,26 +1661,18 @@ public struct SquatDetector: Sendable {
         verticalRangeTracker.normalizedPosition >= 0.98
       let hasReachedTopVelocity =
         currentVerticalVelocity <= endpointVelocityLimit
-        || (
-          reachedConfiguredTop
-            && hasGuidedSettledMotion
-            && currentVerticalVelocity <= 0.45
-        )
+        || (reachedConfiguredTop
+          && hasGuidedSettledMotion
+          && currentVerticalVelocity <= 0.45)
       let hasTopEndpointEvidence =
-        (
-          reachedConfiguredTop
-            && sawFinalBrake
-        )
-        || (
-          reachedTolerantTop
-            && sawFinalBrake
-            && currentVerticalVelocity <= endpointVelocityLimit
-        )
-        || (
-          reachedHardTop
-            && hasGuidedSettledMotion
-            && !guidedAscentBrakeWasPremature
-        )
+        (reachedConfiguredTop
+          && sawFinalBrake)
+        || (reachedTolerantTop
+          && sawFinalBrake
+          && currentVerticalVelocity <= endpointVelocityLimit)
+        || (reachedHardTop
+          && hasGuidedSettledMotion
+          && !guidedAscentBrakeWasPremature)
       let topIsAlreadySettled = hasGuidedSettledMotion
       if hasMinimumAscentDuration,
         hasTopEndpointEvidence,
@@ -2212,8 +2200,7 @@ public struct SquatDetector: Sendable {
       directedAccelerationG * Self.metersPerSecondSquaredPerG
     if verticalRangeTracker.heightMeters <= 0, verticalVelocity > 0 {
       verticalVelocity = 0
-    } else if
-      verticalRangeTracker.heightMeters >= verticalRangeTracker.rangeMeters,
+    } else if verticalRangeTracker.heightMeters >= verticalRangeTracker.rangeMeters,
       verticalVelocity < 0
     {
       verticalVelocity = 0
@@ -2250,7 +2237,7 @@ public struct SquatDetector: Sendable {
             >= minimumGuidedBottomTravelMeters * 0.5,
           verticalRangeTracker.heightMeters
             < verticalRangeTracker.rangeMeters
-              * configuration.topCompletionPosition
+            * configuration.topCompletionPosition
         {
           let assistedUpwardVelocity =
             verticalRangeTracker.rangeMeters
@@ -2364,16 +2351,14 @@ public struct SquatDetector: Sendable {
           let brakePosition = verticalRangeTracker.normalizedPosition
           let hasTrustedLowPositionBrake =
             brakePosition >= minimumStrongGuidedTopBrakePosition
-            && (
-              directedAccelerationG
-                >= strongGuidedEndpointAccelerationG
-                || guidedMaximumAscentDriveEvidenceDuration
-                  >= minimumGuidedAscentDriveForRequalification
-            )
+            && (directedAccelerationG
+              >= strongGuidedEndpointAccelerationG
+              || guidedMaximumAscentDriveEvidenceDuration
+                >= minimumGuidedAscentDriveForRequalification)
           let mayRequalifyNearThreshold =
             (guidedTopBrakeStartedPosition ?? brakePosition)
             >= configuration.guidedQualifiedTopBrakeMinimumPosition
-              - configuration.positionHysteresis
+            - configuration.positionHysteresis
             || guidedMaximumAscentDriveEvidenceDuration
               >= minimumGuidedAscentDriveForRequalification
           if brakePosition

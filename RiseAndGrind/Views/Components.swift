@@ -603,3 +603,122 @@ struct RGAutomationStep: View {
     }
   }
 }
+
+struct RGSquatCoinFace: View {
+  let imageName: String
+  let diameter: CGFloat
+  let accent: Color
+  var isReady = true
+
+  var body: some View {
+    Image(imageName)
+      .resizable()
+      .interpolation(.high)
+      .scaledToFill()
+      .frame(width: diameter, height: diameter)
+      .clipShape(Circle())
+      .saturation(isReady ? 1 : 0.50)
+      .brightness(isReady ? 0 : -0.10)
+      .opacity(isReady ? 1 : 0.68)
+      .overlay {
+        Circle()
+          .stroke(
+            LinearGradient(
+              colors: [
+                Color.white.opacity(isReady ? 0.72 : 0.34),
+                accent.opacity(isReady ? 0.64 : 0.26),
+                RGTheme.ink.opacity(0.82),
+              ],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: max(2, diameter * 0.018)
+          )
+      }
+      .shadow(
+        color: RGTheme.ink.opacity(0.90),
+        radius: 3,
+        y: max(4, diameter * 0.055)
+      )
+      .shadow(
+        color: isReady ? accent.opacity(0.38) : Color.clear,
+        radius: 15
+      )
+      .contentShape(Circle())
+  }
+}
+
+struct RGSquatCoinAttentionGlow: View {
+  let diameter: CGFloat
+  let progress: CGFloat
+  let isActive: Bool
+
+  var body: some View {
+    if isActive {
+      ZStack {
+        Circle()
+          .fill(RGTheme.gold.opacity(0.24 + (progress * 0.22)))
+          .frame(width: diameter, height: diameter)
+          .scaleEffect(1.10 + (progress * 0.24))
+          .blur(radius: 16 + (progress * 16))
+
+        Circle()
+          .stroke(
+            LinearGradient(
+              colors: [Color.white, RGTheme.gold, RGTheme.orange],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: max(5, diameter * 0.032)
+          )
+          .frame(width: diameter, height: diameter)
+          .scaleEffect(1.03 + (progress * 0.13))
+          .blur(radius: 1 + (progress * 4))
+          .shadow(color: RGTheme.gold, radius: 18 + (progress * 16))
+          .opacity(1 - (progress * 0.16))
+
+        Circle()
+          .stroke(Color.white.opacity(0.88), lineWidth: 2)
+          .frame(width: diameter, height: diameter)
+          .scaleEffect(1.01 + (progress * 0.08))
+          .blur(radius: progress * 2)
+          .opacity(0.90 - (progress * 0.35))
+      }
+      .allowsHitTesting(false)
+      .accessibilityHidden(true)
+    }
+  }
+}
+
+struct RGSquatCoinButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .scaleEffect(
+        x: configuration.isPressed ? 0.975 : 1,
+        y: configuration.isPressed ? 0.91 : 1
+      )
+      .rotation3DEffect(
+        .degrees(configuration.isPressed ? 4 : 0),
+        axis: (x: 1, y: 0, z: 0),
+        perspective: 0.55
+      )
+      .offset(y: configuration.isPressed ? 9 : 0)
+      .brightness(configuration.isPressed ? -0.09 : 0)
+      .animation(
+        .spring(duration: 0.18, bounce: 0.22),
+        value: configuration.isPressed
+      )
+  }
+}
+
+struct RGSquatCoinHoldButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .scaleEffect(configuration.isPressed ? 0.996 : 1)
+      .brightness(configuration.isPressed ? 0.015 : 0)
+      .animation(
+        .easeOut(duration: 0.08),
+        value: configuration.isPressed
+      )
+  }
+}

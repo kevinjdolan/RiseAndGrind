@@ -8,6 +8,7 @@ struct DashboardView: View {
   @Binding var settings: RiseAndGrindSettings
   let muteState: AlarmMuteState?
   let riseTime: Date?
+  let scheduledPowerNaps: [ScheduledAlarmRecord]
   let isWorking: Bool
   let schedulePowerNap: @MainActor (Date) async -> Bool
   let setMute: @MainActor (AlarmMuteChoice) async -> Void
@@ -24,14 +25,9 @@ struct DashboardView: View {
           grindTime
           grindDays
 
-          Button {
-            powerNapTime = Date.now.addingTimeInterval(20 * 60)
-            presentsPowerNapSheet = true
-          } label: {
-            Label("Power Nap", systemImage: "bed.double.fill")
-          }
-          .buttonStyle(RGSecondaryButtonStyle())
-          .disabled(isWorking)
+          powerNapButton
+            .buttonStyle(RGSecondaryButtonStyle())
+            .disabled(isWorking)
 
           if let muteState {
             muteStatus(muteState)
@@ -118,6 +114,51 @@ struct DashboardView: View {
         after: .now,
         calendar: .autoupdatingCurrent
       ))
+  }
+
+  private var activePowerNap: ScheduledAlarmRecord? {
+    scheduledPowerNaps
+      .filter { $0.fireDate > .now }
+      .sorted { $0.fireDate < $1.fireDate }
+      .first
+  }
+
+  private var powerNapButton: some View {
+    Button {
+      powerNapTime = activePowerNap?.fireDate ?? Date.now.addingTimeInterval(20 * 60)
+      presentsPowerNapSheet = true
+    } label: {
+      HStack(spacing: 10) {
+        Image(systemName: activePowerNap == nil ? "bed.double.fill" : "bed.double.circle.fill")
+          .font(.headline.weight(.bold))
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(activePowerNap == nil ? "Power Nap" : "Power Nap Armed")
+            .lineLimit(1)
+
+          if let activePowerNap {
+            Text(activePowerNap.fireDate.formatted(date: .omitted, time: .shortened))
+              .font(.caption.monospacedDigit().weight(.bold))
+              .foregroundStyle(RGTheme.gold)
+          }
+        }
+
+        Spacer(minLength: 8)
+
+        if activePowerNap != nil {
+          Text("ARMED")
+            .font(.caption2.weight(.black))
+            .tracking(0.8)
+            .foregroundStyle(RGTheme.gold)
+        }
+      }
+    }
+    .accessibilityLabel(
+      activePowerNap == nil ? "Set Power Nap" : "Power Nap armed"
+    )
+    .accessibilityValue(
+      activePowerNap?.fireDate.formatted(date: .omitted, time: .shortened) ?? "Not armed"
+    )
   }
 
   private var grindDays: some View {

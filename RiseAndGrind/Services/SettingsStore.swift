@@ -309,7 +309,7 @@ struct SettingsStore: @unchecked Sendable {
     _ settings: RiseAndGrindSettings
   ) -> RiseAndGrindSettings {
     let currentVersion = defaults.integer(forKey: Key.settingsDefaultsVersion)
-    guard currentVersion < 5 else {
+    guard currentVersion < 6 else {
       return settings
     }
 
@@ -340,7 +340,20 @@ struct SettingsStore: @unchecked Sendable {
         RiseAndGrindSettings.defaultWakeChallengeSquatCount
     }
 
-    defaults.set(5, forKey: Key.settingsDefaultsVersion)
+    if currentVersion < 6 {
+      let selectedTieredIDs = migrated.selectedSoundIDs.intersection(
+        RiseAndGrindSettings.defaultSelectedSoundIDs
+      )
+      if selectedTieredIDs.isEmpty {
+        let importedIDs = migrated.selectedSoundIDs.filter {
+          $0.hasPrefix("imported-")
+        }
+        migrated.selectedSoundIDs =
+          RiseAndGrindSettings.defaultSelectedSoundIDs.union(importedIDs)
+      }
+    }
+
+    defaults.set(6, forKey: Key.settingsDefaultsVersion)
     if migrated != settings {
       saveSettings(migrated)
     }

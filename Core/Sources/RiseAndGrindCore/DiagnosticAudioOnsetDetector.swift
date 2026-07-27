@@ -162,7 +162,7 @@ public struct DiagnosticAudioOnsetDetector: Sendable {
     let hasEnergyContrast =
       boundedRMS
       >= noiseFloorDecibelsFullScale
-        + configuration.rootMeanSquareAboveNoiseFloorDecibels
+      + configuration.rootMeanSquareAboveNoiseFloorDecibels
     guard
       !isLatched,
       debounceCleared,

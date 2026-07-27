@@ -95,7 +95,7 @@ struct SoundLibrary: Sendable {
 
   func selectedSounds(for settings: RiseAndGrindSettings) -> [AlarmSoundChoice] {
     let selected = allSounds().filter { settings.selectedSoundIDs.contains($0.id) }
-    return selected.isEmpty ? [.system] : selected
+    return selected.isEmpty ? Self.builtInSounds : selected
   }
 
   func importAudio(from source: URL, displayName: String? = nil) async throws
@@ -269,10 +269,13 @@ struct SoundLibrary: Sendable {
         BundledSoundManifest.self,
         from: Data(contentsOf: manifestURL)
       )
-      guard manifest.schemaVersion == 2,
-        manifest.trackCount == 100,
+      guard manifest.schemaVersion == 4,
+        manifest.trackCount == 500,
         manifest.tracks.count == manifest.trackCount,
         Set(manifest.tracks.map(\.id)).count == manifest.trackCount,
+        Set(manifest.tierCounts.values) == [100],
+        Set(manifest.tierCounts.keys)
+          == Set(AlarmIntensityTier.allCases.map(\.rawValue)),
         manifest.tracks.allSatisfy(\.defaultSelected)
       else {
         fatalError("The bundled sound manifest is incomplete or invalid.")
@@ -288,6 +291,7 @@ struct SoundLibrary: Sendable {
           displayName: track.displayName,
           artistName: track.artistName,
           genreName: track.genreName,
+          intensityTier: track.intensityTier,
           fileName: track.alarmFilename,
           previewFileName: track.previewFilename
         )
@@ -463,6 +467,7 @@ struct SoundLibrary: Sendable {
 private struct BundledSoundManifest: Decodable, Sendable {
   let schemaVersion: Int
   let trackCount: Int
+  let tierCounts: [String: Int]
   let tracks: [BundledSoundManifestTrack]
 }
 
@@ -471,6 +476,7 @@ private struct BundledSoundManifestTrack: Decodable, Sendable {
   let displayName: String
   let artistName: String
   let genreName: String
+  let intensityTier: AlarmIntensityTier
   let alarmFilename: String
   let previewFilename: String
   let defaultSelected: Bool

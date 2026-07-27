@@ -24,6 +24,7 @@ struct AlarmSoundsView: View {
   @State private var presentsPhotoPicker = false
   @State private var selectedPhoto: PhotosPickerItem?
   @State private var trimRequest: VideoTrimRequest?
+  @State private var expandedTiers: Set<AlarmIntensityTier> = []
 
   var body: some View {
     RGScreenBackground {
@@ -44,8 +45,8 @@ struct AlarmSoundsView: View {
 
           soundSectionLabel("Alarm library", systemImage: "bolt.horizontal.circle.fill")
 
-          ForEach(librarySounds) { sound in
-            soundRow(sound)
+          ForEach(AlarmIntensityTier.allCases) { tier in
+            tierGroup(tier)
           }
         }
         .padding(.horizontal, 18)
@@ -141,8 +142,56 @@ struct AlarmSoundsView: View {
     rankedSounds.filter { $0.id.hasPrefix("imported-") }
   }
 
-  private var librarySounds: [AlarmSoundChoice] {
-    rankedSounds.filter { !$0.id.hasPrefix("imported-") }
+  private func librarySounds(for tier: AlarmIntensityTier) -> [AlarmSoundChoice] {
+    rankedSounds.filter { !$0.id.hasPrefix("imported-") && $0.intensityTier == tier }
+  }
+
+  @ViewBuilder
+  private func tierGroup(_ tier: AlarmIntensityTier) -> some View {
+    let tierSounds = librarySounds(for: tier)
+    let isExpanded = expandedTiers.contains(tier)
+    let selectedCount = tierSounds.filter { selectedSoundIDs.contains($0.id) }.count
+
+    Button {
+      withAnimation(.snappy(duration: 0.24)) {
+        if isExpanded {
+          expandedTiers.remove(tier)
+        } else {
+          expandedTiers.insert(tier)
+        }
+      }
+    } label: {
+      RGCard(accent: isExpanded ? RGTheme.orange : RGTheme.graphite) {
+        HStack(spacing: 12) {
+          VStack(alignment: .leading, spacing: 3) {
+            Text(tier.displayName.uppercased())
+              .font(.subheadline.weight(.black))
+              .tracking(0.8)
+              .foregroundStyle(RGTheme.cream)
+            Text("\(selectedCount) OF \(tierSounds.count) SELECTED")
+              .font(.caption2.weight(.bold))
+              .tracking(0.6)
+              .foregroundStyle(RGTheme.gold)
+          }
+          Spacer()
+          Image(systemName: "chevron.right")
+            .font(.subheadline.weight(.black))
+            .foregroundStyle(RGTheme.orange)
+            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+        }
+      }
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(
+      "\(tier.displayName), \(tierSounds.count) songs, \(isExpanded ? "expanded" : "collapsed")"
+    )
+
+    if isExpanded {
+      ForEach(tierSounds) { sound in
+        soundRow(sound)
+          .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+    }
   }
 
   private func soundSectionLabel(_ title: String, systemImage: String) -> some View {
