@@ -23,6 +23,7 @@ struct OnboardingView: View {
   @State private var isShowingSquatCalibration = false
   @State private var isShowingAutomationDeferralWarning = false
   @State private var accessCelebrationProgress: CGFloat = 0
+  @State private var celebrationButtonGlow: CGFloat = 0
 
   var body: some View {
     Group {
@@ -93,6 +94,13 @@ struct OnboardingView: View {
     OnboardingProgressHeader(currentStep: step)
   }
 
+  /// Non-zero only while the access celebration is on screen, so every other
+  /// step's footer keeps a plain unlit button.
+  private var celebrationGlow: CGFloat {
+    guard step == 2, requiredPermissionsReady else { return 0 }
+    return celebrationButtonGlow
+  }
+
   private var isNextEnabled: Bool {
     switch step {
     case 2:
@@ -159,22 +167,35 @@ struct OnboardingView: View {
     }
   }
 
+  @ViewBuilder
   private var permissionsStep: some View {
-    VStack(spacing: 18) {
-      RGSectionHeading(
-        "Grant required permissions",
-        eyebrow: "Step 3 · System permissions",
-        detail:
-          "Certain permissions are required to function, but Shad guarantees not to abuse it."
-      )
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      if requiredPermissionsReady {
+    if requiredPermissionsReady {
+      // Claim the whole scroll viewport so the celebration can centre itself in
+      // what is left under the heading rather than hugging it. The inset matches
+      // the scroll content's own vertical padding, so nothing starts scrolling.
+      VStack(spacing: 18) {
+        permissionsHeading
         accessConfirmedCelebration
-      } else {
+      }
+      .containerRelativeFrame(.vertical, alignment: .top) { height, _ in
+        max(height - 30, 240)
+      }
+    } else {
+      VStack(spacing: 18) {
+        permissionsHeading
         permissionsContent
       }
     }
+  }
+
+  private var permissionsHeading: some View {
+    RGSectionHeading(
+      "Grant required permissions",
+      eyebrow: "Step 3 · System permissions",
+      detail:
+        "Certain permissions are required to function, but Shad guarantees not to abuse it."
+    )
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private var permissionsContent: some View {
@@ -212,28 +233,55 @@ struct OnboardingView: View {
     }
   }
 
+  private static let celebrationCoinDiameter: CGFloat = 240
+
   private var accessConfirmedCelebration: some View {
-    VStack(spacing: 22) {
+    VStack(spacing: 26) {
       Text("ACCESS CONFIRMED")
         .font(.title.weight(.black))
         .foregroundStyle(RGTheme.mint)
 
       ZStack {
+        // Blooms wider than the phone so the light runs off both edges. Every
+        // value here rises with progress: SwiftUI interpolates the computed
+        // result, so a non-monotonic curve would animate between its endpoints
+        // and never actually be seen.
+        Circle()
+          .fill(RGTheme.mint)
+          .frame(
+            width: Self.celebrationCoinDiameter,
+            height: Self.celebrationCoinDiameter
+          )
+          .scaleEffect(1.25 + (accessCelebrationProgress * 0.9))
+          .blur(radius: 60 + (accessCelebrationProgress * 50))
+          .opacity(0.25 + (accessCelebrationProgress * 0.5))
+
         RGSquatCoinAttentionGlow(
-          diameter: 150,
+          diameter: Self.celebrationCoinDiameter * 1.15,
           progress: accessCelebrationProgress,
           isActive: true
         )
-        RGSquatCoinFace(imageName: "SquatCoinUp", diameter: 130, accent: RGTheme.mint)
+        RGSquatCoinFace(
+          imageName: "SquatCoinUp",
+          diameter: Self.celebrationCoinDiameter,
+          accent: RGTheme.mint
+        )
       }
-      .frame(height: 170)
     }
-    .frame(maxWidth: .infinity)
-    .padding(.vertical, 16)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .onAppear {
       accessCelebrationProgress = 0
+      celebrationButtonGlow = 0
       withAnimation(.easeInOut(duration: 2.6)) {
         accessCelebrationProgress = 1
+      }
+      // A hard flash that settles back to a steady halo, pointing at the button
+      // the celebration is about to hand off to.
+      withAnimation(.easeOut(duration: 0.5)) {
+        celebrationButtonGlow = 1
+      }
+      withAnimation(.easeInOut(duration: 1.5).delay(0.6)) {
+        celebrationButtonGlow = 0.45
       }
       DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
         guard step == 2 else { return }
@@ -354,6 +402,14 @@ struct OnboardingView: View {
         .buttonStyle(RGPrimaryButtonStyle())
         .disabled(nextDisabled)
         .opacity(nextDisabled ? 0.45 : 1)
+        .shadow(
+          color: RGTheme.mint.opacity(0.95 * celebrationGlow),
+          radius: 20 * celebrationGlow
+        )
+        .shadow(
+          color: RGTheme.mint.opacity(0.55 * celebrationGlow),
+          radius: 48 * celebrationGlow
+        )
       }
     }
     .frame(height: 54)
