@@ -56,7 +56,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kevin.riseandgrind.alarmkit
         PRODUCT_NAME: RiseAndGrind
-        MARKETING_VERSION: "0.7.1"
+        MARKETING_VERSION: "0.7.2"
         CURRENT_PROJECT_VERSION: "14"
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic

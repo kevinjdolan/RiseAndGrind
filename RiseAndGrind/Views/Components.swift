@@ -217,7 +217,7 @@ struct RGLadderEditor: View {
       Stepper(value: $count, in: 0...12) {
         label(
           title: "Nudge Count",
-          detail: "Number of optional alarms before the Grind Time Challenge™",
+          detail: "Number of optional alarms",
           value: "\(count)"
         )
       }
@@ -226,8 +226,8 @@ struct RGLadderEditor: View {
 
       Stepper(value: $spacingMinutes, in: 1...60) {
         label(
-          title: "Nudge Snooze Duration",
-          detail: "Delay time when you Snooze a Nudge",
+          title: "Nudge Snooze",
+          detail: "Delay between nudges",
           value: "\(spacingMinutes) min"
         )
       }
@@ -237,7 +237,7 @@ struct RGLadderEditor: View {
       Stepper(value: finalWarning, in: 1...max(1, spacingMinutes)) {
         label(
           title: "Final Warning",
-          detail: "Minutes before Grind Time for the final Nudge",
+          detail: "Final nudge before Grind Time",
           value: "\(finalWarning.wrappedValue) min"
         )
       }
@@ -301,7 +301,7 @@ struct RGAlarmConfigurationCard: View {
 
       RGTimePicker(
         title: "Grind Time",
-        detail: "Default Time for the Grind Time Challenge™",
+        detail: "Default wake-up goal",
         hour: $settings.grindHour,
         minute: $settings.grindMinute
       )
@@ -310,7 +310,7 @@ struct RGAlarmConfigurationCard: View {
 
       RGDurationEditor(
         title: "Event Buffer",
-        detail: "Time before earliest event to target wake-up",
+        detail: "Time before early event to override Grind Time",
         minutes: $settings.eventBufferMinutes
       )
 

@@ -2407,7 +2407,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7.1;
+				MARKETING_VERSION = 0.7.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
@@ -2493,7 +2493,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7.1;
+				MARKETING_VERSION = 0.7.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
