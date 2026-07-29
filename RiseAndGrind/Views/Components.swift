@@ -310,7 +310,7 @@ struct RGAlarmConfigurationCard: View {
 
       RGDurationEditor(
         title: "Event Buffer",
-        detail: "Time before early event to override Grind Time",
+        detail: "Wake time before early event",
         minutes: $settings.eventBufferMinutes
       )
 
