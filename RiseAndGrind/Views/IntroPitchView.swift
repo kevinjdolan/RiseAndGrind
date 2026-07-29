@@ -45,7 +45,12 @@ struct IntroPitchView: View {
       }
       .allowsHitTesting(phase == .onboardingPreview)
       .accessibilityHidden(phase != .onboardingPreview)
-      .blur(radius: phase == .onboardingPreview ? 0 : 55)
+      // Enough blur to make the copy unreadable, but not so much that the step
+      // stops reading as a page sitting behind the call. The scale pushes the
+      // blur's transparent edge falloff off screen, which is what was darkening
+      // the borders into the black underlay.
+      .blur(radius: phase == .onboardingPreview ? 0 : 18)
+      .scaleEffect(phase == .onboardingPreview ? 1 : 1.08)
       .opacity(phase == .videoPlaying ? 0 : 1)
 
       IntroPitchVideoPlayer(player: player)
@@ -463,15 +468,15 @@ private struct IncomingCallOverlay: View {
 
         VStack(spacing: 0) {
           VStack(spacing: 4) {
-            Text("Incoming Call\(footnoteMark(1, size: 14))")
+            Text("Incoming Call\(footnoteMark(1, size: 18))")
               .font(.title.weight(.black))
               .foregroundStyle(.white)
 
-            Text("Shad\(footnoteMark(2, size: 10)) Sterling Hustleton, Jr.")
+            Text("Shad\(footnoteMark(2, size: 13)) Sterling Hustleton, Jr.")
               .font(.title3.weight(.bold))
               .foregroundStyle(.white)
 
-            Text("POSSIBLE GLAM\(footnoteMark(3, size: 7))")
+            Text("POSSIBLE GLAM\(footnoteMark(3, size: 9))")
               .font(.caption.weight(.black))
               .tracking(1.6)
               .foregroundStyle(RGTheme.danger)
@@ -481,7 +486,9 @@ private struct IncomingCallOverlay: View {
           .accessibilityElement(children: .combine)
           .accessibilityLabel("Incoming call from Shad Sterling Hustleton, Junior, possible glam")
 
-          Spacer(minLength: 16)
+          // The portrait rides high in the leftover space: one share of the
+          // slack above it against three below.
+          Spacer(minLength: 12)
 
           ShadCallPortrait(isRejecting: isRejectEngaged)
             .frame(width: avatarSize, height: avatarSize)
@@ -491,11 +498,13 @@ private struct IncomingCallOverlay: View {
             .shadow(color: RGTheme.danger.opacity(0.35), radius: 26, y: 14)
             .accessibilityHidden(true)
 
-          // Spans the avatar's flat edge, stopping where its corners start to curve.
-          FootnoteLegend(width: avatarSize - Self.avatarCornerRadius * 2)
-            .padding(.top, 8)
+          // Runs the full width of the portrait, out through its rounded corners.
+          FootnoteLegend(width: avatarSize)
+            .padding(.top, 10)
 
-          Spacer(minLength: 16)
+          Spacer(minLength: 12)
+          Spacer()
+          Spacer()
 
           VStack(spacing: 12) {
             SlideActionControl(
@@ -539,9 +548,9 @@ private struct IncomingCallOverlay: View {
   private func footnoteMark(_ number: Int, size: CGFloat) -> Text {
     let mark = IntroPitchFootnotes.marks[number - 1]
     return Text(mark.glyph)
-      .font(.system(size: size, weight: .bold))
+      .font(.system(size: size, weight: .black))
       .baselineOffset(size * mark.rise)
-      .foregroundStyle(RGTheme.mutedCream)
+      .foregroundStyle(RGTheme.gold)
   }
 }
 
@@ -566,12 +575,14 @@ private struct FootnoteLegend: View {
   private struct Run {
     let text: String
     var isItalic = false
-    var isBold = false
+    /// The leading footnote glyph, set heavier and in gold so the marks tie
+    /// back to the ones annotating the title.
+    var isMark = false
   }
 
   private static let lines: [[Run]] = [
     [
-      Run(text: "\(IntroPitchFootnotes.marks[0].glyph) ", isBold: true),
+      Run(text: "\(IntroPitchFootnotes.marks[0].glyph) ", isMark: true),
       Run(text: "This call is not real. But it "),
       Run(text: "is", isItalic: true),
       Run(text: " informative and there "),
@@ -579,11 +590,11 @@ private struct FootnoteLegend: View {
       Run(text: " Easter Eggs."),
     ],
     [
-      Run(text: "\(IntroPitchFootnotes.marks[1].glyph) ", isBold: true),
+      Run(text: "\(IntroPitchFootnotes.marks[1].glyph) ", isMark: true),
       Run(text: "Shad is not real. He is a construct, an abstraction of toxic masculinity."),
     ],
     [
-      Run(text: "\(IntroPitchFootnotes.marks[2].glyph) ", isBold: true),
+      Run(text: "\(IntroPitchFootnotes.marks[2].glyph) ", isMark: true),
       Run(text: "Glam not guaranteed, but waking up on time can't hurt."),
     ],
   ]
@@ -598,14 +609,14 @@ private struct FootnoteLegend: View {
           .allowsTightening(true)
       }
     }
-    .foregroundStyle(RGTheme.mutedCream.opacity(0.7))
     .frame(width: width, alignment: .leading)
   }
 
   private static func text(for line: [Run], size: CGFloat) -> Text {
     line.reduce(Text(verbatim: "")) { result, run in
       var piece = Text(verbatim: run.text)
-        .font(.system(size: size, weight: run.isBold ? .bold : .regular))
+        .font(.system(size: size, weight: run.isMark ? .black : .semibold))
+        .foregroundStyle(run.isMark ? RGTheme.gold : RGTheme.cream.opacity(0.95))
       if run.isItalic {
         piece = piece.italic()
       }
@@ -639,7 +650,7 @@ private struct FootnoteLegend: View {
   }
 
   private static func uiFont(for run: Run, size: CGFloat) -> UIFont {
-    let base = UIFont.systemFont(ofSize: size, weight: run.isBold ? .bold : .regular)
+    let base = UIFont.systemFont(ofSize: size, weight: run.isMark ? .black : .semibold)
     guard
       run.isItalic,
       let descriptor = base.fontDescriptor.withSymbolicTraits(.traitItalic)
