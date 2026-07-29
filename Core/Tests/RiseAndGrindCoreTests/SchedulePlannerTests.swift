@@ -15,6 +15,24 @@ final class SchedulePlannerTests: XCTestCase {
     XCTAssertTrue(RiseAndGrindSettings.defaults.alwaysWakeBeforeGrindTime)
   }
 
+  func testBarrageDefaultsToThreeNudgesEightMinutesApart() {
+    XCTAssertEqual(RiseAndGrindSettings.defaults.barrage, BarrageSettings.defaults)
+    XCTAssertEqual(RiseAndGrindSettings.defaults.barrage.alarmCount, 3)
+    XCTAssertEqual(RiseAndGrindSettings.defaults.barrage.spacingMinutes, 8)
+  }
+
+  /// Settings written before `barrage` existed fall back to the current defaults.
+  func testSettingsWithoutBarrageDecodeToTheBarrageDefaults() throws {
+    let data = try XCTUnwrap(
+      #"{"grindHour":5,"grindMinute":30,"alwaysWakeBeforeGrindTime":true,"selectedSoundIDs":["system"]}"#
+        .data(using: .utf8)
+    )
+
+    let settings = try JSONDecoder().decode(RiseAndGrindSettings.self, from: data)
+
+    XCTAssertEqual(settings.barrage, BarrageSettings.defaults)
+  }
+
   func testEveryDayIsEnabledByDefault() {
     XCTAssertEqual(RiseAndGrindSettings.defaults.enabledDays, GrindDay.everyDay)
   }

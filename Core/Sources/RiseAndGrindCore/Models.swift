@@ -133,6 +133,8 @@ public struct BarrageSettings: Codable, Equatable, Sendable {
   public var spacingMinutes: Int
   public var finalWarningMinutes: Int
 
+  public static let defaults = BarrageSettings(alarmCount: 3, spacingMinutes: 8)
+
   public init(
     alarmCount: Int,
     spacingMinutes: Int,
@@ -247,7 +249,7 @@ public struct RiseAndGrindSettings: Codable, Equatable, Sendable {
     grindHour: 5,
     grindMinute: 30,
     alwaysWakeBeforeGrindTime: true,
-    barrage: BarrageSettings(alarmCount: 6, spacingMinutes: 10),
+    barrage: .defaults,
     selectedSoundIDs: defaultSelectedSoundIDs,
     enabledDays: GrindDay.everyDay
   )
@@ -285,7 +287,7 @@ public struct RiseAndGrindSettings: Codable, Equatable, Sendable {
         try container.decodeIfPresent(Bool.self, forKey: .alwaysWakeBeforeGrindTime) ?? true
       barrage =
         try container.decodeIfPresent(BarrageSettings.self, forKey: .barrage)
-        ?? BarrageSettings(alarmCount: 6, spacingMinutes: 10)
+        ?? .defaults
       selectedSoundIDs =
         try container.decodeIfPresent(Set<String>.self, forKey: .selectedSoundIDs)
         ?? Self.defaultSelectedSoundIDs
