@@ -14,6 +14,10 @@ enum RGTheme {
   static let mint = Color(red: 0.310, green: 0.960, blue: 0.690)
   static let coolBlue = Color(red: 0.110, green: 0.610, blue: 1.000)
   static let purple = Color(red: 0.545, green: 0.310, blue: 0.965)
+  /// Pending nudges — deliberately quieter than the alarm they lead up to.
+  static let pastelBlue = Color(red: 0.620, green: 0.800, blue: 0.980)
+  /// Alarms a completed challenge has already stood down.
+  static let pastelMint = Color(red: 0.660, green: 0.900, blue: 0.800)
   static let danger = Color(red: 1.000, green: 0.265, blue: 0.250)
 
   static let brandGradient = LinearGradient(

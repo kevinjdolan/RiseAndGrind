@@ -387,13 +387,15 @@ public struct PlannedAlarm: Codable, Equatable, Identifiable, Sendable {
   }
 
   public var displayTitle: String {
-    let prefix =
+    // Only the canonical alarm carries the reason; nudges are numbered on their
+    // own so the row reads as its position in the stack.
+    guard !isCanonical else {
       switch reason {
-      case .grindTime: "Grind Time"
-      case .earlyMeeting: "Early Bird"
+      case .grindTime: return "Grind Time"
+      case .earlyMeeting: return "Early Bird"
       }
-    guard !isCanonical else { return prefix }
-    return "\(prefix) nudge \(ordinal)/\(max(1, total - 1))"
+    }
+    return "Nudge \(ordinal)/\(max(1, total - 1))"
   }
 
   private enum CodingKeys: String, CodingKey {

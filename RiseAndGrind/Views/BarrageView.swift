@@ -45,6 +45,7 @@ struct BarrageView: View {
             accent: RGTheme.mint,
             alarms: upcomingAlarms,
             events: alarmLedger.events,
+            disarmedAlarmIDs: disarmedAlarmIDs,
             chronological: true,
             emptyMessage: "No alarms are currently planned for the next 24 hours.",
             select: { selectedAlarm = $0 },
@@ -58,6 +59,7 @@ struct BarrageView: View {
             accent: RGTheme.coolBlue,
             alarms: pastAlarms,
             events: alarmLedger.events,
+            disarmedAlarmIDs: disarmedAlarmIDs,
             chronological: false,
             emptyMessage: "No retained alarm history yet.",
             select: { selectedAlarm = $0 },
@@ -164,6 +166,32 @@ struct BarrageView: View {
       .sorted { Self.alarmAscending($1, $0) }
   }
 
+  /// Completing a challenge cancels the rest of its stack — see
+  /// `NightlyCoordinator.completeWakeChallenge`, which calls `cancelAlarmSet`.
+  /// Anything still pending in that set afterwards will never sound, so the
+  /// agenda shows it stood down rather than armed. Derived from the whole ledger
+  /// because the completed alarm and the alarms it disarmed usually land in
+  /// different sections.
+  private var disarmedAlarmIDs: Set<UUID> {
+    let completionBySet = Dictionary(
+      alarmLedger.alarms.compactMap { alarm -> (UUID, Date)? in
+        guard alarm.current.lifecycle == .challengeCompleted else { return nil }
+        return (alarm.setID, alarm.current.fireDate)
+      },
+      uniquingKeysWith: min
+    )
+    guard !completionBySet.isEmpty else { return [] }
+    return Set(
+      alarmLedger.alarms
+        .filter { alarm in
+          guard let completedAt = completionBySet[alarm.setID] else { return false }
+          guard !alarm.current.lifecycle.isTerminal else { return false }
+          return alarm.current.fireDate > completedAt
+        }
+        .map(\.id)
+    )
+  }
+
   private var activeAlarmCount: Int {
     visibleAlarms.count { $0.current.lifecycle.isActive }
   }
@@ -213,6 +241,7 @@ private struct AlarmAgendaSection: View {
   let accent: Color
   let alarms: [AlarmLedgerAlarm]
   let events: [AlarmLedgerEvent]
+  let disarmedAlarmIDs: Set<UUID>
   let chronological: Bool
   let emptyMessage: String
   let select: (AlarmLedgerAlarm) -> Void
@@ -256,6 +285,7 @@ private struct AlarmAgendaSection: View {
               AlarmAgendaRow(
                 alarm: alarm,
                 eventCount: events.count { $0.alarmID == alarm.id },
+                isDisarmed: disarmedAlarmIDs.contains(alarm.id),
                 accent: accent,
                 select: { select(alarm) },
                 edit: { edit(alarm) }
@@ -309,6 +339,7 @@ private struct AlarmAgendaDayGroup: Identifiable {
 private struct AlarmAgendaRow: View {
   let alarm: AlarmLedgerAlarm
   let eventCount: Int
+  let isDisarmed: Bool
   let accent: Color
   let select: () -> Void
   let edit: () -> Void
@@ -352,9 +383,9 @@ private struct AlarmAgendaRow: View {
           .strikethrough(alarm.isDeprecated, color: RGTheme.orange)
 
         HStack(spacing: 8) {
+          // The slot label used to sit here too, but the title now carries the
+          // same "Nudge 3/6" wording.
           Text(alarm.owner.agendaLabel)
-          Text("•")
-          Text(alarm.slot.agendaLabel(current: alarm.current))
 
           if hasCustomOverride {
             Text("•")
@@ -425,16 +456,50 @@ private struct AlarmAgendaRow: View {
       || alarm.current.lifecycle == .silenced
   }
 
+  /// The stack's nudges — everything leading up to the Grind Time alarm.
+  private var isNudge: Bool {
+    !alarm.current.isCanonical
+  }
+
+  /// True while this alarm is still waiting to fire, as opposed to one that has
+  /// already run, been snoozed, or been retired.
+  private var isPending: Bool {
+    alarm.current.lifecycle == .planned || alarm.current.lifecycle == .scheduled
+  }
+
   private var displayedStateLabel: String {
-    isMuted ? "Muted" : alarm.current.lifecycle.agendaLabel
+    if isDisarmed {
+      return "Disarmed"
+    }
+    return isMuted ? "Muted" : alarm.current.lifecycle.agendaLabel
   }
 
   private var displayedIcon: String {
-    isMuted ? "speaker.slash.fill" : alarm.current.lifecycle.agendaIcon
+    if isDisarmed {
+      return "bell.slash.fill"
+    }
+    if isMuted {
+      return "speaker.slash.fill"
+    }
+    // A pending nudge is a gentle poke, not the alarm clock it builds toward.
+    if isNudge, alarm.current.lifecycle == .scheduled {
+      return "bell.fill"
+    }
+    return alarm.current.lifecycle.agendaIcon
   }
 
   private var displayedColor: Color {
-    isMuted ? RGTheme.orange : alarm.current.lifecycle.agendaColor
+    if isDisarmed {
+      return RGTheme.pastelMint
+    }
+    if isMuted {
+      return RGTheme.orange
+    }
+    // Pending nudges stay quiet; the alarm they lead up to does not.
+    if isPending {
+      return isNudge ? RGTheme.pastelBlue : RGTheme.purple
+    }
+    return alarm.current.lifecycle.agendaColor
   }
 }
 

@@ -265,12 +265,12 @@ final class SchedulePlannerTests: XCTestCase {
     XCTAssertEqual(
       plan.alarms.map(\.displayTitle),
       [
-        "Grind Time nudge 1/6",
-        "Grind Time nudge 2/6",
-        "Grind Time nudge 3/6",
-        "Grind Time nudge 4/6",
-        "Grind Time nudge 5/6",
-        "Grind Time nudge 6/6",
+        "Nudge 1/6",
+        "Nudge 2/6",
+        "Nudge 3/6",
+        "Nudge 4/6",
+        "Nudge 5/6",
+        "Nudge 6/6",
         "Grind Time",
       ]
     )
@@ -370,9 +370,9 @@ final class SchedulePlannerTests: XCTestCase {
     XCTAssertEqual(
       plan.alarms.map(\.displayTitle),
       [
-        "Early Bird nudge 1/3",
-        "Early Bird nudge 2/3",
-        "Early Bird nudge 3/3",
+        "Nudge 1/3",
+        "Nudge 2/3",
+        "Nudge 3/3",
         "Early Bird",
       ]
     )
