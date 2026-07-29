@@ -28,8 +28,6 @@ struct ContentView: View {
             }
           )
           .id(request.id)
-        } else if !model.hasHandledIntroPitch {
-          IntroPitchView(complete: model.recordIntroPitch)
         } else if model.isAppReady {
           appTabs(model: model)
         } else {
@@ -104,13 +102,11 @@ struct ContentView: View {
         DashboardView(
           settings: $model.settings,
           muteState: model.muteState,
-          riseTime: model.riseTime,
           scheduledPowerNaps: model.scheduledPowerNaps,
           isWorking: model.isWorking,
           schedulePowerNap: { fireDate in
             await model.schedulePowerNap(at: fireDate) != nil
           },
-          setMute: model.setMute,
           clearMute: model.clearMute
         )
       }
@@ -121,17 +117,25 @@ struct ContentView: View {
 
       NavigationStack {
         BarrageView(
-          settings: $model.settings,
-          scheduledAlarms: model.scheduledAlarms,
-          scheduledTestAlarms: model.scheduledTestAlarms,
-          scheduledPowerNaps: model.scheduledPowerNaps,
-          mutedAlarms: model.mutedAlarms,
-          muteState: model.muteState
+          alarmLedger: model.alarmLedger,
+          calendarInfluences: model.calendarInfluences,
+          setCalendarInfluenceIgnored: { influence, isIgnored in
+            await model.setCalendarInfluenceIgnored(
+              influence,
+              isIgnored: isIgnored
+            )
+          },
+          setAlarmUserOverride: { alarmID, userOverride in
+            await model.setAlarmUserOverride(
+              userOverride,
+              for: alarmID
+            )
+          }
         )
       }
-      .tag(AppTab.barrage)
+      .tag(AppTab.agenda)
       .tabItem {
-        Label("Stack", systemImage: "rectangle.stack.fill")
+        Label("Agenda", systemImage: "calendar.badge.clock")
       }
 
       NavigationStack {
@@ -371,7 +375,7 @@ private struct RGNowPlayingPill: View {
 
 private enum AppTab: Hashable {
   case grind
-  case barrage
+  case agenda
   case sounds
   case setup
 }

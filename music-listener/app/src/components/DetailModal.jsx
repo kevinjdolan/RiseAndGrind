@@ -8,12 +8,19 @@ function extOf(objectName) {
   return match ? match[1] : "audio";
 }
 
-function DownloadLink({ song, objectName, clipLabel }) {
-  const filename = `${song.title} - ${clipLabel}.${extOf(objectName)}`;
+const PROVIDER_LABELS = { lyria: "Lyria", elevenlabs: "Eleven Labs" };
+const CLIP_KINDS = [
+  { field: "generated", label: "Clip" },
+  { field: "loop", label: "Loop" },
+  { field: "seam", label: "Seam" },
+];
+
+function DownloadLink({ song, objectName, providerLabel, kind }) {
+  const filename = `${song.title} - ${providerLabel} ${kind}.${extOf(objectName)}`;
   return (
     <a className="dl-link" href={gcsUrl(objectName)} download={filename}>
       <DownloadIcon />
-      {clipLabel.split(" ")[1]}
+      {kind}
     </a>
   );
 }
@@ -30,9 +37,14 @@ export default function DetailModal({ song, onClose }) {
 
   if (!song) return null;
 
-  const lyria = song.providers.lyria;
-  const eleven = song.providers.elevenlabs;
-  const samePrompt = lyria.prompt === eleven.prompt;
+  // A set declares its own providers (v9 is ElevenLabs-only), so render
+  // whichever ones this song actually carries.
+  const entries = Object.entries(song.providers).map(([key, clips]) => ({
+    key,
+    label: PROVIDER_LABELS[key] || key,
+    clips,
+  }));
+  const samePrompt = entries.every((entry) => entry.clips.prompt === entries[0].clips.prompt);
 
   return (
     <div
@@ -51,18 +63,20 @@ export default function DetailModal({ song, onClose }) {
         </div>
 
         <div className="downloads">
-          <div className="dl-group">
-            <span className="dl-group-label">Lyria</span>
-            <DownloadLink song={song} objectName={lyria.generated} clipLabel="Lyria Output" />
-            <DownloadLink song={song} objectName={lyria.loopX2} clipLabel="Lyria Loop" />
-            <DownloadLink song={song} objectName={lyria.seam} clipLabel="Lyria Seam" />
-          </div>
-          <div className="dl-group">
-            <span className="dl-group-label">Eleven Labs</span>
-            <DownloadLink song={song} objectName={eleven.generated} clipLabel="ElevenLabs Output" />
-            <DownloadLink song={song} objectName={eleven.loopX2} clipLabel="ElevenLabs Loop" />
-            <DownloadLink song={song} objectName={eleven.seam} clipLabel="ElevenLabs Seam" />
-          </div>
+          {entries.map(({ key, label, clips }) => (
+            <div className="dl-group" key={key}>
+              <span className="dl-group-label">{label}</span>
+              {CLIP_KINDS.map(({ field, label: kind }) => (
+                <DownloadLink
+                  key={field}
+                  song={song}
+                  objectName={clips[field]}
+                  providerLabel={label}
+                  kind={kind}
+                />
+              ))}
+            </div>
+          ))}
         </div>
 
         <div className="modal-columns">
@@ -97,16 +111,21 @@ export default function DetailModal({ song, onClose }) {
 
             {samePrompt ? (
               <>
-                <h4>Generation prompt (Lyria &amp; ElevenLabs — identical)</h4>
-                <div className="prompt-block">{lyria.prompt}</div>
+                <h4>
+                  Generation prompt
+                  {entries.length > 1
+                    ? ` (${entries.map((entry) => entry.label).join(" & ")} — identical)`
+                    : ` — ${entries[0].label}`}
+                </h4>
+                <div className="prompt-block">{entries[0].clips.prompt}</div>
               </>
             ) : (
-              <>
-                <h4>Generation prompt — Lyria</h4>
-                <div className="prompt-block">{lyria.prompt}</div>
-                <h4>Generation prompt — ElevenLabs</h4>
-                <div className="prompt-block">{eleven.prompt}</div>
-              </>
+              entries.map(({ key, label, clips }) => (
+                <div key={key}>
+                  <h4>Generation prompt — {label}</h4>
+                  <div className="prompt-block">{clips.prompt}</div>
+                </div>
+              ))
             )}
           </div>
         </div>

@@ -18,10 +18,11 @@ export default function App() {
       .catch((error) => setLoadError(error.message));
   }, []);
 
-  function handlePlay(song, providerKey, providerLabel, field, clipLabel, src) {
+  function handlePlay({ song, providerLabel, clipLabel, src, repeat }) {
     nonceRef.current += 1;
     setPlayback({
       src,
+      repeat,
       title: `${song.title} — ${song.artist}`,
       sub: `${tierLabel(song.tier)} · ${song.genre}`,
       tag: `${providerLabel} · ${clipLabel}`,
@@ -31,7 +32,7 @@ export default function App() {
 
   return (
     <>
-      <Hero />
+      <Hero sets={catalog?.sets} />
 
       {loadError && <p className="status-line error">Could not load catalog.json: {loadError}</p>}
       {!catalog && !loadError && <p className="status-line">Loading catalog…</p>}

@@ -7,7 +7,7 @@ The default policy is:
 - Grind Time: 5:30 AM
 - Lock In: on
 - Active days: every day
-- Attack stack: six alarms, ten-minute cadence, with a final warning three minutes before Grind Time
+- Attack stack: six nudges, ten-minute cadence, with a final warning three minutes before Grind Time, then the Grind Time challenge alarm itself
 - Sound pool: all 100 loop-authored, 29-second vocal tracks selected by default
 
 ## How the next Grind morning is decided
@@ -22,7 +22,9 @@ Each automatic reconciliation follows one wake policy:
 4. Otherwise, anchor the complete attack stack to Grind Time when **Lock In** is enabled.
 5. Otherwise, cancel any stale Rise & Grind alarms because no attack stack is needed.
 
-Six alarms with ten-minute spacing and a three-minute Final Warning fire at `T−50`, `T−40`, `T−30`, `T−20`, `T−10`, and `T−3`. The Final Warning can be one minute through the spacing interval; setting it equal to the interval produces a fully regular cadence. Each alarm rotates through a shuffled copy of the active sound pool.
+The Nudge Count sets how many snoozable alarms lead up to Grind Time; the Grind Time challenge alarm is always scheduled on top of them. Six nudges with ten-minute spacing and a three-minute Final Warning fire at `T−53`, `T−43`, `T−33`, `T−23`, `T−13`, and `T−3`, followed by the challenge alarm at `T−0`. The Final Warning can be one minute through the spacing interval; setting it equal to the interval produces a fully regular cadence. A Nudge Count of zero arms the challenge alarm alone. Each alarm rotates through a shuffled copy of the active sound pool, and the Grind Time alarm always plays at the abrasive tier.
+
+Only the Grind Time alarm requires the squat challenge. Because AlarmKit stops sounding an alarm after about fifteen minutes, that alarm also owns follow-up deliveries every twelve minutes for three hours. Those are platform alarms belonging to the same Rise & Grind alarm, so they never appear as separate agenda entries — they are recorded on the Grind Time alarm's own event timeline.
 
 After onboarding, the app reconciles automatically on launch or foreground, every 15 minutes while active, and shortly after any Grind Time, Lock In, Active Day, stack, or sound-pool change. Each run replaces the alarms and dismissal-recovery chains from the previous plan. On success, a changed Calendar leaves only the newly computed wake plan armed; if AlarmKit cannot clear an older alarm, the run reports that failure instead of silently claiming replacement. The nightly automation also posts its result: an earlier meeting reports the adjusted Grind Time, an ordinary Lock In run reports the armed Grind Time, and skipped or failed runs explain why no plan was armed.
 
@@ -32,7 +34,7 @@ The Grind tab can mute attacks for the next operational morning, seven operation
 
 - **Grind:** Grind Time and Lock In controls, Active Day selectors, a one-off Power Nap alarm, and the timed or indefinite Mute control.
 - **Calendar:** next-morning preview, wake-target explanation, one chronological Upcoming Attacks list of armed, test, and struck-through muted attacks, and a control that clears armed alarms.
-- **Stack:** alarm count, spacing, and Final Warning offset.
+- **Stack:** nudge count, spacing, and Final Warning offset.
 - **Sounds:** 100 built-in songs with fictional artist credits, compact genre labels, pool membership, continuous looping previews, and custom imports.
 - **Setup:** required-access status, Shortcuts handoff, nightly-notification status, the last successful automatic run, and isolated one-minute-interval alarm tests.
 

@@ -149,6 +149,11 @@ public enum SchedulePlanner {
     return eventTarget
   }
 
+  /// Plans a stack of snoozable nudges leading into the Grind Time challenge.
+  ///
+  /// `alarmCount` is the number of nudges. The canonical alarm is always an
+  /// additional alarm at the target itself, so the plan holds `alarmCount + 1`
+  /// alarms and only the last one requires the wake challenge.
   public static func makePlan(
     targetDate: Date,
     alarmCount: Int,
@@ -159,28 +164,17 @@ public enum SchedulePlanner {
     now: Date? = nil,
     calendar: Calendar = .current
   ) throws -> AlarmPlan {
-    let normalizedCount = min(max(alarmCount, 1), 12)
+    let nudgeCount = min(max(alarmCount, 0), 12)
     let normalizedSpacing = min(max(spacingMinutes, 1), 60)
     let normalizedFinalWarning = min(max(finalWarningMinutes, 1), normalizedSpacing)
     let usableSounds = sounds.isEmpty ? [.system] : sounds
     let setID = UUID()
-    let offsets: [Int]
-    if normalizedCount == 1 {
-      offsets = [normalizedFinalWarning]
-    } else if normalizedFinalWarning == normalizedSpacing {
-      offsets = stride(
-        from: normalizedCount * normalizedSpacing,
-        through: normalizedSpacing,
-        by: -normalizedSpacing
-      ).map { $0 }
-    } else {
-      offsets =
-        stride(
-          from: (normalizedCount - 1) * normalizedSpacing,
-          through: normalizedSpacing,
-          by: -normalizedSpacing
-        ).map { $0 } + [normalizedFinalWarning]
+    // Nudges count backward from the final warning; the canonical alarm lands on
+    // the target itself.
+    let nudgeOffsets = stride(from: nudgeCount - 1, through: 0, by: -1).map {
+      normalizedFinalWarning + $0 * normalizedSpacing
     }
+    let offsets = nudgeOffsets + [0]
 
     let alarms = try offsets.enumerated().map { index, offset in
       guard
@@ -202,7 +196,7 @@ public enum SchedulePlanner {
         targetDate: targetDate,
         offsetMinutes: offset,
         ordinal: index + 1,
-        total: normalizedCount,
+        total: offsets.count,
         reason: reason,
         sound: usableSounds[index % usableSounds.count]
       )

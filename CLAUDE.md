@@ -51,3 +51,15 @@ Constraints that bite:
   system Python — use a scratchpad venv when numpy etc. is genuinely needed).
 - Tests: `swift test` (Core package); strict `swift-format lint` gates
   `verify_project.sh`.
+- Versioning: bump the patch component of `MARKETING_VERSION` for essentially
+  every shipped app change. Bump the minor component (and reset patch to zero)
+  for a materially larger feature or behavior set. Increment
+  `CURRENT_PROJECT_VERSION` for every device build intended for distribution
+  or hands-on testing.
+- Bundled videos: always optimize for file size unless told otherwise — these
+  ship in the app binary, not streamed. Match the existing
+  `RiseAndGrind/Resources/CalibrationInstructions/*.mp4` convention: HEVC
+  (`libx265`, Main profile, `-tag:v hvc1` so AVPlayer reads it cleanly),
+  square crop/scale to 720x720, mono AAC ~64 kbps, two-pass at ~450 kbps
+  video (`-maxrate 500k -bufsize 900k`), `-movflags +faststart`. That combo
+  holds ~30-45 s clips to a few MB with negligible visible quality loss.

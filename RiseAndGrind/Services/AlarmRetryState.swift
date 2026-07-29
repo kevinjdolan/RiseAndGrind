@@ -4,7 +4,7 @@ import Foundation
 import RiseAndGrindCore
 
 enum AlarmSemantics {
-  static let currentVersion = 11
+  static let currentVersion = 14
 }
 
 enum ScheduledAlarmOwner: String, Codable, Sendable {
@@ -17,6 +17,7 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
   let id: UUID
   let setID: UUID
   let isCanonical: Bool
+  let requiresChallenge: Bool
   var currentAlarmID: UUID
   let owner: ScheduledAlarmOwner
   let targetTitle: String
@@ -28,11 +29,15 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
   var soundChoice: AlarmSoundChoice
   let expiresAt: Date
   var retryCount: Int
+  let role: ScheduledAlarmRole
+  let relayOrdinal: Int?
+  let relayTotal: Int?
 
   private enum CodingKeys: String, CodingKey {
     case id
     case setID
     case isCanonical
+    case requiresChallenge
     case currentAlarmID
     case owner
     case targetTitle
@@ -44,12 +49,16 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     case soundChoice
     case expiresAt
     case retryCount
+    case role
+    case relayOrdinal
+    case relayTotal
   }
 
   init(
     id: UUID,
     setID: UUID,
     isCanonical: Bool,
+    requiresChallenge: Bool? = nil,
     currentAlarmID: UUID,
     owner: ScheduledAlarmOwner,
     targetTitle: String,
@@ -60,11 +69,15 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     title: String,
     soundChoice: AlarmSoundChoice,
     expiresAt: Date,
-    retryCount: Int
+    retryCount: Int,
+    role: ScheduledAlarmRole = .primary,
+    relayOrdinal: Int? = nil,
+    relayTotal: Int? = nil
   ) {
     self.id = id
     self.setID = setID
     self.isCanonical = isCanonical
+    self.requiresChallenge = requiresChallenge ?? isCanonical
     self.currentAlarmID = currentAlarmID
     self.owner = owner
     self.targetTitle = targetTitle
@@ -76,6 +89,9 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     self.soundChoice = soundChoice
     self.expiresAt = expiresAt
     self.retryCount = retryCount
+    self.role = role
+    self.relayOrdinal = relayOrdinal
+    self.relayTotal = relayTotal
   }
 
   init(from decoder: any Decoder) throws {
@@ -92,10 +108,18 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     isCanonical =
       try container.decodeIfPresent(Bool.self, forKey: .isCanonical)
       ?? (ordinal == total)
+    requiresChallenge =
+      try container.decodeIfPresent(Bool.self, forKey: .requiresChallenge)
+      ?? isCanonical
     title = try container.decode(String.self, forKey: .title)
     soundChoice = try container.decode(AlarmSoundChoice.self, forKey: .soundChoice)
     expiresAt = try container.decode(Date.self, forKey: .expiresAt)
     retryCount = try container.decode(Int.self, forKey: .retryCount)
+    role =
+      try container.decodeIfPresent(ScheduledAlarmRole.self, forKey: .role)
+      ?? .primary
+    relayOrdinal = try container.decodeIfPresent(Int.self, forKey: .relayOrdinal)
+    relayTotal = try container.decodeIfPresent(Int.self, forKey: .relayTotal)
   }
 
   func encode(to encoder: any Encoder) throws {
@@ -103,6 +127,7 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     try container.encode(id, forKey: .id)
     try container.encode(setID, forKey: .setID)
     try container.encode(isCanonical, forKey: .isCanonical)
+    try container.encode(requiresChallenge, forKey: .requiresChallenge)
     try container.encode(currentAlarmID, forKey: .currentAlarmID)
     try container.encode(owner, forKey: .owner)
     try container.encode(targetTitle, forKey: .targetTitle)
@@ -114,6 +139,9 @@ struct AlarmRetryChain: Codable, Identifiable, Sendable {
     try container.encode(soundChoice, forKey: .soundChoice)
     try container.encode(expiresAt, forKey: .expiresAt)
     try container.encode(retryCount, forKey: .retryCount)
+    try container.encode(role, forKey: .role)
+    try container.encodeIfPresent(relayOrdinal, forKey: .relayOrdinal)
+    try container.encodeIfPresent(relayTotal, forKey: .relayTotal)
   }
 }
 

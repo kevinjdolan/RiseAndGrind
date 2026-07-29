@@ -28,7 +28,7 @@ find Core RiseAndGrind scripts -name '*.swift' -print0 \
     | xargs -0 -n1 xcrun swiftc -frontend -parse
 xcrun swift-format lint --recursive --strict Core RiseAndGrind scripts
 
-python3 scripts/install_music_library_v4.py --check
+python3 scripts/install_music_library_v9.py --check
 
 for sound in RiseAndGrind/Resources/Sounds/*.caf; do
     afinfo "$sound" >/dev/null

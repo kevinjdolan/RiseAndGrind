@@ -22,30 +22,43 @@ struct OnboardingView: View {
   @State private var step = 0
   @State private var isShowingSquatCalibration = false
   @State private var isShowingAutomationDeferralWarning = false
+  @State private var accessCelebrationProgress: CGFloat = 0
 
   var body: some View {
-    RGScreenBackground {
-      VStack(spacing: 0) {
-        progressHeader
+    Group {
+      if step == 0 {
+        IntroPitchView {
+          advance()
+        }
+      } else {
+        RGScreenBackground {
+          VStack(spacing: 0) {
+            progressHeader
 
-        ScrollView {
-          VStack(spacing: 18) {
-            switch step {
-            case 0:
-              welcomeStep
-            case 1:
-              policyStep
-            case 2:
-              permissionsStep
-            case 3:
-              squatCalibrationStep
-            default:
-              automationStep
+            ScrollView {
+              VStack(spacing: 18) {
+                switch step {
+                case 1:
+                  policyStep
+                case 2:
+                  permissionsStep
+                case 3:
+                  squatCalibrationStep
+                default:
+                  automationStep
+                }
+              }
+              .padding(.horizontal, 20)
+              .padding(.top, 18)
+              .padding(.bottom, 12)
             }
+            .simultaneousGesture(swipeGesture)
+
+            footer
+              .padding(.horizontal, 20)
+              .padding(.top, 10)
+              .padding(.bottom, 14)
           }
-          .padding(.horizontal, 20)
-          .padding(.top, 18)
-          .padding(.bottom, 34)
         }
       }
     }
@@ -77,187 +90,154 @@ struct OnboardingView: View {
   }
 
   private var progressHeader: some View {
-    HStack(spacing: 8) {
-      ForEach(0..<5, id: \.self) { index in
-        Capsule()
-          .fill(index <= step ? RGTheme.gold : RGTheme.graphite)
-          .frame(height: 5)
-      }
-    }
-    .padding(.horizontal, 20)
-    .padding(.top, 16)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Onboarding step \(step + 1) of 5")
+    OnboardingProgressHeader(currentStep: step)
   }
 
-  private var welcomeStep: some View {
-    VStack(spacing: 18) {
-      Image("BrandHero")
-        .resizable()
-        .scaledToFit()
-        .frame(width: 190, height: 190)
-        .clipShape(RoundedRectangle(cornerRadius: 38, style: .continuous))
-        .accessibilityHidden(true)
+  private var isNextEnabled: Bool {
+    switch step {
+    case 2:
+      requiredPermissionsReady
+    case 4:
+      automationAcknowledged
+    default:
+      true
+    }
+  }
 
-      VStack(spacing: 8) {
-        Text("Rise & Grind")
-          .font(.largeTitle.weight(.black))
-          .tracking(1.3)
-          .foregroundStyle(RGTheme.brandGradient)
-        Text("Sleep is for the Weak\nLevel Up and Outwork Everyone")
-          .font(.title3.weight(.heavy))
-          .foregroundStyle(RGTheme.cream)
-          .multilineTextAlignment(.center)
-          .lineLimit(2)
-          .minimumScaleFactor(0.8)
-
-        VStack(spacing: 2) {
-          Text("You're no Lazy NPC")
-            .font(.title3.weight(.regular))
-            .foregroundStyle(RGTheme.cream)
-          Text("Amp yourself up to Beast Mode every")
-            .font(.body)
-            .foregroundStyle(RGTheme.mutedCream)
-          Text("morning with an Alpha-Optimized Sonic Assault")
-            .font(.body)
-            .foregroundStyle(RGTheme.mutedCream)
-        }
-        .multilineTextAlignment(.center)
-        .lineLimit(1)
-        .minimumScaleFactor(0.72)
+  private func advance() {
+    guard isNextEnabled else { return }
+    withAnimation {
+      if step == 3, settings.squatCalibration?.isUsable != true {
+        settings.squatCalibration = .estimatedFiveFootFour()
       }
+      if step >= 4 {
+        complete()
+      } else {
+        step += 1
+      }
+    }
+  }
 
-      RGCard(accent: RGTheme.magenta) {
-        VStack(alignment: .leading, spacing: 12) {
-          RGLimitRow(
-            icon: "calendar.badge.clock",
-            title: "Calendarmaxxed:",
-            detail:
-              "Never miss an early meeting after a night of working hard and playing hard by syncing your calendar; Rise & Grind’s got you covered Bro."
-          )
-          RGLimitRow(
-            icon: "alarm.waves.left.and.right.fill",
-            title: "Unrelenting Barrage of Entrepreneurial Energy",
-            detail:
-              "Snooze is for Betas. Rise & Grind is not your Weak father's Weak alarm clock; it's a Relentless Megadose of Discipline Charged Power Brahski."
-          )
-          RGLimitRow(
-            icon: "shuffle",
-            title: "Never Let ’Em Know Your Next Move:",
-            detail:
-              "Curate a pool of high-adrenaline sounds to keep it unpredictably spicy in the bedroom my Sweet Brother in Christ Almighty. 🙏"
-          )
+  private func goBack() {
+    withAnimation { step = max(0, step - 1) }
+  }
+
+  private var swipeGesture: some Gesture {
+    DragGesture(minimumDistance: 40)
+      .onEnded { value in
+        let horizontal = value.translation.width
+        let vertical = value.translation.height
+        guard abs(horizontal) > abs(vertical) * 1.5, abs(horizontal) > 60 else { return }
+        if horizontal < 0 {
+          advance()
+        } else if step > 0 {
+          goBack()
         }
       }
+  }
 
-      nextButton("LET’S GET THAT BREAD") {
-        withAnimation { step = 1 }
-      }
+  @ViewBuilder
+  private var footer: some View {
+    switch step {
+    case 3:
+      navigationButtons(
+        nextTitle: settings.squatCalibration?.isUsable == true
+          ? "Onward and Upward" : "Do this Later"
+      ) { advance() }
+    default:
+      navigationButtons(nextDisabled: !isNextEnabled) { advance() }
     }
   }
 
   private var policyStep: some View {
     VStack(spacing: 18) {
-      RGSectionHeading(
-        "Grind Time Configuration",
-        eyebrow: "Step 2 · Grind Time"
+      RGAlarmConfigurationCard(
+        settings: $settings,
+        eyebrow: "Step 1: Regimen Setup",
+        boxed: false
       )
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      RGCard(accent: RGTheme.gold) {
-        VStack(alignment: .leading, spacing: 16) {
-          RGTimePicker(
-            title: "Grind Time",
-            detail: "Target wake-up time",
-            hour: $settings.grindHour,
-            minute: $settings.grindMinute
-          )
-
-          Divider().overlay(RGTheme.cream.opacity(0.12))
-
-          RGDurationEditor(
-            title: "Event Buffer",
-            detail: "Time before earliest event to target wake-up",
-            minutes: $settings.eventBufferMinutes
-          )
-        }
-      }
-
-      RGCard(accent: RGTheme.magenta) {
-        VStack(alignment: .leading, spacing: 15) {
-          RGSectionHeading("Attack Stack Configuration")
-          RGLadderEditor(
-            count: $settings.barrage.alarmCount,
-            spacingMinutes: $settings.barrage.spacingMinutes,
-            finalWarningMinutes: $settings.barrage.finalWarningMinutes
-          )
-        }
-      }
-
-      RGScenarioSimulator(
-        count: settings.barrage.alarmCount,
-        spacingMinutes: settings.barrage.spacingMinutes,
-        finalWarningMinutes: settings.barrage.finalWarningMinutes,
-        grindHour: settings.grindHour,
-        grindMinute: settings.grindMinute,
-        eventBufferMinutes: settings.eventBufferMinutes
-      )
-
-      navigationButtons(nextTitle: "HUSTLE") {
-        withAnimation { step = 2 }
-      }
     }
   }
 
   private var permissionsStep: some View {
     VStack(spacing: 18) {
       RGSectionHeading(
-        onboardingCompleted ? "Access needs attention" : "Grant the required access",
+        "Grant required permissions",
         eyebrow: "Step 3 · System permissions",
         detail:
-          "The app stays locked until all required access is available. Rise & Grind does not need broad Photos access."
+          "Certain permissions are required to function, but Shad guarantees not to abuse it."
       )
       .frame(maxWidth: .infinity, alignment: .leading)
 
-      RGCard(accent: requiredPermissionsReady ? RGTheme.mint : RGTheme.orange) {
-        VStack(alignment: .leading, spacing: 16) {
-          RGPermissionRow(icon: "alarm.fill", title: "Alarms", status: alarmAuthorization)
-          RGPermissionRow(icon: "calendar", title: "Calendar", status: calendarAuthorization)
-          RGPermissionRow(
-            icon: "bell.badge.fill",
-            title: "Notifications",
-            status: notificationAuthorization
-          )
-          RGPermissionRow(
-            icon: "figure.strengthtraining.functional",
-            title: "Motion & Fitness",
-            status: motionAuthorization
-          )
+      if requiredPermissionsReady {
+        accessConfirmedCelebration
+      } else {
+        permissionsContent
+      }
+    }
+  }
 
-          Button(action: requestPermissions) {
-            HStack {
-              if isWorking {
-                ProgressView().tint(RGTheme.ink)
-              } else {
-                Image(systemName: "checkmark.shield.fill")
-              }
-              Text(requiredPermissionsReady ? "ACCESS READY" : "GRANT REQUIRED ACCESS")
-            }
-          }
-          .buttonStyle(RGPrimaryButtonStyle())
-          .disabled(isWorking || requiredPermissionsReady)
+  private var permissionsContent: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      RGPermissionRow(icon: "alarm.fill", title: "Alarms", status: alarmAuthorization)
+      RGPermissionRow(icon: "calendar", title: "Calendar", status: calendarAuthorization)
+      RGPermissionRow(
+        icon: "bell.badge.fill",
+        title: "Notifications",
+        status: notificationAuthorization
+      )
+      RGPermissionRow(
+        icon: "figure.strengthtraining.functional",
+        title: "Motion & Fitness",
+        status: motionAuthorization
+      )
 
-          if !requiredPermissionsReady {
-            Button(action: openSettings) {
-              Label("Open iPhone Settings", systemImage: "gearshape.fill")
-            }
-            .buttonStyle(RGSecondaryButtonStyle())
+      Button(action: requestPermissions) {
+        HStack {
+          if isWorking {
+            ProgressView().tint(RGTheme.ink)
+          } else {
+            Image(systemName: "checkmark.shield.fill")
           }
+          Text("GRANT REQUIRED ACCESS")
         }
       }
+      .buttonStyle(RGPrimaryButtonStyle())
+      .disabled(isWorking)
 
-      navigationButtons(nextTitle: "CALIBRATE", nextDisabled: !requiredPermissionsReady) {
-        withAnimation { step = 3 }
+      Button(action: openSettings) {
+        Label("Open iPhone Settings", systemImage: "gearshape.fill")
+      }
+      .buttonStyle(RGSecondaryButtonStyle())
+    }
+  }
+
+  private var accessConfirmedCelebration: some View {
+    VStack(spacing: 22) {
+      Text("ACCESS CONFIRMED")
+        .font(.title.weight(.black))
+        .foregroundStyle(RGTheme.mint)
+
+      ZStack {
+        RGSquatCoinAttentionGlow(
+          diameter: 150,
+          progress: accessCelebrationProgress,
+          isActive: true
+        )
+        RGSquatCoinFace(imageName: "SquatCoinUp", diameter: 130, accent: RGTheme.mint)
+      }
+      .frame(height: 170)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 16)
+    .onAppear {
+      accessCelebrationProgress = 0
+      withAnimation(.easeInOut(duration: 2.6)) {
+        accessCelebrationProgress = 1
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        guard step == 2 else { return }
+        advance()
       }
     }
   }
@@ -265,10 +245,10 @@ struct OnboardingView: View {
   private var squatCalibrationStep: some View {
     VStack(spacing: 18) {
       RGSectionHeading(
-        "Teach us your squat",
+        "Calibrate your squat (optional)",
         eyebrow: "Step 4 · Personal calibration",
         detail:
-          "One guided squat teaches Rise & Grind how your phone moves in a two-handed kettlebell hold, so a bow will not count and your real squat will."
+          "Every body is different, so Rise & Grind works best if you do this quick 3-step calibration."
       )
       .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -276,46 +256,7 @@ struct OnboardingView: View {
         accent: settings.squatCalibration?.isUsable == true
           ? RGTheme.mint : RGTheme.orange
       ) {
-        VStack(alignment: .leading, spacing: 16) {
-          HStack(alignment: .top, spacing: 13) {
-            Image(systemName: "figure.strengthtraining.functional")
-              .font(.title2.weight(.bold))
-              .foregroundStyle(RGTheme.gold)
-              .frame(width: 42, height: 42)
-              .background(RGTheme.gold.opacity(0.12), in: Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-              Text("Three poses, three taps")
-                .font(.headline.weight(.black))
-                .foregroundStyle(RGTheme.cream)
-              Text(
-                "Hold the iPhone in both hands in front of your chest like a kettlebell, with the screen facing you. Tap once while standing, once at squat depth, and once after you return upright."
-              )
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-              .fixedSize(horizontal: false, vertical: true)
-            }
-          }
-
-          if let profile = settings.squatCalibration, profile.isUsable {
-            HStack {
-              Label(
-                profile.source == .estimatedFiveFootFour
-                  ? "5'4\" DEFAULT" : "CALIBRATED",
-                systemImage: "checkmark.seal.fill"
-              )
-              .font(.caption.weight(.black))
-              .tracking(1)
-              .foregroundStyle(RGTheme.mint)
-              Spacer()
-              Text(
-                "\(Int((profile.observedVerticalDropMeters * 100).rounded())) cm profile"
-              )
-              .font(.caption.monospacedDigit().weight(.bold))
-              .foregroundStyle(RGTheme.cream)
-            }
-          }
-
+        VStack(spacing: 20) {
           Button {
             isShowingSquatCalibration = true
           } label: {
@@ -327,31 +268,23 @@ struct OnboardingView: View {
           }
           .buttonStyle(RGPrimaryButtonStyle())
 
-          if settings.squatCalibration?.isUsable != true {
-            Button {
-              settings.squatCalibration = .estimatedFiveFootFour()
-              withAnimation { step = 4 }
-            } label: {
-              Label("Do This Later", systemImage: "figure.walk")
-            }
-            .buttonStyle(RGSecondaryButtonStyle())
-
-            Text(
-              "We'll use a conservative 5'4\" handheld-squat profile. Recalibrate anytime in Setup for a more personal fit."
-            )
-            .font(.caption)
-            .foregroundStyle(RGTheme.mutedCream)
-            .fixedSize(horizontal: false, vertical: true)
-          }
+          squatCoinSequence
         }
       }
+    }
+  }
 
-      navigationButtons(
-        nextTitle: "AUTOMATE",
-        nextDisabled: settings.squatCalibration?.isUsable != true
-      ) {
-        withAnimation { step = 4 }
-      }
+  private var squatCoinSequence: some View {
+    VStack(spacing: 10) {
+      RGSquatCoinFace(imageName: "SquatCoinUp", diameter: 84, accent: RGTheme.gold)
+      Image(systemName: "arrow.down")
+        .font(.headline.weight(.black))
+        .foregroundStyle(RGTheme.mutedCream)
+      RGSquatCoinFace(imageName: "SquatCoinDown", diameter: 84, accent: RGTheme.gold)
+      Image(systemName: "arrow.down")
+        .font(.headline.weight(.black))
+        .foregroundStyle(RGTheme.mutedCream)
+      RGSquatCoinFace(imageName: "SquatCoinUp", diameter: 84, accent: RGTheme.gold)
     }
   }
 
@@ -398,40 +331,137 @@ struct OnboardingView: View {
           }
         }
       }
-
-      navigationButtons(nextTitle: "GRIND", nextDisabled: !automationAcknowledged) {
-        complete()
-      }
     }
-  }
-
-  private func nextButton(_ title: String, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      Label(title, systemImage: "arrow.right")
-    }
-    .buttonStyle(RGPrimaryButtonStyle())
   }
 
   private func navigationButtons(
-    nextTitle: String,
+    nextTitle: String = "Onward and Upward",
     nextDisabled: Bool = false,
     next: @escaping () -> Void
   ) -> some View {
-    HStack(spacing: 10) {
-      Button {
-        withAnimation { step = max(0, step - 1) }
-      } label: {
-        Image(systemName: "arrow.left")
-          .frame(maxWidth: .infinity)
-      }
-      .buttonStyle(RGSecondaryButtonStyle())
+    GeometryReader { geometry in
+      HStack(spacing: 10) {
+        Button(action: goBack) {
+          Image(systemName: "arrow.left")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(RGSecondaryButtonStyle())
+        .frame(width: geometry.size.width * 0.25)
 
-      Button(action: next) {
-        Label(nextTitle, systemImage: "arrow.right")
+        Button(action: next) {
+          Label(nextTitle, systemImage: "arrow.right")
+        }
+        .buttonStyle(RGPrimaryButtonStyle())
+        .disabled(nextDisabled)
+        .opacity(nextDisabled ? 0.45 : 1)
+      }
+    }
+    .frame(height: 54)
+  }
+}
+
+/// The five-capsule onboarding progress indicator, reused wherever a step needs to be previewed.
+struct OnboardingProgressHeader: View {
+  let currentStep: Int
+
+  var body: some View {
+    HStack(spacing: 8) {
+      ForEach(0..<5, id: \.self) { index in
+        Capsule()
+          .fill(index <= currentStep ? RGTheme.gold : RGTheme.graphite)
+          .frame(height: 5)
+      }
+    }
+    .padding(.horizontal, 20)
+    .padding(.top, 16)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Onboarding step \(currentStep + 1) of 5")
+  }
+}
+
+/// Onboarding step 1's welcome pitch, factored out so it can also be used as the backdrop
+/// for the intro pitch's "incoming call" moment.
+struct OnboardingWelcomeStepView: View {
+  let onContinue: () -> Void
+
+  private var swipeGesture: some Gesture {
+    DragGesture(minimumDistance: 40)
+      .onEnded { value in
+        let horizontal = value.translation.width
+        let vertical = value.translation.height
+        guard abs(horizontal) > abs(vertical) * 1.5, horizontal < -60 else { return }
+        onContinue()
+      }
+  }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      ScrollView {
+        VStack(spacing: 18) {
+          Image("BrandHero")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 190, height: 190)
+            .clipShape(RoundedRectangle(cornerRadius: 38, style: .continuous))
+            .accessibilityHidden(true)
+
+          VStack(spacing: 8) {
+            Text("Rise & Grind")
+              .font(.largeTitle.weight(.black))
+              .tracking(1.3)
+              .foregroundStyle(RGTheme.brandGradient)
+            Text("Level Up and Outperform")
+              .font(.title3.weight(.heavy))
+              .foregroundStyle(RGTheme.cream)
+              .multilineTextAlignment(.center)
+              .lineLimit(2)
+              .minimumScaleFactor(0.8)
+
+            Text(
+              "R&G is the alarm clock app that just won’t quit, like you once you reach your full potential."
+            )
+            .font(.body)
+            .foregroundStyle(RGTheme.mutedCream)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+          }
+
+          RGCard(accent: RGTheme.magenta) {
+            VStack(alignment: .leading, spacing: 14) {
+              RGLimitRow(
+                icon: "calendar.badge.clock",
+                title: "Calendarmaxxed",
+                detail:
+                  "Sync your calendar and never be surprised by an early morning meeting ever again"
+              )
+              RGLimitRow(
+                icon: "alarm.waves.left.and.right.fill",
+                title: "Gentlemen Make Their Own Luck",
+                detail:
+                  "Schedule nudges before your target wake up time, gradually increasing in intensity"
+              )
+              RGLimitRow(
+                icon: "figure.strengthtraining.functional",
+                title: "Discipline When You Need It",
+                detail:
+                  "When it’s truly time to wake up, R&G will not relent until you’ve proven you’re up by passing the Grind Time Challenge"
+              )
+            }
+          }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 18)
+        .padding(.bottom, 12)
+      }
+      .simultaneousGesture(swipeGesture)
+
+      Button(action: onContinue) {
+        Label("Design Your Own Destiny", systemImage: "arrow.right")
       }
       .buttonStyle(RGPrimaryButtonStyle())
-      .disabled(nextDisabled)
-      .opacity(nextDisabled ? 0.45 : 1)
+      .padding(.horizontal, 20)
+      .padding(.top, 10)
+      .padding(.bottom, 14)
     }
   }
 }

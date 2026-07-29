@@ -36,22 +36,34 @@ section.set{margin-bottom:36px;}
 .set-badge{background:var(--panel2);border:1px solid var(--border);border-radius:999px;
   padding:2px 10px;font-size:12px;color:var(--accent2)}
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
-table{border-collapse:collapse;width:100%;min-width:1180px}
+/* max-content keeps every column at its natural width, so the wrapper
+   overflows exactly when the table no longer fits — the signal SetTable
+   measures to decide how far to collapse. */
+table{border-collapse:collapse;width:max-content;min-width:100%}
 thead th{background:var(--panel2);border-bottom:1px solid var(--border);
   font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
-  padding:8px 10px;text-align:left;position:sticky;top:0}
+  padding:6px 8px;text-align:left;white-space:nowrap;position:sticky;top:0}
 thead tr.group-row th{border-bottom:1px solid var(--border)}
 thead th.provider-head{text-align:center;color:var(--text);font-size:12px;
   text-transform:none;letter-spacing:0;border-left:1px solid var(--border)}
 thead th.sub-head{border-left:1px solid var(--border);text-align:center}
-tbody td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:middle;
+  white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:#1a1e27}
-td.cell-play{border-left:1px solid var(--border);text-align:center}
+td.cell-play{border-left:1px solid var(--border);text-align:center;padding:5px 6px}
 td.title-cell{font-weight:600}
 td.artist-cell{color:var(--muted)}
+button.song-link{background:none;border:none;padding:0;margin:0;font:inherit;color:inherit;
+  cursor:pointer;text-align:left;display:block}
+button.song-link:hover{color:var(--accent2)}
+td.song-cell .song-title{display:block;font-weight:600}
+td.song-cell .song-artist{display:block;color:var(--muted);font-size:12px}
+td.song-cell button.song-link:hover .song-artist{color:inherit}
 .tier-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;
   font-weight:600;text-transform:capitalize;color:#0f1115}
+.tier-dot{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#0f1115}
 .tier-soothing{background:var(--tier-soothing)}
 .tier-relaxing{background:var(--tier-relaxing)}
 .tier-motivating{background:var(--tier-motivating)}
@@ -68,12 +80,6 @@ button.play-btn svg.icon-fill{fill:currentColor;stroke:none}
 button.play-btn svg.icon-fill path{fill:currentColor}
 button.play-btn:hover{background:var(--accent);border-color:var(--accent);color:#1a1000}
 button.play-btn.playing{background:var(--accent);border-color:var(--accent);color:#1a1000}
-button.detail-btn{
-  border:1px solid var(--border);background:var(--panel2);color:var(--accent2);
-  border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;white-space:nowrap;
-}
-button.detail-btn:hover{border-color:var(--accent2)}
-
 /* player bar */
 #player-bar{
   position:fixed;left:0;right:0;bottom:0;background:var(--panel);
@@ -92,6 +98,13 @@ button.detail-btn:hover{border-color:var(--accent2)}
 .scrub span{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;width:38px;flex:none}
 .scrub span.right{text-align:right}
 #seek{flex:1;accent-color:var(--accent)}
+/* Fires at the wrap point of a repeating loop clip. */
+#seek.flash{animation:seek-flash .28s ease-out}
+@keyframes seek-flash{
+  0%{filter:brightness(3.2) saturate(1.5) drop-shadow(0 0 7px var(--accent));transform:scaleY(1.5)}
+  55%{filter:brightness(1.7) drop-shadow(0 0 4px var(--accent));transform:scaleY(1.15)}
+  100%{filter:none;transform:scaleY(1)}
+}
 #player-bar .src-tag{
   flex:none;font-size:11px;color:var(--accent2);border:1px solid var(--border);
   border-radius:999px;padding:2px 9px;white-space:nowrap;

@@ -20,6 +20,7 @@ final class AppModel {
       guard !isResetting else { return }
       store.saveSettings(settings)
       guard settings != oldValue else { return }
+      recordAlarmConfigurationChanges(from: oldValue, to: settings)
       let alarmPlanChanged =
         settings.grindHour != oldValue.grindHour
         || settings.grindMinute != oldValue.grindMinute
@@ -42,6 +43,8 @@ final class AppModel {
   private(set) var scheduledTestAlarms: [ScheduledAlarmRecord]
   private(set) var scheduledPowerNaps: [ScheduledAlarmRecord]
   private(set) var mutedAlarms: [ScheduledAlarmRecord]
+  private(set) var alarmLedger: AlarmLedger
+  private(set) var calendarInfluences: [AlarmCalendarInfluence]
   private(set) var muteState: AlarmMuteState?
   private(set) var riseTime: Date?
   private(set) var availableSounds: [AlarmSoundChoice]
@@ -51,7 +54,6 @@ final class AppModel {
   private(set) var notificationAuthorization = "Checking…"
   private(set) var motionAuthorization = "Checking…"
   private(set) var onboardingCompleted: Bool
-  private(set) var introPitchDisposition: IntroPitchDisposition?
   private(set) var automationAcknowledged: Bool
   private(set) var lastNightlyRun: Date?
   private(set) var lastBackgroundRefresh: Date?
@@ -68,6 +70,9 @@ final class AppModel {
   private let store: SettingsStore
 
   @ObservationIgnored
+  private let alarmLedgerStore: AlarmLedgerStore
+
+  @ObservationIgnored
   private var settingsReconciliationTask: Task<Void, Never>?
 
   @ObservationIgnored
@@ -76,19 +81,39 @@ final class AppModel {
   @ObservationIgnored
   private var isResetting = false
 
-  init(store: SettingsStore = .shared) {
+  init(
+    store: SettingsStore = .shared,
+    alarmLedgerStore: AlarmLedgerStore = .shared
+  ) {
+    let initialSettings = store.loadSettings()
+    let initialAlarmLedger: AlarmLedger
+    do {
+      try alarmLedgerStore.purgeSevenDayDemoHistoryIfNeeded()
+      try alarmLedgerStore.purgeRelaySlotHistoryIfNeeded()
+      initialAlarmLedger = try alarmLedgerStore.load()
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_bootstrap_failed",
+        source: "AppModel.init",
+        details: ["error": error.localizedDescription]
+      )
+      initialAlarmLedger = (try? alarmLedgerStore.load()) ?? .empty
+    }
+
     self.store = store
-    settings = store.loadSettings()
+    self.alarmLedgerStore = alarmLedgerStore
+    settings = initialSettings
     scheduledAlarms = Self.currentBarrage(from: store.loadScheduledAlarms())
     scheduledTestAlarms = Self.currentBarrage(from: store.loadScheduledTestAlarms())
     scheduledPowerNaps = Self.currentBarrage(from: store.loadScheduledPowerNaps())
     mutedAlarms = []
+    alarmLedger = initialAlarmLedger
+    calendarInfluences = []
     muteState = store.loadMuteState()
     riseTime = nil
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
-    introPitchDisposition = store.loadIntroPitchDisposition()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
     lastBackgroundRefresh = store.loadLastBackgroundRefresh()
@@ -111,13 +136,10 @@ final class AppModel {
     onboardingCompleted && requiredPermissionsReady && squatCalibrationReady
   }
 
-  var hasHandledIntroPitch: Bool {
-    introPitchDisposition != nil
-  }
-
   var nextAlarmFireDate: Date? {
     (scheduledAlarms + scheduledTestAlarms + scheduledPowerNaps)
       .map(\.fireDate)
+      .filter { $0 > .now }
       .min()
   }
 
@@ -155,7 +177,6 @@ final class AppModel {
     availableSounds = SoundLibrary().allSounds()
     lastSummary = store.loadLastSummary()
     onboardingCompleted = store.loadOnboardingCompleted()
-    introPitchDisposition = store.loadIntroPitchDisposition()
     automationAcknowledged = store.loadAutomationAcknowledged()
     lastNightlyRun = store.loadLastNightlyRun()
     lastBackgroundRefresh = store.loadLastBackgroundRefresh()
@@ -164,6 +185,7 @@ final class AppModel {
       await CalendarService.shared.hasFullAccess()
       ? "Authorized"
       : Self.calendarAuthorizationLabel
+    await reloadCalendarInfluences()
     AlarmEventJournal.shared.record(
       "app_refresh_completed",
       source: "AppModel.refresh",
@@ -216,6 +238,7 @@ final class AppModel {
     do {
       let result = try await NightlyCoordinator.shared.reconcileTomorrow()
       apply(result, clearError: false)
+      await reloadCalendarInfluences()
       AlarmEventJournal.shared.record(
         "reconcile_succeeded",
         source: "AppModel.reconcileSilently",
@@ -287,15 +310,62 @@ final class AppModel {
     errorMessage = issues.isEmpty ? nil : issues.joined(separator: ". ")
   }
 
+  func setCalendarInfluenceIgnored(
+    _ influence: AlarmCalendarInfluence,
+    isIgnored: Bool
+  ) async {
+    let changed = await CalendarService.shared.setIgnored(
+      isIgnored,
+      for: influence.id
+    )
+    guard changed else { return }
+    await reloadCalendarInfluences()
+    await reconcileSilently(queueIfBusy: true)
+  }
+
+  func setAlarmUserOverride(
+    _ userOverride: AlarmUserOverride,
+    for alarmID: UUID
+  ) async {
+    guard beginOperation() else { return }
+    defer { finishOperation() }
+
+    do {
+      _ = try alarmLedgerStore.updateAlarmOverrides(
+        logicalAlarmID: alarmID,
+        userOverride: userOverride,
+        challengeRepetitions: settings.wakeChallengeSquatCount,
+        source: "AppModel.setAlarmUserOverride"
+      )
+      reloadAlarmLedger()
+
+      guard
+        let alarm = alarmLedger.alarms.first(where: { $0.id == alarmID }),
+        alarm.current.fireDate > .now
+      else {
+        errorMessage = nil
+        return
+      }
+
+      if alarm.owner == .barrage {
+        let result = try await NightlyCoordinator.shared.reconcileTomorrow()
+        apply(result)
+      } else {
+        try await AlarmScheduler.shared.applyPersistedUserOverride(
+          logicalAlarmID: alarmID
+        )
+        reloadAndPruneScheduledAlarms()
+        errorMessage = nil
+      }
+    } catch {
+      reloadAndPruneScheduledAlarms()
+      errorMessage = error.localizedDescription
+    }
+  }
+
   func acknowledgeAutomation() {
     store.saveAutomationAcknowledged(true)
     automationAcknowledged = true
-  }
-
-  func recordIntroPitch(_ disposition: IntroPitchDisposition) {
-    guard introPitchDisposition == nil else { return }
-    store.saveIntroPitchDisposition(disposition)
-    introPitchDisposition = disposition
   }
 
   func completeOnboarding() {
@@ -325,6 +395,7 @@ final class AppModel {
     do {
       let result = try await NightlyCoordinator.shared.reconcileTomorrow()
       apply(result)
+      await reloadCalendarInfluences()
     } catch {
       reloadAndPruneScheduledAlarms()
       errorMessage = error.localizedDescription
@@ -367,14 +438,36 @@ final class AppModel {
       return false
     }
 
+    // Commit defaults before deleting referenced files. Any later cleanup
+    // failure can leave an unreferenced file behind, but never persisted
+    // settings that point at an asset that was already removed.
+    isResetting = true
+    store.clearAllPersistedState()
+    settings = .defaults
+    scheduledAlarms = []
+    scheduledTestAlarms = []
+    scheduledPowerNaps = []
+    mutedAlarms = []
+    calendarInfluences = []
+    muteState = nil
+    riseTime = nil
+    lastSummary = nil
+    automationAcknowledged = false
+    lastNightlyRun = nil
+    lastBackgroundRefresh = nil
+    isResetting = false
+    WakeChallengeCoordinator.shared.reload()
+
     do {
       try await SoundLibrary().deleteImportedAssets()
     } catch {
+      availableSounds = SoundLibrary().allSounds()
       reloadAndPruneScheduledAlarms()
       errorMessage =
-        "The alarms were cleared, but factory reset could not remove imported audio. Your local settings were left intact. \(error.localizedDescription)"
+        "Your alarms and settings were reset, but some imported audio could not be removed. No settings reference deleted assets; retry to remove the remaining files. \(error.localizedDescription)"
       return false
     }
+    availableSounds = SoundLibrary().allSounds()
 
     do {
       try await SquatCalibrationDiagnosticRecorder.deleteAllLogs()
@@ -382,7 +475,7 @@ final class AppModel {
     } catch {
       reloadAndPruneScheduledAlarms()
       errorMessage =
-        "The alarms and imported audio were cleared, but factory reset could not remove squat diagnostics. Your local settings were left intact. \(error.localizedDescription)"
+        "Your alarms, settings, and imported audio were reset, but some squat diagnostics could not be removed. Retry to finish cleaning the remaining files. \(error.localizedDescription)"
       return false
     }
 
@@ -390,26 +483,18 @@ final class AppModel {
     notificationCenter.removeAllPendingNotificationRequests()
     notificationCenter.removeAllDeliveredNotifications()
 
-    isResetting = true
-    defer { isResetting = false }
+    do {
+      try alarmLedgerStore.reset()
+    } catch {
+      reloadAndPruneScheduledAlarms()
+      errorMessage =
+        "Your alarms, settings, and imported assets were reset, but the alarm ledger could not be erased. Retry to finish clearing its retained history. \(error.localizedDescription)"
+      return false
+    }
 
-    store.clearAllPersistedState()
-    settings = .defaults
-    scheduledAlarms = []
-    scheduledTestAlarms = []
-    scheduledPowerNaps = []
-    mutedAlarms = []
-    muteState = nil
-    riseTime = nil
-    availableSounds = SoundLibrary().allSounds()
-    lastSummary = nil
+    alarmLedger = .empty
     onboardingCompleted = false
-    introPitchDisposition = nil
-    automationAcknowledged = false
-    lastNightlyRun = nil
-    lastBackgroundRefresh = nil
     errorMessage = nil
-    WakeChallengeCoordinator.shared.reload()
     return true
   }
 
@@ -442,13 +527,17 @@ final class AppModel {
 
     do {
       let sound =
-        SoundLibrary().selectedSounds(for: settings).randomElement()
+        AlarmMusicTierPolicy.soundSequence(
+          from: SoundLibrary().selectedSounds(for: settings),
+          alarmCount: 1,
+          targetDate: fireDate
+        ).first
         ?? .system
       let record = try await AlarmScheduler.shared.replacePowerNap(
         fireDate: fireDate,
         soundChoice: sound
       )
-      scheduledPowerNaps = [record]
+      reloadAndPruneScheduledAlarms()
       let summary =
         "Power Nap armed for "
         + fireDate.formatted(date: .abbreviated, time: .shortened)
@@ -510,7 +599,9 @@ final class AppModel {
       )
       store.saveMuteState(state)
       muteState = state
-      try await AlarmScheduler.shared.cancelBarrage()
+      try await AlarmScheduler.shared.cancelAll(
+        source: "AppModel.setMute"
+      )
       let result = try await NightlyCoordinator.shared.reconcileTomorrow()
       apply(result)
     } catch {
@@ -648,6 +739,7 @@ final class AppModel {
     mutedAlarms = result.isMuted ? Self.displayRecords(from: result.plan) : []
     riseTime = result.riseTime
     reloadMuteState()
+    reloadAlarmLedger()
     lastSummary = result.summary
     if clearError {
       errorMessage = nil
@@ -668,6 +760,65 @@ final class AppModel {
 
     let storedPowerNaps = store.loadScheduledPowerNaps()
     scheduledPowerNaps = Self.currentBarrage(from: storedPowerNaps, now: now)
+
+    reloadAlarmLedger()
+  }
+
+  private func reloadAlarmLedger() {
+    do {
+      alarmLedger = try alarmLedgerStore.load()
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_reload_failed",
+        source: "AppModel.reloadAlarmLedger",
+        details: ["error": error.localizedDescription]
+      )
+    }
+  }
+
+  private func reloadCalendarInfluences(now: Date = .now) async {
+    guard await CalendarService.shared.hasFullAccess() else {
+      calendarInfluences = []
+      return
+    }
+
+    do {
+      let grindDate = try SchedulePlanner.tomorrowTargetDate(
+        hour: settings.grindHour,
+        minute: settings.grindMinute,
+        after: now,
+        calendar: .autoupdatingCurrent
+      )
+      let candidates = try await CalendarService.shared.eventCandidates(
+        on: grindDate,
+        now: now,
+        calendar: .autoupdatingCurrent
+      )
+      let earliestNonignored = CalendarEventPolicy.earliestNonignored(
+        in: candidates
+      )
+      let resolvedRiseTime = SchedulePlanner.resolvedRiseTime(
+        grindDate: grindDate,
+        earliestEventDate: earliestNonignored?.startDate,
+        eventBufferMinutes: settings.eventBufferMinutes,
+        calendar: .autoupdatingCurrent
+      )
+      let influencingID =
+        resolvedRiseTime < grindDate ? earliestNonignored?.id : nil
+      calendarInfluences = candidates.map {
+        AlarmCalendarInfluence(
+          candidate: $0,
+          affectsRiseTime: $0.id == influencingID
+        )
+      }
+    } catch {
+      calendarInfluences = []
+      AlarmEventJournal.shared.record(
+        "calendar_influences_reload_failed",
+        source: "AppModel.reloadCalendarInfluences",
+        details: ["error": error.localizedDescription]
+      )
+    }
   }
 
   private func reloadMuteState(now: Date = .now) {
@@ -698,6 +849,89 @@ final class AppModel {
     }
   }
 
+  private func recordAlarmConfigurationChanges(
+    from oldSettings: RiseAndGrindSettings,
+    to newSettings: RiseAndGrindSettings
+  ) {
+    let source = "AppModel.settings.didSet"
+    if oldSettings.grindHour != newSettings.grindHour
+      || oldSettings.grindMinute != newSettings.grindMinute
+    {
+      AlarmEventJournal.shared.record(
+        "grind_time_changed",
+        source: source,
+        details: [
+          "changeOrigin": "foreground_app_settings",
+          "newTime": Self.clockTime(
+            hour: newSettings.grindHour,
+            minute: newSettings.grindMinute
+          ),
+          "oldTime": Self.clockTime(
+            hour: oldSettings.grindHour,
+            minute: oldSettings.grindMinute
+          ),
+          "timeZone": TimeZone.autoupdatingCurrent.identifier,
+        ]
+      )
+    }
+
+    if oldSettings.eventBufferMinutes != newSettings.eventBufferMinutes {
+      AlarmEventJournal.shared.record(
+        "event_buffer_changed",
+        source: source,
+        details: [
+          "changeOrigin": "foreground_app_settings",
+          "newMinutes": String(newSettings.eventBufferMinutes),
+          "oldMinutes": String(oldSettings.eventBufferMinutes),
+        ]
+      )
+    }
+
+    if oldSettings.barrage != newSettings.barrage {
+      AlarmEventJournal.shared.record(
+        "barrage_configuration_changed",
+        source: source,
+        details: [
+          "changeOrigin": "foreground_app_settings",
+          "newAlarmCount": String(newSettings.barrage.alarmCount),
+          "newFinalWarningMinutes": String(newSettings.barrage.finalWarningMinutes),
+          "newSpacingMinutes": String(newSettings.barrage.spacingMinutes),
+          "oldAlarmCount": String(oldSettings.barrage.alarmCount),
+          "oldFinalWarningMinutes": String(oldSettings.barrage.finalWarningMinutes),
+          "oldSpacingMinutes": String(oldSettings.barrage.spacingMinutes),
+        ]
+      )
+    }
+
+    if oldSettings.selectedSoundIDs != newSettings.selectedSoundIDs {
+      let addedSoundIDs = newSettings.selectedSoundIDs.subtracting(oldSettings.selectedSoundIDs)
+      let removedSoundIDs = oldSettings.selectedSoundIDs.subtracting(newSettings.selectedSoundIDs)
+      AlarmEventJournal.shared.record(
+        "sound_selection_changed",
+        source: source,
+        details: [
+          "addedSoundIDs": Self.summarizedIdentifiers(addedSoundIDs),
+          "changeOrigin": "foreground_app_settings",
+          "newSoundCount": String(newSettings.selectedSoundIDs.count),
+          "oldSoundCount": String(oldSettings.selectedSoundIDs.count),
+          "removedSoundIDs": Self.summarizedIdentifiers(removedSoundIDs),
+        ]
+      )
+    }
+
+    if oldSettings.enabledDays != newSettings.enabledDays {
+      AlarmEventJournal.shared.record(
+        "enabled_days_changed",
+        source: source,
+        details: [
+          "changeOrigin": "foreground_app_settings",
+          "newDays": Self.dayNames(newSettings.enabledDays),
+          "oldDays": Self.dayNames(oldSettings.enabledDays),
+        ]
+      )
+    }
+  }
+
   private static func displayRecords(from plan: AlarmPlan?) -> [ScheduledAlarmRecord] {
     guard let plan else { return [] }
     return plan.alarms.map { alarm in
@@ -718,6 +952,27 @@ final class AppModel {
     records
       .filter { $0.fireDate > now }
       .sorted { $0.fireDate < $1.fireDate }
+  }
+
+  private static func clockTime(hour: Int, minute: Int) -> String {
+    String(format: "%02d:%02d", hour, minute)
+  }
+
+  private static func dayNames(_ days: Set<GrindDay>) -> String {
+    GrindDay.allCases
+      .filter(days.contains)
+      .map(\.fullName)
+      .joined(separator: ",")
+  }
+
+  private static func summarizedIdentifiers(_ identifiers: Set<String>) -> String {
+    let sortedIdentifiers = identifiers.sorted()
+    let maximumIncludedCount = 80
+    let includedIdentifiers = sortedIdentifiers.prefix(maximumIncludedCount)
+    let omittedCount = sortedIdentifiers.count - includedIdentifiers.count
+    let summary = includedIdentifiers.joined(separator: ",")
+    guard omittedCount > 0 else { return summary }
+    return summary + ",…(+" + String(omittedCount) + " more)"
   }
 
   private static var calendarAuthorizationLabel: String {

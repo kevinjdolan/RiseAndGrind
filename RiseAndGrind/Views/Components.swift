@@ -214,11 +214,11 @@ struct RGLadderEditor: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Stepper(value: $count, in: 1...12) {
+      Stepper(value: $count, in: 0...12) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
-            Text("Attack Count")
-            Text("Number of alarms")
+            Text("Nudge Count")
+            Text("Number of optional alarms before the Grind Time Challenge™")
               .font(.caption)
               .foregroundStyle(RGTheme.mutedCream)
           }
@@ -234,8 +234,8 @@ struct RGLadderEditor: View {
       Stepper(value: $spacingMinutes, in: 1...60) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
-            Text("Reload Time")
-            Text("Minutes between attacks")
+            Text("Nudge Snooze Duration")
+            Text("Delay time when you Snooze a Nudge")
               .font(.caption)
               .foregroundStyle(RGTheme.mutedCream)
           }
@@ -252,7 +252,7 @@ struct RGLadderEditor: View {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             Text("Final Warning")
-            Text("Last call before Grind Time")
+            Text("Minutes before Grind Time for the final Nudge")
               .font(.caption)
               .foregroundStyle(RGTheme.mutedCream)
           }
@@ -272,147 +272,131 @@ struct RGLadderEditor: View {
   }
 }
 
-struct RGScenarioSimulator: View {
-  let count: Int
-  let spacingMinutes: Int
-  let finalWarningMinutes: Int
-  let grindHour: Int
-  let grindMinute: Int
-  let eventBufferMinutes: Int
-  @State private var selectedMeeting: Date?
-
-  private var grindTime: Date {
-    let calendar = Calendar.autoupdatingCurrent
-    return
-      (try? SchedulePlanner.tomorrowTargetDate(
-        hour: grindHour,
-        minute: grindMinute,
-        after: .now,
-        calendar: calendar
-      )) ?? .now
-  }
-
-  private var defaultMeeting: Date {
-    Calendar.autoupdatingCurrent.date(
-      byAdding: .minute,
-      value: -30,
-      to: grindTime
-    ) ?? grindTime
-  }
-
-  private var meeting: Binding<Date> {
-    Binding(
-      get: { selectedMeeting ?? defaultMeeting },
-      set: { selectedMeeting = $0 }
-    )
-  }
-
-  private var attackTimes: (first: String, last: String) {
-    let calendar = Calendar.autoupdatingCurrent
-    let eventTarget =
-      calendar.date(
-        byAdding: .minute,
-        value: -eventBufferMinutes,
-        to: meeting.wrappedValue
-      ) ?? meeting.wrappedValue
-    guard
-      let plan = try? SchedulePlanner.makePlan(
-        targetDate: min(eventTarget, grindTime),
-        alarmCount: count,
-        spacingMinutes: spacingMinutes,
-        finalWarningMinutes: min(max(1, finalWarningMinutes), max(1, spacingMinutes)),
-        sounds: [.system],
-        reason: .grindTime,
-        calendar: calendar
-      ),
-      let first = plan.alarms.first?.fireDate,
-      let last = plan.alarms.last?.fireDate
-    else {
-      return ("—", "—")
-    }
-    return (
-      first.formatted(date: .omitted, time: .shortened),
-      last.formatted(date: .omitted, time: .shortened)
-    )
-  }
+struct RGAlarmConfigurationCard: View {
+  @Binding var settings: RiseAndGrindSettings
+  var eyebrow: String = "Regimen"
+  var boxed: Bool = true
 
   var body: some View {
-    RGCard(accent: RGTheme.orange) {
-      VStack(alignment: .leading, spacing: 12) {
-        RGSectionHeading("Scenario Simulator")
-
-        LazyVGrid(
-          columns: [
-            GridItem(.flexible(), spacing: 6, alignment: .center),
-            GridItem(.flexible(), alignment: .center),
-          ],
-          spacing: 6
-        ) {
-          scenarioMetric(
-            title: "Grind Time",
-            value: grindTime.formatted(date: .omitted, time: .shortened),
-            tint: RGTheme.gold
-          )
-
-          VStack(spacing: 5) {
-            Text("FIRST MEETING")
-              .font(.system(size: 9, weight: .black))
-              .tracking(0.6)
-              .foregroundStyle(RGTheme.orange)
-            DatePicker(
-              "First Meeting",
-              selection: meeting,
-              displayedComponents: .hourAndMinute
-            )
-            .labelsHidden()
-            .datePickerStyle(.compact)
-            .controlSize(.mini)
-            .tint(RGTheme.orange)
-            .scaleEffect(0.88)
-            .frame(height: 28)
-            .accessibilityLabel("Scenario first meeting")
-          }
-          .frame(maxWidth: .infinity, alignment: .center)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 2)
-
-          scenarioMetric(
-            title: "First Attack",
-            value: attackTimes.first,
-            tint: RGTheme.magenta
-          )
-          scenarioMetric(
-            title: "Final Warning",
-            value: attackTimes.last,
-            tint: RGTheme.gold
-          )
-        }
+    Group {
+      if boxed {
+        RGCard(accent: RGTheme.gold) { content }
+      } else {
+        content
       }
-    }
-    .onChange(of: grindHour) { _, _ in
-      selectedMeeting = nil
-    }
-    .onChange(of: grindMinute) { _, _ in
-      selectedMeeting = nil
     }
   }
 
-  private func scenarioMetric(title: String, value: String, tint: Color) -> some View {
-    VStack(spacing: 5) {
-      Text(title.uppercased())
-        .font(.system(size: 9, weight: .black))
-        .tracking(0.6)
-        .foregroundStyle(tint)
-      Text(value)
-        .font(.title3.monospacedDigit().weight(.black))
-        .foregroundStyle(RGTheme.cream)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
-        .frame(height: 28)
+  private var content: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      RGSectionHeading(
+        "Alarm Configuration",
+        eyebrow: eyebrow
+      )
+
+      Divider().overlay(RGTheme.cream.opacity(0.12))
+
+      RGTimePicker(
+        title: "Grind Time",
+        detail: "Default Time for the Grind Time Challenge",
+        hour: $settings.grindHour,
+        minute: $settings.grindMinute
+      )
+
+      Divider().overlay(RGTheme.cream.opacity(0.12))
+
+      RGDurationEditor(
+        title: "Event Buffer",
+        detail: "Time before earliest event to target wake-up",
+        minutes: $settings.eventBufferMinutes
+      )
+
+      Divider().overlay(RGTheme.cream.opacity(0.12))
+
+      RGLadderEditor(
+        count: $settings.barrage.alarmCount,
+        spacingMinutes: $settings.barrage.spacingMinutes,
+        finalWarningMinutes: $settings.barrage.finalWarningMinutes
+      )
+
+      Divider().overlay(RGTheme.cream.opacity(0.12))
+
+      VStack(alignment: .leading, spacing: 12) {
+        Text("ACTIVE DAYS")
+          .font(.caption.weight(.black))
+          .tracking(1.5)
+          .foregroundStyle(RGTheme.orange)
+
+        dayPicker
+
+        Label(daySummary, systemImage: "calendar.badge.clock")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(RGTheme.mutedCream)
+      }
     }
-    .frame(maxWidth: .infinity, alignment: .center)
-    .padding(.horizontal, 8)
-    .padding(.vertical, 2)
+  }
+
+  private var dayPicker: some View {
+    HStack(spacing: 7) {
+      ForEach(GrindDay.allCases, id: \.self) { day in
+        Button {
+          toggle(day)
+        } label: {
+          Text(day.shortLabel)
+            .font(.subheadline.weight(.black))
+            .foregroundStyle(
+              settings.enabledDays.contains(day) ? RGTheme.ink : RGTheme.mutedCream
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: 42)
+            .background {
+              Circle()
+                .fill(
+                  settings.enabledDays.contains(day)
+                    ? RGTheme.gold
+                    : RGTheme.graphite.opacity(0.72)
+                )
+            }
+            .overlay {
+              Circle()
+                .stroke(
+                  settings.enabledDays.contains(day)
+                    ? RGTheme.orange.opacity(0.72)
+                    : RGTheme.cream.opacity(0.12),
+                  lineWidth: 1
+                )
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(day.fullName)
+        .accessibilityValue(
+          settings.enabledDays.contains(day) ? "Scheduled" : "Not scheduled"
+        )
+      }
+    }
+  }
+
+  private var daySummary: String {
+    if settings.enabledDays == GrindDay.everyDay {
+      return "Every day is locked in"
+    }
+    if settings.enabledDays
+      == Set([
+        GrindDay.monday, .tuesday, .wednesday, .thursday, .friday,
+      ])
+    {
+      return "Weekdays are locked in"
+    }
+    return "\(settings.enabledDays.count) days are locked in"
+  }
+
+  private func toggle(_ day: GrindDay) {
+    if settings.enabledDays.contains(day) {
+      guard settings.enabledDays.count > 1 else { return }
+      settings.enabledDays.remove(day)
+    } else {
+      settings.enabledDays.insert(day)
+    }
   }
 }
 

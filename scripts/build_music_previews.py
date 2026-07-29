@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Build listening previews for generated loop files: full loops played twice,
-plus seam-only clips (the loop's last 5 seconds followed by its first 5
-seconds), with a markdown index table of links.
+"""Build listening previews for generated loop files: the mastered loop itself
+(played on repeat by the player, not doubled on disk), plus seam-only clips
+(the loop's last 5 seconds followed by its first 5 seconds), with a markdown
+index table of links.
 
 Accepts a manifest JSON that is a list of entries shaped either like
   {"id","displayName","intensityTier","loops": {"lyria": path, "elevenlabs": path}}
@@ -87,10 +88,10 @@ def main() -> int:
             to_wav(source, wav)
 
             base = f"{slug(row['displayName'])}_{row['provider']}"
-            double = directory / f"{base}_x2.m4a"
+            loop = directory / f"{base}_loop.m4a"
             listing = work / "pair.txt"
-            listing.write_text(f"file '{wav}'\nfile '{wav}'\n")
-            encode(listing, double)
+            listing.write_text(f"file '{wav}'\n")
+            encode(listing, loop)
 
             seam_seconds = arguments.seam_seconds
             tail = work / f"{base}_tail.wav"
@@ -103,13 +104,13 @@ def main() -> int:
             listing.write_text(f"file '{tail}'\nfile '{head}'\n")
             encode(listing, seam)
 
-            by_song[(tier, row["displayName"])][row["provider"]] = (double, seam)
+            by_song[(tier, row["displayName"])][row["provider"]] = (loop, seam)
 
     lines = [
         "# Loop previews",
         "",
-        f"`_x2` = full loop played twice (the repeat boundary is the seam). "
-        f"`_seam` = last {arguments.seam_seconds:.0f} s + first "
+        f"`_loop` = the mastered loop, once (play it on repeat to hear the "
+        f"seam). `_seam` = last {arguments.seam_seconds:.0f} s + first "
         f"{arguments.seam_seconds:.0f} s only.",
         "",
     ]
@@ -122,7 +123,7 @@ def main() -> int:
         lines.append(f"## {tier.capitalize()}")
         lines.append("")
         header = "| Song | " + " | ".join(
-            f"{p} ×2 | {p} seam" for p in providers
+            f"{p} loop | {p} seam" for p in providers
         ) + " |"
         lines.append(header)
         lines.append("|" + "---|" * (1 + 2 * len(providers)))
@@ -131,8 +132,8 @@ def main() -> int:
             for provider in providers:
                 pair = songs[name].get(provider)
                 if pair:
-                    double, seam = pair
-                    cells.append(f"[play]({double.relative_to(out_root)})")
+                    loop, seam = pair
+                    cells.append(f"[play]({loop.relative_to(out_root)})")
                     cells.append(f"[seam]({seam.relative_to(out_root)})")
                 else:
                     cells.extend(["—", "—"])

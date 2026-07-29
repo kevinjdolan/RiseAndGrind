@@ -11,17 +11,37 @@ import SwiftUI
 struct RiseAlarmMetadata: AlarmMetadata, Hashable, Sendable {
   let setID: UUID
   let isCanonical: Bool
+  let requiresChallenge: Bool
   let targetTitle: String
   let targetDate: Date
   let offsetMinutes: Int
   let ordinal: Int
   let total: Int
+  let role: ScheduledAlarmRole
+  let relayOrdinal: Int?
+  let relayTotal: Int?
+}
+
+private struct ProjectedPlannedAlarm {
+  let planned: PlannedAlarm
+  let userOverride: AlarmUserOverride
+  let decision: AlarmPhysicalScheduleDecision
+}
+
+private struct AlarmSetProjection {
+  let alarms: [ProjectedPlannedAlarm]
+
+  /// Follow-up coverage inherits the behavior of the alarm it supports.
+  var canonicalOverride: AlarmUserOverride? {
+    alarms.first { $0.planned.isCanonical }?.userOverride
+  }
 }
 
 enum AlarmSchedulerError: Error, LocalizedError {
   case alarmStateUnavailable
   case alarmsMuted
   case authorizationRequired
+  case capacityLimitReached
   case cancellationFailed(Int)
   case interactionInProgress
   case powerNapTimeMustBeFuture
@@ -33,6 +53,8 @@ enum AlarmSchedulerError: Error, LocalizedError {
     case .alarmsMuted:
       "Rise & Grind alarms are temporarily muted."
     case .authorizationRequired: "Alarm access is required before Rise & Grind can arm alarms."
+    case .capacityLimitReached:
+      "iOS has no room for the complete alarm safety net. Clear another alarm and try again; Rise & Grind did not arm a partial stack."
     case .cancellationFailed(let count):
       count == 1
         ? "One alarm could not be cleared. Try the operation again."
@@ -57,6 +79,7 @@ actor AlarmScheduler {
 
   private var previousAlarmStates: [UUID: Alarm.State]?
   private var refiresInProgress: Set<UUID> = []
+  private var observedFiredAlarmIDs: Set<UUID> = []
 
   func authorizationLabel() -> String {
     switch AlarmManager.shared.authorizationState {
@@ -133,15 +156,22 @@ actor AlarmScheduler {
           details["fireEpoch"] = String(record.fireDate.timeIntervalSince1970)
           details["latenessSeconds"] = String(now.timeIntervalSince(record.fireDate))
           details["recordCanonical"] = String(record.isCanonical)
+          details["recordRequiresChallenge"] = String(record.requiresChallenge)
+          details["recordRole"] = record.role.rawValue
+          details["relayOrdinal"] = record.relayOrdinal.map(String.init) ?? "none"
+          details["relayTotal"] = record.relayTotal.map(String.init) ?? "none"
         }
         if let chain {
           details["canonical"] = String(chain.isCanonical)
           details["expiresEpoch"] = String(chain.expiresAt.timeIntervalSince1970)
           details["ordinal"] = String(chain.ordinal)
           details["owner"] = chain.owner.rawValue
+          details["role"] = chain.role.rawValue
           details["retryCount"] = String(chain.retryCount)
+          details["requiresChallenge"] = String(chain.requiresChallenge)
           details["soundFile"] = chain.soundChoice.fileName ?? "system"
           details["soundID"] = chain.soundChoice.id
+          details["soundTier"] = chain.soundChoice.intensityTier?.rawValue ?? "unclassified"
           details["total"] = String(chain.total)
         }
         AlarmEventJournal.shared.record(
@@ -188,18 +218,13 @@ actor AlarmScheduler {
       return true
     }
 
-    let chains = activeRetryChains(now: now)
-    guard !chains.isEmpty else { return false }
-    let records =
-      SettingsStore.shared.loadScheduledAlarms()
-      + SettingsStore.shared.loadScheduledTestAlarms()
-      + SettingsStore.shared.loadScheduledPowerNaps()
-    let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
     let states: [UUID: Alarm.State]?
     do {
       states = try Dictionary(
         uniqueKeysWithValues: AlarmManager.shared.alarms.map { ($0.id, $0.state) }
       )
+      observeFiredAlarms(in: states ?? [:])
+      sweepAlarmLifecycle(currentStates: states ?? [:], now: now)
     } catch {
       states = nil
       logger.error(
@@ -207,15 +232,33 @@ actor AlarmScheduler {
       )
     }
 
+    let chains = activeRetryChains(now: now)
+    guard !chains.isEmpty else { return false }
+    let records =
+      SettingsStore.shared.loadScheduledAlarms()
+      + SettingsStore.shared.loadScheduledTestAlarms()
+      + SettingsStore.shared.loadScheduledPowerNaps()
+    let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+
     for chain in chains {
+      let record = recordsByID[chain.currentAlarmID]
       let state =
         states.map {
           $0[chain.currentAlarmID].map(Self.interactionState) ?? .missing
         } ?? .unavailable
+      let supersededAt = laterObservedFireDate(
+        in: chain.setID,
+        than: chain.currentAlarmID,
+        records: records,
+        currentStates: states ?? [:],
+        now: now
+      )
       let blocksScheduling = AlarmInteractionPolicy.blocksScheduling(
         state: state,
-        fireDate: recordsByID[chain.currentAlarmID]?.fireDate,
-        requiresPersistentRecovery: chain.isCanonical,
+        fireDate: record?.fireDate,
+        requiresPersistentRecovery: chain.requiresChallenge,
+        episodeDeadline: chain.requiresChallenge ? chain.expiresAt : nil,
+        supersededAt: supersededAt,
         now: now
       )
       if blocksScheduling {
@@ -251,6 +294,8 @@ actor AlarmScheduler {
       states = try Dictionary(
         uniqueKeysWithValues: AlarmManager.shared.alarms.map { ($0.id, $0.state) }
       )
+      observeFiredAlarms(in: states)
+      sweepAlarmLifecycle(currentStates: states, now: now)
     } catch {
       logger.error(
         "Unable to inspect AlarmKit state for dismissal recovery: \(error.localizedDescription)"
@@ -287,17 +332,35 @@ actor AlarmScheduler {
       return nil
     }
 
-    let records = SettingsStore.shared.loadScheduledAlarms()
-      .filter { $0.fireDate > now }
-      .sorted { $0.fireDate < $1.fireDate }
-    let planned = plan.alarms.sorted { $0.fireDate < $1.fireDate }
-    guard records.count == planned.count else { return nil }
-
-    let chains = activeRetryChains(now: now).filter { $0.owner == .barrage }
-    guard chains.count == records.count else { return nil }
+    let projection = try projectedSchedule(
+      for: plan,
+      owner: .barrage,
+      reconcilePlannedLedger: false,
+      source: "AlarmScheduler.existingBarrageRecords"
+    )
+    let storedRecords = SettingsStore.shared.loadScheduledAlarms()
+    let chains =
+      activeRetryChains(now: now)
+      .filter {
+        $0.owner == .barrage
+          && $0.retryCount < Self.maximumRetriesPerChain
+      }
     let chainsByAlarmID = Dictionary(
       uniqueKeysWithValues: chains.map { ($0.currentAlarmID, $0) }
     )
+    let records =
+      storedRecords
+      .filter {
+        $0.role == .primary
+          && $0.fireDate > now
+          && chainsByAlarmID[$0.id] != nil
+      }
+      .sorted { $0.fireDate < $1.fireDate }
+    let planned =
+      projection.alarms
+      .filter(\.decision.shouldSchedule)
+      .sorted { $0.planned.fireDate < $1.planned.fireDate }
+    guard records.count == planned.count else { return nil }
 
     let alarmIDs: Set<UUID>
     do {
@@ -309,7 +372,9 @@ actor AlarmScheduler {
       throw AlarmSchedulerError.alarmStateUnavailable
     }
 
-    for (record, plannedAlarm) in zip(records, planned) {
+    for (record, projectedAlarm) in zip(records, planned) {
+      let plannedAlarm = projectedAlarm.planned
+      let decision = projectedAlarm.decision
       guard
         alarmIDs.contains(record.id),
         let chain = chainsByAlarmID[record.id],
@@ -322,14 +387,93 @@ actor AlarmScheduler {
         chain.ordinal == plannedAlarm.ordinal,
         chain.total == plannedAlarm.total,
         chain.isCanonical == plannedAlarm.isCanonical,
+        chain.requiresChallenge == decision.requiresChallenge,
         chain.title == plannedAlarm.displayTitle,
-        chain.soundChoice == plannedAlarm.sound
+        chain.soundChoice == decision.soundChoice,
+        record.requiresChallenge == decision.requiresChallenge
       else {
         return nil
       }
     }
 
-    return records
+    let canonicalRecord = records.first(where: \.isCanonical)
+    let canonicalChain = canonicalRecord.flatMap { chainsByAlarmID[$0.id] }
+    let expectsRelays =
+      canonicalRecord?.requiresChallenge == true
+      && canonicalChain?.requiresChallenge == true
+    let expectedRelayDates: [Date] =
+      if let canonicalRecord, expectsRelays {
+        AlarmInteractionPolicy.relayFireDates(after: canonicalRecord.fireDate)
+      } else {
+        []
+      }
+    let selectedSounds = SoundLibrary().selectedSounds(
+      for: SettingsStore.shared.loadSettings()
+    )
+    let relayUserOverride = Self.relayUserOverride(
+      inheriting: projection.canonicalOverride
+    )
+    let expectedRelays = expectedRelayDates.enumerated().compactMap {
+      index,
+      fireDate -> (Int, Date, AlarmPhysicalScheduleDecision)? in
+      let relayOrdinal = index + 1
+      let userOverride = relayUserOverride
+      let decision = AlarmPhysicalSchedulePolicy.resolve(
+        userOverride: userOverride,
+        defaultSound: canonicalChain?.soundChoice ?? .system,
+        availableSounds: selectedSounds,
+        targetDate: canonicalChain?.targetDate ?? plan.targetDate,
+        rotationIndex: relayOrdinal - 1
+      )
+      guard decision.shouldSchedule else { return nil }
+      return (relayOrdinal, fireDate, decision)
+    }
+    let relayRecords =
+      storedRecords
+      .filter {
+        $0.setID == canonicalRecord?.setID && $0.role == .relay
+      }
+      .sorted { $0.fireDate < $1.fireDate }
+    guard relayRecords.count == expectedRelays.count else { return nil }
+
+    for (record, expectedRelay) in zip(relayRecords, expectedRelays) {
+      let (relayOrdinal, expectedFireDate, decision) = expectedRelay
+      guard
+        alarmIDs.contains(record.id),
+        record.isCanonical,
+        record.requiresChallenge == decision.requiresChallenge,
+        record.relayOrdinal == relayOrdinal,
+        record.relayTotal == expectedRelayDates.count,
+        abs(record.fireDate.timeIntervalSince(expectedFireDate)) < 0.5,
+        let chain = chainsByAlarmID[record.id],
+        chain.setID == canonicalChain?.setID,
+        chain.requiresChallenge == decision.requiresChallenge,
+        chain.soundChoice == decision.soundChoice,
+        chain.role == ScheduledAlarmRole.relay,
+        chain.relayOrdinal == record.relayOrdinal,
+        chain.relayTotal == record.relayTotal
+      else {
+        return nil
+      }
+    }
+
+    guard let activeSetID = records.first?.setID ?? relayRecords.first?.setID else {
+      return storedRecords.isEmpty ? [] : nil
+    }
+    let matchingRecords =
+      storedRecords
+      .filter { $0.setID == activeSetID }
+      .sorted { $0.fireDate < $1.fireDate }
+    recordScheduledSetInLedger(
+      owner: .barrage,
+      setID: activeSetID,
+      targetDate: canonicalChain?.targetDate ?? plan.targetDate,
+      records: matchingRecords,
+      chains: chains,
+      alarmType: plan.reason.ledgerAlarmType,
+      source: "reuse_existing_barrage"
+    )
+    return matchingRecords
   }
 
   func replace(with plan: AlarmPlan) async throws -> [ScheduledAlarmRecord] {
@@ -344,6 +488,12 @@ actor AlarmScheduler {
       throw AlarmSchedulerError.interactionInProgress
     }
 
+    let projection = try projectedSchedule(
+      for: plan,
+      owner: .barrage,
+      reconcilePlannedLedger: true,
+      source: "AlarmScheduler.replace"
+    )
     AlarmEventJournal.shared.record(
       "schedule_set_begin",
       source: "replace_barrage",
@@ -358,20 +508,23 @@ actor AlarmScheduler {
     var newlyScheduled: [ScheduledAlarmRecord] = []
     var retryChains: [AlarmRetryChain] = []
     do {
-      for planned in plan.alarms {
+      for projectedAlarm in projection.alarms where projectedAlarm.decision.shouldSchedule {
+        let planned = projectedAlarm.planned
+        let decision = projectedAlarm.decision
         let title = alarmTitle(for: planned)
         let retryChain = makeRetryChain(
           owner: .barrage,
           alarmID: planned.id,
           setID: plan.setID,
           isCanonical: planned.isCanonical,
+          requiresChallenge: decision.requiresChallenge,
           targetTitle: plan.reason.title,
           targetDate: plan.targetDate,
           offsetMinutes: planned.offsetMinutes,
           ordinal: planned.ordinal,
           total: planned.total,
           title: title,
-          soundChoice: planned.sound,
+          soundChoice: decision.soundChoice,
           fireDate: planned.fireDate
         )
         newlyScheduled.append(
@@ -380,6 +533,7 @@ actor AlarmScheduler {
             chainID: retryChain.id,
             setID: plan.setID,
             isCanonical: planned.isCanonical,
+            requiresChallenge: decision.requiresChallenge,
             owner: .barrage,
             fireDate: planned.fireDate,
             targetTitle: plan.reason.title,
@@ -388,10 +542,23 @@ actor AlarmScheduler {
             ordinal: planned.ordinal,
             total: planned.total,
             title: title,
-            soundChoice: planned.sound
+            soundChoice: decision.soundChoice
           )
         )
         retryChains.append(retryChain)
+      }
+      if let canonicalRecord = newlyScheduled.first(where: \.isCanonical),
+        let canonicalChain = retryChains.first(where: {
+          $0.currentAlarmID == canonicalRecord.id
+        })
+      {
+        try await appendCanonicalRelays(
+          after: canonicalRecord,
+          chain: canonicalChain,
+          to: &newlyScheduled,
+          chains: &retryChains,
+          canonicalOverride: projection.canonicalOverride
+        )
       }
     } catch {
       let failedRollbackRecords = cancel(newlyScheduled)
@@ -445,25 +612,24 @@ actor AlarmScheduler {
     let supersededFailureCount =
       failedSupersededRecords.count + failedSupersededRetryIDs.count
 
-    guard supersededFailureCount == 0 else {
-      let failedNewRollbackRecords = cancel(newlyScheduled)
-      let failedSupersededIDs = Set(failedSupersededRecords.map(\.id))
-        .union(failedSupersededRetryIDs)
-      let failedNewRollbackIDs = Set(failedNewRollbackRecords.map(\.id))
-      let remainingRetryChains =
-        supersededChains.filter { failedSupersededIDs.contains($0.currentAlarmID) }
-        + retryChains.filter { failedNewRollbackIDs.contains($0.currentAlarmID) }
-
-      _ = replaceRetryChains(for: .barrage, with: remainingRetryChains)
-      SettingsStore.shared.saveScheduledAlarms(
-        merged(failedSupersededRecords, with: failedNewRollbackRecords)
-      )
-      throw AlarmSchedulerError.cancellationFailed(
-        supersededFailureCount + failedNewRollbackRecords.count
-      )
-    }
-
-    SettingsStore.shared.saveScheduledAlarms(newlyScheduled)
+    let failedSupersededIDs = Set(failedSupersededRecords.map(\.id))
+      .union(failedSupersededRetryIDs)
+    preserveFailedRetryChains(
+      supersededChains,
+      failedIDs: failedSupersededIDs
+    )
+    SettingsStore.shared.saveScheduledAlarms(
+      merged(newlyScheduled, with: failedSupersededRecords)
+    )
+    recordScheduledSetInLedger(
+      owner: .barrage,
+      setID: plan.setID,
+      targetDate: plan.targetDate,
+      records: newlyScheduled,
+      chains: retryChains,
+      alarmType: plan.reason.ledgerAlarmType,
+      source: "replace_barrage"
+    )
     AlarmEventJournal.shared.record(
       "schedule_set_committed",
       source: "replace_barrage",
@@ -471,8 +637,23 @@ actor AlarmScheduler {
       details: [
         "alarmCount": String(newlyScheduled.count),
         "chainCount": String(retryChains.count),
+        "supersededCancellationFailures": String(supersededFailureCount),
       ]
     )
+    if supersededFailureCount > 0 {
+      logger.error(
+        "Committed barrage \(plan.setID.uuidString) with \(supersededFailureCount) superseded alarm(s) pending cleanup."
+      )
+      AlarmEventJournal.shared.record(
+        "schedule_set_cleanup_incomplete",
+        source: "replace_barrage",
+        setID: plan.setID,
+        details: [
+          "failureCount": String(supersededFailureCount),
+          "newAlarmCount": String(newlyScheduled.count),
+        ]
+      )
+    }
     return newlyScheduled
   }
 
@@ -547,6 +728,18 @@ actor AlarmScheduler {
         )
         retryChains.append(retryChain)
       }
+      if let canonicalRecord = newlyScheduled.first(where: \.isCanonical),
+        let canonicalChain = retryChains.first(where: {
+          $0.currentAlarmID == canonicalRecord.id
+        })
+      {
+        try await appendCanonicalRelays(
+          after: canonicalRecord,
+          chain: canonicalChain,
+          to: &newlyScheduled,
+          chains: &retryChains
+        )
+      }
     } catch {
       let failedRollbackRecords = cancel(newlyScheduled)
       AlarmEventJournal.shared.record(
@@ -596,9 +789,22 @@ actor AlarmScheduler {
       .map(\.currentAlarmID)
       .filter { !newIDs.contains($0) && !previousRecordIDs.contains($0) }
     let failedSupersededRetryIDs = cancel(supersededRetryIDs)
-    preserveFailedRetryChains(supersededChains, failedIDs: failedSupersededRetryIDs)
+    let failedSupersededIDs = Set(failedSupersededRecords.map(\.id))
+      .union(failedSupersededRetryIDs)
+    preserveFailedRetryChains(
+      supersededChains,
+      failedIDs: failedSupersededIDs
+    )
     SettingsStore.shared.saveScheduledTestAlarms(
       merged(newlyScheduled, with: failedSupersededRecords)
+    )
+    recordScheduledSetInLedger(
+      owner: .test,
+      setID: setID,
+      targetDate: newlyScheduled.last?.fireDate ?? now,
+      records: newlyScheduled,
+      chains: retryChains,
+      source: "replace_test"
     )
     AlarmEventJournal.shared.record(
       "schedule_set_committed",
@@ -612,9 +818,22 @@ actor AlarmScheduler {
         ),
       ]
     )
-    try reportCancellationFailures(
+    let supersededFailureCount =
       failedSupersededRecords.count + failedSupersededRetryIDs.count
-    )
+    if supersededFailureCount > 0 {
+      logger.error(
+        "Committed test set \(setID.uuidString) with \(supersededFailureCount) superseded alarm(s) pending cleanup."
+      )
+      AlarmEventJournal.shared.record(
+        "schedule_set_cleanup_incomplete",
+        source: "replace_test",
+        setID: setID,
+        details: [
+          "failureCount": String(supersededFailureCount),
+          "newAlarmCount": String(newlyScheduled.count),
+        ]
+      )
+    }
     return newlyScheduled
   }
 
@@ -665,42 +884,71 @@ actor AlarmScheduler {
       fireDate: fireDate
     )
 
-    let newRecord = try await schedule(
-      id: retryChain.currentAlarmID,
-      chainID: retryChain.id,
-      setID: setID,
-      isCanonical: true,
-      owner: .powerNap,
-      fireDate: fireDate,
-      targetTitle: "Power Nap",
-      targetDate: fireDate,
-      offsetMinutes: 0,
-      ordinal: 1,
-      total: 1,
-      title: "Power Nap",
-      soundChoice: soundChoice
-    )
-
-    guard SettingsStore.shared.loadMuteState(now: now) == nil else {
-      let failedRollbackRecords = cancel([newRecord])
+    var newlyScheduled: [ScheduledAlarmRecord] = []
+    var retryChains = [retryChain]
+    do {
+      let newRecord = try await schedule(
+        id: retryChain.currentAlarmID,
+        chainID: retryChain.id,
+        setID: setID,
+        isCanonical: true,
+        owner: .powerNap,
+        fireDate: fireDate,
+        targetTitle: "Power Nap",
+        targetDate: fireDate,
+        offsetMinutes: 0,
+        ordinal: 1,
+        total: 1,
+        title: "Power Nap",
+        soundChoice: soundChoice
+      )
+      newlyScheduled.append(newRecord)
+      try await appendCanonicalRelays(
+        after: newRecord,
+        chain: retryChain,
+        to: &newlyScheduled,
+        chains: &retryChains
+      )
+    } catch {
+      let failedRollbackRecords = cancel(newlyScheduled)
       preserveUncommittedRollback(
         failedRollbackRecords,
-        retryChains: [retryChain],
+        retryChains: retryChains,
+        owner: .powerNap
+      )
+      throw error
+    }
+
+    guard let newRecord = newlyScheduled.first(where: { $0.role == .primary }) else {
+      let failedRollbackRecords = cancel(newlyScheduled)
+      preserveUncommittedRollback(
+        failedRollbackRecords,
+        retryChains: retryChains,
+        owner: .powerNap
+      )
+      throw AlarmSchedulerError.alarmStateUnavailable
+    }
+
+    guard SettingsStore.shared.loadMuteState(now: now) == nil else {
+      let failedRollbackRecords = cancel(newlyScheduled)
+      preserveUncommittedRollback(
+        failedRollbackRecords,
+        retryChains: retryChains,
         owner: .powerNap
       )
       throw AlarmSchedulerError.alarmsMuted
     }
     guard !isAlarmInteractionInFlight() else {
-      let failedRollbackRecords = cancel([newRecord])
+      let failedRollbackRecords = cancel(newlyScheduled)
       preserveUncommittedRollback(
         failedRollbackRecords,
-        retryChains: [retryChain],
+        retryChains: retryChains,
         owner: .powerNap
       )
       throw AlarmSchedulerError.interactionInProgress
     }
 
-    let supersededChains = replaceRetryChains(for: .powerNap, with: [retryChain])
+    let supersededChains = replaceRetryChains(for: .powerNap, with: retryChains)
     let failedSupersededRecords = cancel(previousRecords)
     let previousRecordIDs = Set(previousRecords.map(\.id))
     let supersededRetryIDs =
@@ -708,12 +956,22 @@ actor AlarmScheduler {
       .map(\.currentAlarmID)
       .filter { !previousRecordIDs.contains($0) }
     let failedSupersededRetryIDs = cancel(supersededRetryIDs)
+    let failedSupersededIDs = Set(failedSupersededRecords.map(\.id))
+      .union(failedSupersededRetryIDs)
     preserveFailedRetryChains(
       supersededChains,
-      failedIDs: failedSupersededRetryIDs
+      failedIDs: failedSupersededIDs
     )
     store.saveScheduledPowerNaps(
-      merged([newRecord], with: failedSupersededRecords)
+      merged(newlyScheduled, with: failedSupersededRecords)
+    )
+    recordScheduledSetInLedger(
+      owner: .powerNap,
+      setID: setID,
+      targetDate: fireDate,
+      records: newlyScheduled,
+      chains: retryChains,
+      source: "replace_power_nap"
     )
     AlarmEventJournal.shared.record(
       "schedule_set_committed",
@@ -722,15 +980,31 @@ actor AlarmScheduler {
       chainID: retryChain.id,
       setID: setID,
       details: [
-        "alarmCount": "1",
+        "alarmCount": String(newlyScheduled.count),
+        "relayCount": String(newlyScheduled.filter(\.isRelay).count),
         "supersededCancellationFailures": String(
           failedSupersededRecords.count + failedSupersededRetryIDs.count
         ),
       ]
     )
-    try reportCancellationFailures(
+    let supersededFailureCount =
       failedSupersededRecords.count + failedSupersededRetryIDs.count
-    )
+    if supersededFailureCount > 0 {
+      logger.error(
+        "Committed power nap \(setID.uuidString) with \(supersededFailureCount) superseded alarm(s) pending cleanup."
+      )
+      AlarmEventJournal.shared.record(
+        "schedule_set_cleanup_incomplete",
+        source: "replace_power_nap",
+        alarmID: newRecord.id,
+        chainID: retryChain.id,
+        setID: setID,
+        details: [
+          "failureCount": String(supersededFailureCount),
+          "newAlarmCount": String(newlyScheduled.count),
+        ]
+      )
+    }
     return newRecord
   }
 
@@ -781,7 +1055,244 @@ actor AlarmScheduler {
     try reportCancellationFailures(failedRecords.count + failedRetryIDs.count)
   }
 
-  func cancelAll() throws {
+  func applyPersistedUserOverride(
+    logicalAlarmID: UUID,
+    now: Date = .now
+  ) async throws {
+    guard AlarmManager.shared.authorizationState == .authorized else {
+      throw AlarmSchedulerError.authorizationRequired
+    }
+    let ledgerStore = AlarmLedgerStore.shared
+    let ledger = try ledgerStore.load()
+    guard
+      let logicalAlarm = ledger.alarms.first(where: { $0.id == logicalAlarmID }),
+      logicalAlarm.current.fireDate > now
+    else {
+      return
+    }
+    let owner = logicalAlarm.owner.scheduledOwner
+    guard owner != .barrage else {
+      return
+    }
+
+    try await recoverDismissedAlarms(now: now)
+    guard !isAlarmInteractionInFlight(now: now) else {
+      throw AlarmSchedulerError.interactionInProgress
+    }
+
+    let ownerRecords = scheduledRecords(for: owner)
+    let allChains = SettingsStore.shared.loadAlarmRetryChains()
+    let currentDeliveryID = logicalAlarm.current.physicalDeliveryID
+    let currentRecord = currentDeliveryID.flatMap { deliveryID in
+      ownerRecords.first { $0.id == deliveryID }
+    }
+    let currentChain = currentDeliveryID.flatMap { deliveryID in
+      allChains.first { $0.currentAlarmID == deliveryID }
+    }
+    let siblingDeliveryIDs = Set(
+      ledger.alarms
+        .filter {
+          $0.owner == logicalAlarm.owner && $0.setID == logicalAlarm.setID
+        }
+        .compactMap(\.current.physicalDeliveryID)
+    )
+    let physicalSetID =
+      currentRecord?.setID
+      ?? ownerRecords.first(where: { siblingDeliveryIDs.contains($0.id) })?.setID
+      ?? logicalAlarm.setID
+    let isFinalPrimary = logicalAlarm.slot == .final
+    let supportingRelayRecords =
+      isFinalPrimary
+      ? ownerRecords.filter {
+        $0.setID == physicalSetID && $0.role == .relay
+      }
+      : []
+
+    if logicalAlarm.current.userOverride.isMuted {
+      var deliveryIDs = Set(supportingRelayRecords.map(\.id))
+      if let currentDeliveryID {
+        deliveryIDs.insert(currentDeliveryID)
+      }
+      let failedIDs = cancel(Array(deliveryIDs))
+      let removedIDs = deliveryIDs.subtracting(failedIDs)
+      removePersistedDeliveries(ids: removedIDs, owner: owner)
+      try detachLogicalDeliveries(
+        physicalDeliveryIDs: removedIDs,
+        primaryLogicalAlarmID: logicalAlarmID,
+        source: "AlarmScheduler.applyPersistedUserOverride.mute"
+      )
+      try reportCancellationFailures(failedIDs.count)
+      return
+    }
+
+    guard SettingsStore.shared.loadMuteState(now: now) == nil else {
+      return
+    }
+
+    let library = SoundLibrary()
+    let defaultSound =
+      currentChain?.soundChoice
+      ?? logicalAlarm.current.soundID.flatMap { library.sound(withID: $0) }
+      ?? .system
+    let decision = AlarmPhysicalSchedulePolicy.resolve(
+      userOverride: logicalAlarm.current.userOverride,
+      defaultSound: defaultSound,
+      availableSounds: library.selectedSounds(
+        for: SettingsStore.shared.loadSettings()
+      ),
+      targetDate: logicalAlarm.current.targetDate,
+      rotationIndex: max(0, logicalAlarm.current.ordinal - 1)
+    )
+    guard decision.shouldSchedule else { return }
+
+    // Logical alarms are always primary; follow-up coverage is scheduled
+    // alongside the alarm it supports rather than replaced on its own.
+    let role = ScheduledAlarmRole.primary
+    let relayOrdinal: Int? = nil
+    let relayTotal: Int? = nil
+    let relayEpisodeDeadline: Date? = nil
+    let targetTitle: String =
+      switch owner {
+      case .barrage: logicalAlarm.current.title
+      case .powerNap: "Power Nap"
+      case .test: "Alarm Test"
+      }
+    let replacementChain = makeRetryChain(
+      owner: owner,
+      alarmID: UUID(),
+      setID: physicalSetID,
+      isCanonical: logicalAlarm.current.isCanonical,
+      requiresChallenge: decision.requiresChallenge,
+      targetTitle: targetTitle,
+      targetDate: logicalAlarm.current.targetDate,
+      offsetMinutes: currentChain?.offsetMinutes ?? 0,
+      ordinal: logicalAlarm.current.ordinal,
+      total: logicalAlarm.current.total,
+      title: logicalAlarm.current.title,
+      soundChoice: decision.soundChoice,
+      fireDate: logicalAlarm.current.fireDate,
+      expiresAt: relayEpisodeDeadline,
+      role: role,
+      relayOrdinal: relayOrdinal,
+      relayTotal: relayTotal
+    )
+
+    var replacementRecords: [ScheduledAlarmRecord] = []
+    var replacementChains = [replacementChain]
+    do {
+      replacementRecords.append(
+        try await schedule(
+          id: replacementChain.currentAlarmID,
+          chainID: replacementChain.id,
+          setID: physicalSetID,
+          isCanonical: replacementChain.isCanonical,
+          requiresChallenge: replacementChain.requiresChallenge,
+          owner: owner,
+          fireDate: logicalAlarm.current.fireDate,
+          targetTitle: targetTitle,
+          targetDate: logicalAlarm.current.targetDate,
+          offsetMinutes: replacementChain.offsetMinutes,
+          ordinal: replacementChain.ordinal,
+          total: replacementChain.total,
+          title: replacementChain.title,
+          soundChoice: replacementChain.soundChoice,
+          role: role,
+          relayOrdinal: relayOrdinal,
+          relayTotal: relayTotal
+        )
+      )
+      if isFinalPrimary,
+        decision.requiresChallenge,
+        currentChain?.requiresChallenge != true
+      {
+        try await appendCanonicalRelays(
+          after: replacementRecords[0],
+          chain: replacementChain,
+          to: &replacementRecords,
+          chains: &replacementChains,
+          canonicalOverride: logicalAlarm.current.userOverride
+        )
+      }
+    } catch {
+      _ = cancel(replacementRecords)
+      throw error
+    }
+
+    var supersededIDs: Set<UUID> = []
+    if let currentDeliveryID {
+      supersededIDs.insert(currentDeliveryID)
+    }
+    if isFinalPrimary,
+      currentChain?.requiresChallenge == true,
+      !decision.requiresChallenge
+    {
+      supersededIDs.formUnion(supportingRelayRecords.map(\.id))
+    }
+    let failedSupersededIDs = cancel(Array(supersededIDs))
+    guard failedSupersededIDs.isEmpty else {
+      let successfullyCancelledIDs = supersededIDs.subtracting(
+        failedSupersededIDs
+      )
+      removePersistedDeliveries(
+        ids: successfullyCancelledIDs,
+        owner: owner
+      )
+      do {
+        try detachPhysicalDeliveries(
+          ids: successfullyCancelledIDs,
+          lifecycle: .planned,
+          source:
+            "AlarmScheduler.applyPersistedUserOverride.partialSupersededCancellation"
+        )
+      } catch {
+        AlarmEventJournal.shared.record(
+          "alarm_override_partial_detach_failed",
+          source: "AlarmScheduler.applyPersistedUserOverride",
+          details: [
+            "deliveryCount": String(successfullyCancelledIDs.count),
+            "error": error.localizedDescription,
+          ]
+        )
+      }
+      let failedReplacementRecords = cancel(replacementRecords)
+      preserveUncommittedRollback(
+        failedReplacementRecords,
+        retryChains: replacementChains,
+        owner: owner
+      )
+      throw AlarmSchedulerError.cancellationFailed(
+        failedSupersededIDs.count + failedReplacementRecords.count
+      )
+    }
+
+    removePersistedDeliveries(ids: supersededIDs, owner: owner)
+    var committedRecords = scheduledRecords(for: owner)
+    committedRecords.append(contentsOf: replacementRecords)
+    saveScheduledRecords(committedRecords, owner: owner)
+    var committedChains = SettingsStore.shared.loadAlarmRetryChains()
+    committedChains.removeAll {
+      supersededIDs.contains($0.currentAlarmID)
+    }
+    committedChains.append(contentsOf: replacementChains)
+    SettingsStore.shared.saveAlarmRetryChains(committedChains)
+
+    let recordsForSet = committedRecords.filter { $0.setID == physicalSetID }
+    let chainsForSet = committedChains.filter { $0.setID == physicalSetID }
+    recordScheduledSetInLedger(
+      owner: owner,
+      setID: physicalSetID,
+      targetDate: logicalAlarm.current.targetDate,
+      records: recordsForSet,
+      chains: chainsForSet,
+      alarmType: logicalAlarm.alarmType,
+      source: "AlarmScheduler.applyPersistedUserOverride"
+    )
+  }
+
+  func cancelAll(
+    ledgerLifecycle: AlarmLedgerLifecycleState = .silenced,
+    source: String = "AlarmScheduler.cancelAll"
+  ) throws {
     SettingsStore.shared.clearAlarmWakeHandoff()
     let barrageRecords = SettingsStore.shared.loadScheduledAlarms()
     let testRecords = SettingsStore.shared.loadScheduledTestAlarms()
@@ -804,6 +1315,24 @@ actor AlarmScheduler {
     SettingsStore.shared.saveScheduledTestAlarms(failedTestRecords)
     SettingsStore.shared.saveScheduledPowerNaps(failedPowerNapRecords)
     SettingsStore.shared.saveAlarmRetryTimestamps([])
+    let successfullyCancelledIDs = persistedIDs.subtracting(failedIDs)
+    do {
+      try detachPhysicalDeliveries(
+        ids: successfullyCancelledIDs,
+        lifecycle: ledgerLifecycle,
+        source: source
+      )
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_cancel_all_detach_failed",
+        source: source,
+        details: [
+          "deliveryCount": String(successfullyCancelledIDs.count),
+          "error": error.localizedDescription,
+          "lifecycle": ledgerLifecycle.rawValue,
+        ]
+      )
+    }
     try reportCancellationFailures(failedIDs.count)
   }
 
@@ -856,7 +1385,8 @@ actor AlarmScheduler {
   func refireDismissedAlarm(
     chainID: UUID,
     alarmID: UUID,
-    now: Date = .now
+    now: Date = .now,
+    ledgerLifecycle: AlarmLedgerLifecycleState = .scheduled
   ) async throws -> ScheduledAlarmRecord? {
     guard refiresInProgress.insert(chainID).inserted else {
       AlarmEventJournal.shared.record(
@@ -898,10 +1428,39 @@ actor AlarmScheduler {
         "canonical": String(chain.isCanonical),
         "ordinal": String(chain.ordinal),
         "owner": chain.owner.rawValue,
+        "requiresChallenge": String(chain.requiresChallenge),
+        "role": chain.role.rawValue,
         "retryCount": String(chain.retryCount),
         "total": String(chain.total),
       ]
     )
+    if let supersedingRecord = laterFiredRecord(
+      in: chain.setID,
+      than: alarmID,
+      now: now
+    ) {
+      clearWakeHandoff(chainID: chainID, alarmID: alarmID)
+      _ = removeRetryChain(id: chainID)
+      let failedIDs = cancel([alarmID])
+      if failedIDs.isEmpty {
+        removeScheduledRecords(ids: [alarmID])
+      }
+      AlarmEventJournal.shared.record(
+        "refire_skipped",
+        source: "AlarmScheduler.refireDismissedAlarm",
+        alarmID: alarmID,
+        chainID: chainID,
+        setID: chain.setID,
+        details: [
+          "reason": "supersededByLaterFire",
+          "supersedingAlarmID": supersedingRecord.id.uuidString,
+          "supersedingFireEpoch": String(
+            supersedingRecord.fireDate.timeIntervalSince1970
+          ),
+        ]
+      )
+      return nil
+    }
     guard SettingsStore.shared.loadMuteState() == nil else {
       clearWakeHandoff(chainID: chainID, alarmID: alarmID)
       _ = removeRetryChain(id: chainID)
@@ -912,7 +1471,7 @@ actor AlarmScheduler {
     }
     guard
       AlarmInteractionPolicy.shouldRearmAfterSilence(
-        isCanonical: chain.isCanonical
+        isCanonical: chain.requiresChallenge
       )
     else {
       _ = try stopCurrentAlarm(chainID: chainID, alarmID: alarmID)
@@ -943,62 +1502,127 @@ actor AlarmScheduler {
       AlarmInteractionPolicy.falseSnoozeDelay
     )
 
-    let failedPreviousAlarmIDs = cancel([previousAlarmID])
-    guard failedPreviousAlarmIDs.isEmpty else {
-      logger.error(
-        "Dismissed alarm \(previousAlarmID.uuidString) could not be removed before replacement."
-      )
-      throw AlarmSchedulerError.cancellationFailed(
-        failedPreviousAlarmIDs.count
-      )
-    }
-
-    clearWakeHandoff(chainID: chainID, alarmID: alarmID)
-
     let replacementTitle = chain.title
     let replacementSound = escalatedSound(for: chain)
-    let record = try await schedule(
-      id: replacementID,
-      chainID: chain.id,
-      setID: chain.setID,
-      isCanonical: chain.isCanonical,
-      owner: chain.owner,
-      fireDate: replacementDate,
-      targetTitle: chain.targetTitle,
-      targetDate: chain.targetDate,
-      offsetMinutes: chain.offsetMinutes,
-      ordinal: chain.ordinal,
-      total: chain.total,
-      title: replacementTitle,
-      soundChoice: replacementSound
-    )
+    var previousRetiredForCapacity = false
+    let armReplacement: () async throws -> ScheduledAlarmRecord = { [self] in
+      try await schedule(
+        id: replacementID,
+        chainID: chain.id,
+        setID: chain.setID,
+        isCanonical: chain.isCanonical,
+        requiresChallenge: chain.requiresChallenge,
+        owner: chain.owner,
+        fireDate: replacementDate,
+        targetTitle: chain.targetTitle,
+        targetDate: chain.targetDate,
+        offsetMinutes: chain.offsetMinutes,
+        ordinal: chain.ordinal,
+        total: chain.total,
+        title: replacementTitle,
+        soundChoice: replacementSound,
+        role: chain.role,
+        relayOrdinal: chain.relayOrdinal,
+        relayTotal: chain.relayTotal
+      )
+    }
+    let record: ScheduledAlarmRecord
+    do {
+      record = try await armReplacement()
+    } catch AlarmSchedulerError.capacityLimitReached {
+      AlarmEventJournal.shared.record(
+        "refire_capacity_fallback_begin",
+        source: "AlarmScheduler.refireDismissedAlarm",
+        alarmID: previousAlarmID,
+        chainID: chainID,
+        setID: chain.setID,
+        details: ["replacementAlarmID": replacementID.uuidString]
+      )
+      let failedCapacityReleaseIDs = cancel([previousAlarmID])
+      guard failedCapacityReleaseIDs.isEmpty else {
+        AlarmEventJournal.shared.record(
+          "refire_capacity_fallback_cancel_failed",
+          source: "AlarmScheduler.refireDismissedAlarm",
+          alarmID: previousAlarmID,
+          chainID: chainID,
+          setID: chain.setID,
+          details: [
+            "failureCount": String(failedCapacityReleaseIDs.count),
+            "replacementAlarmID": replacementID.uuidString,
+          ]
+        )
+        throw AlarmSchedulerError.cancellationFailed(
+          failedCapacityReleaseIDs.count
+        )
+      }
+      previousRetiredForCapacity = true
+      do {
+        record = try await armReplacement()
+      } catch {
+        logger.error(
+          "Retry alarm \(replacementID.uuidString) could not be armed after releasing the previous capacity slot; persisted recovery state was retained."
+        )
+        AlarmEventJournal.shared.record(
+          "refire_capacity_retry_failed_state_retained",
+          source: "AlarmScheduler.refireDismissedAlarm",
+          alarmID: previousAlarmID,
+          chainID: chainID,
+          setID: chain.setID,
+          details: [
+            "error": error.localizedDescription,
+            "replacementAlarmID": replacementID.uuidString,
+          ]
+        )
+        throw error
+      }
+    } catch {
+      AlarmEventJournal.shared.record(
+        "refire_schedule_failed_old_retained",
+        source: "AlarmScheduler.refireDismissedAlarm",
+        alarmID: previousAlarmID,
+        chainID: chainID,
+        setID: chain.setID,
+        details: [
+          "error": error.localizedDescription,
+          "replacementAlarmID": replacementID.uuidString,
+        ]
+      )
+      throw error
+    }
 
     // Emergency mute is persisted before its cancellation pass. If it arrived
-    // while AlarmKit was arming this replacement, undo the just-armed alarm
-    // before making the retry chain point at it.
+    // while AlarmKit was arming this replacement, retire both deliveries and
+    // retain only failures as cleanup work.
     guard SettingsStore.shared.loadMuteState() == nil else {
-      let failedReplacementIDs = cancel([replacementID])
-      if failedReplacementIDs.contains(replacementID) {
-        var retainedChains = SettingsStore.shared.loadAlarmRetryChains()
-        if let retainedIndex = retainedChains.firstIndex(where: {
-          $0.id == chain.id && $0.currentAlarmID == previousAlarmID
-        }) {
-          var retainedChain = retainedChains[retainedIndex]
-          retainedChain.currentAlarmID = replacementID
-          retainedChain.soundChoice = replacementSound
-          retainedChain.retryCount += 1
-          retainedChains[retainedIndex] = retainedChain
-          SettingsStore.shared.saveAlarmRetryChains(retainedChains)
-          replaceScheduledRecord(
-            previousAlarmID: previousAlarmID,
-            with: record,
-            owner: chain.owner
-          )
-        }
-      } else {
-        _ = removeRetryChain(id: chain.id)
-        removeScheduledRecords(ids: [previousAlarmID, replacementID])
+      let failedMutedIDs = cancel([previousAlarmID, replacementID])
+      let previousRecord = scheduledRecords(for: chain.owner).first {
+        $0.id == previousAlarmID
       }
+      _ = removeRetryChain(id: chain.id)
+      removeScheduledRecords(ids: [previousAlarmID, replacementID])
+
+      var cleanupChains: [AlarmRetryChain] = []
+      if failedMutedIDs.contains(previousAlarmID) {
+        cleanupChains.append(chain)
+      }
+      if failedMutedIDs.contains(replacementID) {
+        cleanupChains.append(
+          cleanupRetryChain(
+            from: chain,
+            currentAlarmID: replacementID,
+            soundChoice: replacementSound
+          )
+        )
+      }
+      preserveFailedRetryChains(cleanupChains, failedIDs: failedMutedIDs)
+
+      let failedMutedRecords = [previousRecord, record]
+        .compactMap { $0 }
+        .filter { failedMutedIDs.contains($0.id) }
+      saveScheduledRecords(
+        merged(scheduledRecords(for: chain.owner), with: failedMutedRecords),
+        owner: chain.owner
+      )
       throw AlarmSchedulerError.alarmsMuted
     }
 
@@ -1010,6 +1634,20 @@ actor AlarmScheduler {
     else {
       let failedReplacementIDs = cancel([replacementID])
       if failedReplacementIDs.contains(replacementID) {
+        preserveFailedRetryChains(
+          [
+            cleanupRetryChain(
+              from: chain,
+              currentAlarmID: replacementID,
+              soundChoice: replacementSound
+            )
+          ],
+          failedIDs: failedReplacementIDs
+        )
+        saveScheduledRecords(
+          merged(scheduledRecords(for: chain.owner), with: [record]),
+          owner: chain.owner
+        )
         logger.error(
           "Cancelled retry chain left replacement alarm \(replacementID.uuidString) pending cleanup."
         )
@@ -1017,17 +1655,81 @@ actor AlarmScheduler {
       return nil
     }
 
+    clearWakeHandoff(chainID: chainID, alarmID: alarmID)
+    let failedPreviousAlarmIDs: Set<UUID>
+    if previousRetiredForCapacity {
+      failedPreviousAlarmIDs = []
+    } else {
+      failedPreviousAlarmIDs = cancel([previousAlarmID])
+    }
     var updatedChain = storedChains[storedChainIndex]
     updatedChain.currentAlarmID = replacementID
     updatedChain.soundChoice = replacementSound
     updatedChain.retryCount += 1
     storedChains[storedChainIndex] = updatedChain
+    if failedPreviousAlarmIDs.contains(previousAlarmID) {
+      storedChains.append(
+        cleanupRetryChain(
+          from: chain,
+          currentAlarmID: previousAlarmID
+        )
+      )
+    }
     SettingsStore.shared.saveAlarmRetryChains(storedChains)
-    replaceScheduledRecord(
-      previousAlarmID: previousAlarmID,
-      with: record,
-      owner: chain.owner
-    )
+    if failedPreviousAlarmIDs.isEmpty {
+      replaceScheduledRecord(
+        previousAlarmID: previousAlarmID,
+        with: record,
+        owner: chain.owner
+      )
+    } else {
+      saveScheduledRecords(
+        merged(scheduledRecords(for: chain.owner), with: [record]),
+        owner: chain.owner
+      )
+    }
+    do {
+      _ = try AlarmLedgerStore.shared.replacePhysicalDelivery(
+        currentPhysicalDeliveryID: previousAlarmID,
+        with: replacementID,
+        fireDate: replacementDate,
+        lifecycle: ledgerLifecycle,
+        at: now,
+        source: "AlarmScheduler.refireDismissedAlarm",
+        details: [
+          "retryCount": String(updatedChain.retryCount),
+          "trigger": ledgerLifecycle == .snoozed ? "userStop" : "recovery",
+        ]
+      )
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_delivery_replace_failed",
+        source: "AlarmScheduler.refireDismissedAlarm",
+        alarmID: replacementID,
+        chainID: chainID,
+        setID: chain.setID,
+        details: [
+          "error": error.localizedDescription,
+          "previousAlarmID": previousAlarmID.uuidString,
+        ]
+      )
+    }
+    if failedPreviousAlarmIDs.isEmpty == false {
+      logger.error(
+        "Committed replacement alarm \(replacementID.uuidString) while \(previousAlarmID.uuidString) remains pending cleanup."
+      )
+      AlarmEventJournal.shared.record(
+        "refire_cleanup_incomplete",
+        source: "AlarmScheduler.refireDismissedAlarm",
+        alarmID: replacementID,
+        chainID: chainID,
+        setID: chain.setID,
+        details: [
+          "failureCount": String(failedPreviousAlarmIDs.count),
+          "previousAlarmID": previousAlarmID.uuidString,
+        ]
+      )
+    }
     AlarmEventJournal.shared.record(
       "refire_committed",
       source: "AlarmScheduler.refireDismissedAlarm",
@@ -1043,11 +1745,19 @@ actor AlarmScheduler {
   }
 
   private func escalatedSound(for chain: AlarmRetryChain) -> AlarmSoundChoice {
-    let requiredTier = AlarmMusicTierPolicy.tier(
-      ordinal: chain.ordinal,
-      total: chain.total,
-      additionalSnoozes: chain.retryCount + 1
-    )
+    let requiredTier =
+      if let currentTier = chain.soundChoice.intensityTier {
+        AlarmMusicTierPolicy.escalatedTier(
+          from: currentTier,
+          additionalSnoozes: 1
+        )
+      } else {
+        AlarmMusicTierPolicy.stackTier(
+          ordinal: chain.ordinal,
+          total: chain.total,
+          additionalSnoozes: chain.retryCount + 1
+        )
+      }
     let selected = SoundLibrary().selectedSounds(
       for: SettingsStore.shared.loadSettings()
     )
@@ -1070,15 +1780,31 @@ actor AlarmScheduler {
       })
     else {
       try stopAlarmAudio(id: alarmID)
+      _ = try? AlarmLedgerStore.shared.markSilenced(
+        physicalDeliveryID: alarmID,
+        source: "AlarmScheduler.silence.missingChain"
+      )
       removeScheduledRecords(ids: [alarmID])
       return nil
     }
     guard chain.currentAlarmID == alarmID else {
       try stopAlarmAudio(id: alarmID)
+      _ = try? AlarmLedgerStore.shared.markSilenced(
+        physicalDeliveryID: alarmID,
+        source: "AlarmScheduler.silence.chainMismatch"
+      )
       removeScheduledRecords(ids: [alarmID])
       return nil
     }
-    return try stopCurrentAlarm(chainID: chainID, alarmID: alarmID)
+    let stoppedChain = try stopCurrentAlarm(
+      chainID: chainID,
+      alarmID: alarmID
+    )
+    _ = try? AlarmLedgerStore.shared.markSilenced(
+      physicalDeliveryID: alarmID,
+      source: "AlarmScheduler.silence"
+    )
+    return stoppedChain
   }
 
   @discardableResult
@@ -1110,7 +1836,7 @@ actor AlarmScheduler {
         $0.id == chainID && $0.currentAlarmID == alarmID
       }),
       AlarmInteractionPolicy.shouldRearmAfterSilence(
-        isCanonical: chain.isCanonical
+        isCanonical: chain.requiresChallenge
       )
     else {
       _ = try silence(chainID: chainID, alarmID: alarmID)
@@ -1122,7 +1848,8 @@ actor AlarmScheduler {
     _ = try await refireDismissedAlarm(
       chainID: chainID,
       alarmID: alarmID,
-      now: now
+      now: now,
+      ledgerLifecycle: .snoozed
     )
   }
 
@@ -1143,10 +1870,11 @@ actor AlarmScheduler {
       id: UUID(),
       chainID: chainID,
       alarmID: alarmID,
-      isCanonical: chain.isCanonical,
+      isCanonical: chain.requiresChallenge,
       createdAt: now,
       deadline: AlarmInteractionPolicy.wakeHandoffDeadline(
-        isCanonical: chain.isCanonical,
+        isCanonical: chain.requiresChallenge,
+        episodeDeadline: chain.requiresChallenge ? chain.expiresAt : nil,
         now: now
       ),
       claimedAt: nil
@@ -1214,7 +1942,6 @@ actor AlarmScheduler {
     guard
       let handoff = SettingsStore.shared.loadAlarmWakeHandoff(),
       handoff.id == handoffID,
-      !handoff.isCanonical,
       handoff.claimedAt == nil,
       let deadline = handoff.deadline,
       deadline <= now
@@ -1287,6 +2014,8 @@ actor AlarmScheduler {
     let currentStates = Dictionary(uniqueKeysWithValues: alarms.map { ($0.id, $0.state) })
     let priorStates = previousAlarmStates
     self.previousAlarmStates = currentStates
+    observeFiredAlarms(in: currentStates)
+    sweepAlarmLifecycle(currentStates: currentStates, now: .now)
     let store = SettingsStore.shared
     let records =
       store.loadScheduledAlarms()
@@ -1321,6 +2050,9 @@ actor AlarmScheduler {
         "canonical": String(chain?.isCanonical ?? record?.isCanonical ?? false),
         "currentState": currentStates[alarmID].map { String(describing: $0) } ?? "missing",
         "previousState": priorStates?[alarmID].map { String(describing: $0) } ?? "missing",
+        "requiresChallenge": String(
+          chain?.requiresChallenge ?? record?.requiresChallenge ?? false
+        ),
       ]
       if let record {
         details["fireEpoch"] = String(record.fireDate.timeIntervalSince1970)
@@ -1330,6 +2062,8 @@ actor AlarmScheduler {
         details["ordinal"] = String(chain.ordinal)
         details["owner"] = chain.owner.rawValue
         details["retryCount"] = String(chain.retryCount)
+        details["soundID"] = chain.soundChoice.id
+        details["soundTier"] = chain.soundChoice.intensityTier?.rawValue ?? "unclassified"
         details["total"] = String(chain.total)
       }
       AlarmEventJournal.shared.record(
@@ -1340,6 +2074,20 @@ actor AlarmScheduler {
         setID: chain?.setID ?? record?.setID,
         details: details
       )
+      if currentStates[alarmID] == .alerting {
+        updateLedgerLifecycle(
+          physicalDeliveryID: alarmID,
+          to:
+            chain?.requiresChallenge == true || record?.requiresChallenge == true
+            ? .activePreChallenge : .alerting,
+          source: "AlarmScheduler.processAlarmUpdates",
+          details: [
+            "alarmKitState": "alerting",
+            "previousAlarmKitState":
+              priorStates?[alarmID].map { String(describing: $0) } ?? "missing",
+          ]
+        )
+      }
     }
 
     if SettingsStore.shared.loadWakeChallenge() != nil {
@@ -1563,11 +2311,113 @@ actor AlarmScheduler {
       .sorted { $0.fireDate < $1.fireDate }
   }
 
+  private func scheduledRecords(
+    for owner: ScheduledAlarmOwner
+  ) -> [ScheduledAlarmRecord] {
+    switch owner {
+    case .barrage:
+      SettingsStore.shared.loadScheduledAlarms()
+    case .powerNap:
+      SettingsStore.shared.loadScheduledPowerNaps()
+    case .test:
+      SettingsStore.shared.loadScheduledTestAlarms()
+    }
+  }
+
+  private func saveScheduledRecords(
+    _ records: [ScheduledAlarmRecord],
+    owner: ScheduledAlarmOwner
+  ) {
+    let normalized = merged([], with: records)
+    switch owner {
+    case .barrage:
+      SettingsStore.shared.saveScheduledAlarms(normalized)
+    case .powerNap:
+      SettingsStore.shared.saveScheduledPowerNaps(normalized)
+    case .test:
+      SettingsStore.shared.saveScheduledTestAlarms(normalized)
+    }
+  }
+
+  private func removePersistedDeliveries(
+    ids: Set<UUID>,
+    owner: ScheduledAlarmOwner
+  ) {
+    guard !ids.isEmpty else { return }
+    saveScheduledRecords(
+      scheduledRecords(for: owner).filter { !ids.contains($0.id) },
+      owner: owner
+    )
+    SettingsStore.shared.saveAlarmRetryChains(
+      SettingsStore.shared.loadAlarmRetryChains().filter {
+        !ids.contains($0.currentAlarmID)
+      }
+    )
+  }
+
+  private func detachLogicalDeliveries(
+    physicalDeliveryIDs: Set<UUID>,
+    primaryLogicalAlarmID: UUID,
+    source: String
+  ) throws {
+    let ledgerStore = AlarmLedgerStore.shared
+    let ledger = try ledgerStore.load()
+    // Follow-up coverage belongs to the alarm it supports, so detaching that
+    // alarm releases every platform alarm scheduled for it.
+    let detachedAlarms = ledger.alarms.filter {
+      if $0.id == primaryLogicalAlarmID {
+        guard let physicalDeliveryID = $0.current.physicalDeliveryID else {
+          return true
+        }
+        return physicalDeliveryIDs.contains(physicalDeliveryID)
+      }
+      return $0.current.physicalDeliveryID.map(physicalDeliveryIDs.contains) == true
+    }
+    for alarm in detachedAlarms {
+      _ = try ledgerStore.detachPhysicalDelivery(
+        logicalAlarmID: alarm.id,
+        lifecycle: alarm.id == primaryLogicalAlarmID ? .planned : .deprecated,
+        source: source,
+        details: [
+          "reason":
+            alarm.id == primaryLogicalAlarmID
+            ? "userMutedAlarm"
+            : "supersededDelivery"
+        ]
+      )
+    }
+  }
+
+  private func detachPhysicalDeliveries(
+    ids: Set<UUID>,
+    lifecycle: AlarmLedgerLifecycleState,
+    source: String
+  ) throws {
+    guard !ids.isEmpty else { return }
+    let ledgerStore = AlarmLedgerStore.shared
+    let logicalAlarmIDs: [UUID] = try ledgerStore.load().alarms.compactMap {
+      alarm -> UUID? in
+      guard ids.contains(where: alarm.current.owns(deliveryID:)) else {
+        return nil
+      }
+      return alarm.id
+    }
+    for logicalAlarmID in logicalAlarmIDs {
+      _ = try ledgerStore.detachPhysicalDelivery(
+        logicalAlarmID: logicalAlarmID,
+        lifecycle: lifecycle,
+        source: source,
+        details: ["reason": "allAppOwnedAlarmsCancelled"]
+      )
+    }
+  }
+
   private func makeRetryChain(
     owner: ScheduledAlarmOwner,
     alarmID: UUID,
     setID: UUID,
     isCanonical: Bool,
+    requiresChallenge: Bool? = nil,
     targetTitle: String,
     targetDate: Date,
     offsetMinutes: Int,
@@ -1575,12 +2425,18 @@ actor AlarmScheduler {
     total: Int,
     title: String,
     soundChoice: AlarmSoundChoice,
-    fireDate: Date
+    fireDate: Date,
+    expiresAt: Date? = nil,
+    role: ScheduledAlarmRole = .primary,
+    relayOrdinal: Int? = nil,
+    relayTotal: Int? = nil
   ) -> AlarmRetryChain {
-    AlarmRetryChain(
+    let requiresChallenge = requiresChallenge ?? isCanonical
+    return AlarmRetryChain(
       id: UUID(),
       setID: setID,
       isCanonical: isCanonical,
+      requiresChallenge: requiresChallenge,
       currentAlarmID: alarmID,
       owner: owner,
       targetTitle: targetTitle,
@@ -1591,11 +2447,225 @@ actor AlarmScheduler {
       title: title,
       soundChoice: soundChoice,
       expiresAt:
-        isCanonical
-        ? .distantFuture
-        : fireDate.addingTimeInterval(Self.retryLifetime),
-      retryCount: 0
+        expiresAt
+        ?? (requiresChallenge
+          ? AlarmInteractionPolicy.canonicalRecoveryDeadline(for: fireDate)
+          : fireDate.addingTimeInterval(Self.retryLifetime)),
+      retryCount: 0,
+      role: role,
+      relayOrdinal: relayOrdinal,
+      relayTotal: relayTotal
     )
+  }
+
+  /// Derives the behavior of follow-up coverage from the alarm it supports.
+  ///
+  /// Follow-up alarms are not separately configurable — they exist only to keep
+  /// the supported alarm audible past the platform's per-alarm ceiling, so they
+  /// always demand the challenge and always play at full intensity.
+  private static func relayUserOverride(
+    inheriting canonicalOverride: AlarmUserOverride?
+  ) -> AlarmUserOverride {
+    AlarmUserOverride(
+      requiresChallenge: true,
+      isMuted: canonicalOverride?.isMuted ?? false,
+      requestedVolume: canonicalOverride?.requestedVolume,
+      musicIntensity: .abrasive
+    )
+  }
+
+  private func appendCanonicalRelays(
+    after canonicalRecord: ScheduledAlarmRecord,
+    chain canonicalChain: AlarmRetryChain,
+    to records: inout [ScheduledAlarmRecord],
+    chains: inout [AlarmRetryChain],
+    canonicalOverride: AlarmUserOverride? = nil
+  ) async throws {
+    guard canonicalChain.requiresChallenge else { return }
+    let relayFireDates = AlarmInteractionPolicy.relayFireDates(
+      after: canonicalRecord.fireDate
+    )
+    guard !relayFireDates.isEmpty else { return }
+
+    let relayTotal = relayFireDates.count
+    let selectedSounds = SoundLibrary().selectedSounds(
+      for: SettingsStore.shared.loadSettings()
+    )
+    AlarmEventJournal.shared.record(
+      "relay_plan_created",
+      source: "AlarmScheduler.appendCanonicalRelays",
+      alarmID: canonicalRecord.id,
+      chainID: canonicalChain.id,
+      setID: canonicalChain.setID,
+      details: [
+        "canonicalFireEpoch": String(canonicalRecord.fireDate.timeIntervalSince1970),
+        "episodeDeadlineEpoch": String(canonicalChain.expiresAt.timeIntervalSince1970),
+        "relayCadenceSeconds": String(AlarmInteractionPolicy.relayCadence),
+        "relayCount": String(relayTotal),
+      ]
+    )
+
+    let userOverride = Self.relayUserOverride(inheriting: canonicalOverride)
+    for (index, fireDate) in relayFireDates.enumerated() {
+      let relayOrdinal = index + 1
+      let decision = AlarmPhysicalSchedulePolicy.resolve(
+        userOverride: userOverride,
+        defaultSound: canonicalChain.soundChoice,
+        availableSounds: selectedSounds,
+        targetDate: canonicalChain.targetDate,
+        rotationIndex: relayOrdinal - 1
+      )
+      guard decision.shouldSchedule else { continue }
+      // Follow-up coverage is the same alarm sounding again, so it presents
+      // identically on the lock screen.
+      let relayTitle = canonicalChain.title
+      let relayChain = makeRetryChain(
+        owner: canonicalChain.owner,
+        alarmID: UUID(),
+        setID: canonicalChain.setID,
+        isCanonical: true,
+        requiresChallenge: decision.requiresChallenge,
+        targetTitle: canonicalChain.targetTitle,
+        targetDate: canonicalChain.targetDate,
+        offsetMinutes: canonicalChain.offsetMinutes,
+        ordinal: canonicalChain.ordinal,
+        total: canonicalChain.total,
+        title: relayTitle,
+        soundChoice: decision.soundChoice,
+        fireDate: fireDate,
+        expiresAt:
+          decision.requiresChallenge
+          ? canonicalChain.expiresAt
+          : nil,
+        role: .relay,
+        relayOrdinal: relayOrdinal,
+        relayTotal: relayTotal
+      )
+      let relayRecord = try await schedule(
+        id: relayChain.currentAlarmID,
+        chainID: relayChain.id,
+        setID: relayChain.setID,
+        isCanonical: true,
+        requiresChallenge: relayChain.requiresChallenge,
+        owner: relayChain.owner,
+        fireDate: fireDate,
+        targetTitle: relayChain.targetTitle,
+        targetDate: relayChain.targetDate,
+        offsetMinutes: relayChain.offsetMinutes,
+        ordinal: relayChain.ordinal,
+        total: relayChain.total,
+        title: relayTitle,
+        soundChoice: decision.soundChoice,
+        role: .relay,
+        relayOrdinal: relayOrdinal,
+        relayTotal: relayTotal
+      )
+      records.append(relayRecord)
+      chains.append(relayChain)
+    }
+  }
+
+  private func recordScheduledSetInLedger(
+    owner: ScheduledAlarmOwner,
+    setID: UUID,
+    targetDate: Date,
+    records: [ScheduledAlarmRecord],
+    chains: [AlarmRetryChain],
+    alarmType: AlarmLedgerType? = nil,
+    source: String
+  ) {
+    let chainsByAlarmID = Dictionary(
+      uniqueKeysWithValues: chains.map { ($0.currentAlarmID, $0) }
+    )
+    let deliveries = records.compactMap { record -> AlarmLedgerScheduledDelivery? in
+      guard let chain = chainsByAlarmID[record.id] else {
+        return nil
+      }
+      return AlarmLedgerScheduledDelivery(
+        record: record,
+        ordinal: chain.ordinal,
+        total: chain.total,
+        soundID: chain.soundChoice.id
+      )
+    }
+    guard deliveries.count == records.count, !deliveries.isEmpty else {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_schedule_skipped",
+        source: "AlarmScheduler.recordScheduledSetInLedger",
+        setID: setID,
+        details: [
+          "deliveryCount": String(deliveries.count),
+          "owner": owner.rawValue,
+          "reason": "missingRetryChain",
+          "recordCount": String(records.count),
+        ]
+      )
+      return
+    }
+
+    do {
+      let result = try AlarmLedgerStore.shared.reconcileScheduledSet(
+        owner: owner.ledgerOwner,
+        proposedSetID: setID,
+        targetDate: targetDate,
+        deliveries: deliveries,
+        alarmType: alarmType,
+        challengeRepetitions:
+          SettingsStore.shared.loadSettings().wakeChallengeSquatCount,
+        source: source
+      )
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_schedule_committed",
+        source: "AlarmScheduler.recordScheduledSetInLedger",
+        setID: result.logicalSetID,
+        details: [
+          "createdCount": String(result.reconciliation.createdAlarmIDs.count),
+          "deprecatedCount": String(
+            result.reconciliation.deprecatedAlarmIDs.count
+          ),
+          "deliveryCount": String(deliveries.count),
+          "owner": owner.rawValue,
+          "updatedCount": String(result.reconciliation.updatedAlarmIDs.count),
+        ]
+      )
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_schedule_failed",
+        source: "AlarmScheduler.recordScheduledSetInLedger",
+        setID: setID,
+        details: [
+          "error": error.localizedDescription,
+          "owner": owner.rawValue,
+          "recordCount": String(records.count),
+        ]
+      )
+    }
+  }
+
+  private func updateLedgerLifecycle(
+    physicalDeliveryID: UUID,
+    to lifecycle: AlarmLedgerLifecycleState,
+    source: String,
+    details: [String: String] = [:]
+  ) {
+    do {
+      _ = try AlarmLedgerStore.shared.updateLifecycle(
+        physicalDeliveryID: physicalDeliveryID,
+        to: lifecycle,
+        source: source,
+        details: details
+      )
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_lifecycle_failed",
+        source: source,
+        alarmID: physicalDeliveryID,
+        details: [
+          "error": error.localizedDescription,
+          "requestedLifecycle": lifecycle.rawValue,
+        ].merging(details) { current, _ in current }
+      )
+    }
   }
 
   private func activeRetryChains(now: Date = .now) -> [AlarmRetryChain] {
@@ -1633,6 +2703,33 @@ actor AlarmScheduler {
     let removedChain = chains.first { $0.id == id }
     SettingsStore.shared.saveAlarmRetryChains(chains.filter { $0.id != id })
     return removedChain
+  }
+
+  private func cleanupRetryChain(
+    from chain: AlarmRetryChain,
+    currentAlarmID: UUID,
+    soundChoice: AlarmSoundChoice? = nil
+  ) -> AlarmRetryChain {
+    AlarmRetryChain(
+      id: UUID(),
+      setID: chain.setID,
+      isCanonical: chain.isCanonical,
+      requiresChallenge: chain.requiresChallenge,
+      currentAlarmID: currentAlarmID,
+      owner: chain.owner,
+      targetTitle: chain.targetTitle,
+      targetDate: chain.targetDate,
+      offsetMinutes: chain.offsetMinutes,
+      ordinal: chain.ordinal,
+      total: chain.total,
+      title: chain.title,
+      soundChoice: soundChoice ?? chain.soundChoice,
+      expiresAt: chain.expiresAt,
+      retryCount: Self.maximumRetriesPerChain,
+      role: chain.role,
+      relayOrdinal: chain.relayOrdinal,
+      relayTotal: chain.relayTotal
+    )
   }
 
   private func preserveFailedRetryChains(
@@ -1711,6 +2808,247 @@ actor AlarmScheduler {
     }
   }
 
+  private func laterFiredRecord(
+    in setID: UUID,
+    than alarmID: UUID,
+    now: Date
+  ) -> ScheduledAlarmRecord? {
+    let records =
+      SettingsStore.shared.loadScheduledAlarms()
+      + SettingsStore.shared.loadScheduledTestAlarms()
+      + SettingsStore.shared.loadScheduledPowerNaps()
+    guard let currentRecord = records.first(where: { $0.id == alarmID }) else {
+      return nil
+    }
+    let currentStates =
+      (try? Dictionary(
+        uniqueKeysWithValues: AlarmManager.shared.alarms.map { ($0.id, $0.state) }
+      )) ?? [:]
+    return
+      records
+      .filter {
+        $0.setID == setID
+          && $0.id != alarmID
+          && $0.fireDate > currentRecord.fireDate
+          && $0.fireDate <= now
+          && (currentStates[$0.id] == .alerting
+            || observedFiredAlarmIDs.contains($0.id))
+      }
+      .max { $0.fireDate < $1.fireDate }
+  }
+
+  private func observeFiredAlarms(in states: [UUID: Alarm.State]) {
+    observedFiredAlarmIDs.formUnion(
+      states.compactMap { alarmID, state in
+        state == .alerting ? alarmID : nil
+      }
+    )
+  }
+
+  private func laterObservedFireDate(
+    in setID: UUID,
+    than alarmID: UUID,
+    records: [ScheduledAlarmRecord],
+    currentStates: [UUID: Alarm.State],
+    now: Date
+  ) -> Date? {
+    guard let currentRecord = records.first(where: { $0.id == alarmID }) else {
+      return nil
+    }
+    return
+      records
+      .filter {
+        $0.setID == setID
+          && $0.id != alarmID
+          && $0.fireDate > currentRecord.fireDate
+          && $0.fireDate <= now
+          && (currentStates[$0.id] == .alerting
+            || observedFiredAlarmIDs.contains($0.id))
+      }
+      .map(\.fireDate)
+      .min()
+  }
+
+  /// Retires deliveries that can no longer be audible or have been replaced by a later fire.
+  private func sweepAlarmLifecycle(
+    currentStates: [UUID: Alarm.State],
+    now: Date
+  ) {
+    let store = SettingsStore.shared
+    let records =
+      store.loadScheduledAlarms()
+      + store.loadScheduledTestAlarms()
+      + store.loadScheduledPowerNaps()
+    let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+    let chains = store.loadAlarmRetryChains()
+    let chainsByAlarmID = Dictionary(
+      uniqueKeysWithValues: chains.map { ($0.currentAlarmID, $0) }
+    )
+    var retirementReasons: [UUID: String] = [:]
+
+    for record in records {
+      let state =
+        currentStates[record.id].map(Self.interactionState)
+        ?? .missing
+      let chain = chainsByAlarmID[record.id]
+      let episodeDeadline =
+        chain?.requiresChallenge == true ? chain?.expiresAt : nil
+      let supersededAt = laterObservedFireDate(
+        in: record.setID,
+        than: record.id,
+        records: records,
+        currentStates: currentStates,
+        now: now
+      )
+
+      if let supersededAt {
+        retirementReasons[record.id] =
+          "supersededAt:" + String(supersededAt.timeIntervalSince1970)
+        continue
+      }
+
+      if let chain, chain.requiresChallenge, chain.expiresAt <= now {
+        retirementReasons[record.id] = "wakeEpisodeExpired"
+        continue
+      }
+
+      if AlarmInteractionPolicy.isStaleAlerting(
+        state: state,
+        fireDate: record.fireDate,
+        episodeDeadline: episodeDeadline,
+        now: now
+      ) {
+        retirementReasons[record.id] = "acousticWindowExpired"
+        continue
+      }
+
+      switch state {
+      case .scheduled, .countdown, .paused:
+        let deadline = AlarmInteractionPolicy.acousticDeadline(
+          for: record.fireDate,
+          episodeDeadline: episodeDeadline
+        )
+        if record.fireDate <= now, deadline <= now {
+          retirementReasons[record.id] = "deliveryWindowExpired"
+        }
+      case .missing:
+        guard record.fireDate <= now else { continue }
+        let laterDueDate =
+          records
+          .filter {
+            $0.setID == record.setID
+              && $0.fireDate > record.fireDate
+              && $0.fireDate <= now
+          }
+          .map(\.fireDate)
+          .min()
+        if let laterDueDate {
+          retirementReasons[record.id] =
+            "supersededByLaterDueDelivery:"
+            + String(laterDueDate.timeIntervalSince1970)
+          continue
+        }
+        let shouldRecover = AlarmInteractionPolicy.shouldRecoverDismissedAlarm(
+          state: state,
+          fireDate: record.fireDate,
+          requiresPersistentRecovery: chain?.requiresChallenge == true,
+          episodeDeadline: episodeDeadline,
+          now: now
+        )
+        if !shouldRecover {
+          retirementReasons[record.id] = "missingOutsideRecoveryWindow"
+        }
+      case .alerting, .unavailable:
+        break
+      }
+    }
+
+    for chain in chains
+    where recordsByID[chain.currentAlarmID] == nil && chain.expiresAt <= now {
+      retirementReasons[chain.currentAlarmID] = "orphanedRetryChainExpired"
+    }
+
+    let retirementIDs = Set(retirementReasons.keys)
+    let failedRetirementIDs = cancel(Array(retirementIDs))
+    let retiredIDs = retirementIDs.subtracting(failedRetirementIDs)
+    if !retiredIDs.isEmpty {
+      removeScheduledRecords(ids: retiredIDs)
+      if let handoff = store.loadAlarmWakeHandoff(),
+        retiredIDs.contains(handoff.alarmID)
+      {
+        store.clearAlarmWakeHandoff()
+      }
+    }
+
+    let expiredNonCanonicalChainIDs: Set<UUID> = Set(
+      chains.compactMap { chain in
+        guard !chain.requiresChallenge, chain.expiresAt <= now else { return nil }
+        return chain.id
+      }
+    )
+    if !retiredIDs.isEmpty || !expiredNonCanonicalChainIDs.isEmpty {
+      store.saveAlarmRetryChains(
+        chains.filter {
+          !retiredIDs.contains($0.currentAlarmID)
+            && !expiredNonCanonicalChainIDs.contains($0.id)
+        }
+      )
+    }
+
+    for alarmID in retiredIDs.sorted(by: { $0.uuidString < $1.uuidString }) {
+      let record = recordsByID[alarmID]
+      let chain = chainsByAlarmID[alarmID]
+      let reason = retirementReasons[alarmID] ?? "unknown"
+      let wasObservedFiring =
+        currentStates[alarmID] == .alerting
+        || observedFiredAlarmIDs.contains(alarmID)
+      let lifecycle: AlarmLedgerLifecycleState =
+        if chain?.requiresChallenge == true, !reason.hasPrefix("superseded") {
+          .failed
+        } else if reason.hasPrefix("superseded") || wasObservedFiring {
+          .completed
+        } else {
+          .failed
+        }
+      updateLedgerLifecycle(
+        physicalDeliveryID: alarmID,
+        to: lifecycle,
+        source: "AlarmScheduler.sweepAlarmLifecycle",
+        details: ["retirementReason": reason]
+      )
+      AlarmEventJournal.shared.record(
+        "alarm_lifecycle_retired",
+        source: "AlarmScheduler.sweepAlarmLifecycle",
+        alarmID: alarmID,
+        chainID: chain?.id,
+        setID: chain?.setID ?? record?.setID,
+        details: [
+          "fireEpoch":
+            record.map { String($0.fireDate.timeIntervalSince1970) } ?? "unknown",
+          "observedState":
+            currentStates[alarmID].map { String(describing: $0) } ?? "missing",
+          "reason": reason,
+          "role": chain?.role.rawValue ?? record?.role.rawValue ?? "unknown",
+        ]
+      )
+    }
+    for alarmID in failedRetirementIDs {
+      AlarmEventJournal.shared.record(
+        "alarm_lifecycle_retirement_failed",
+        source: "AlarmScheduler.sweepAlarmLifecycle",
+        alarmID: alarmID,
+        details: ["reason": retirementReasons[alarmID] ?? "unknown"]
+      )
+    }
+
+    let remainingKnownIDs = Set(
+      (store.loadScheduledAlarms()
+        + store.loadScheduledTestAlarms()
+        + store.loadScheduledPowerNaps()).map(\.id)
+    )
+    observedFiredAlarmIDs.formIntersection(remainingKnownIDs)
+  }
+
   private func recoverDismissedAlarms(
     currentStates: [UUID: Alarm.State],
     now: Date
@@ -1731,12 +3069,21 @@ actor AlarmScheduler {
       let state =
         currentStates[chain.currentAlarmID].map(Self.interactionState)
         ?? .missing
-      let shouldRecover = AlarmInteractionPolicy.shouldRecoverDismissedAlarm(
-        state: state,
-        fireDate: record.fireDate,
-        requiresPersistentRecovery: chain.isCanonical,
+      let supersededAt = laterObservedFireDate(
+        in: chain.setID,
+        than: chain.currentAlarmID,
+        records: records,
+        currentStates: currentStates,
         now: now
       )
+      let shouldRecover =
+        AlarmInteractionPolicy.shouldRecoverDismissedAlarm(
+          state: state,
+          fireDate: record.fireDate,
+          requiresPersistentRecovery: chain.requiresChallenge,
+          episodeDeadline: chain.requiresChallenge ? chain.expiresAt : nil,
+          now: now
+        ) && supersededAt == nil
       AlarmEventJournal.shared.record(
         "recovery_decision",
         source: "AlarmScheduler.recoverDismissedAlarms",
@@ -1750,7 +3097,11 @@ actor AlarmScheduler {
           "latenessSeconds": String(now.timeIntervalSince(record.fireDate)),
           "ordinal": String(chain.ordinal),
           "owner": chain.owner.rawValue,
+          "requiresChallenge": String(chain.requiresChallenge),
+          "role": chain.role.rawValue,
           "state": String(describing: state),
+          "supersededEpoch":
+            supersededAt.map { String($0.timeIntervalSince1970) } ?? "none",
           "total": String(chain.total),
         ]
       )
@@ -1804,11 +3155,75 @@ actor AlarmScheduler {
     planned.displayTitle
   }
 
+  private func projectedSchedule(
+    for plan: AlarmPlan,
+    owner: ScheduledAlarmOwner,
+    reconcilePlannedLedger: Bool,
+    source: String
+  ) throws -> AlarmSetProjection {
+    let ledgerStore = AlarmLedgerStore.shared
+    let logicalSetID: UUID
+    if reconcilePlannedLedger {
+      logicalSetID = try ledgerStore.reconcilePlannedSet(
+        owner: owner.ledgerOwner,
+        plan: plan,
+        alarmType: plan.reason.ledgerAlarmType,
+        challengeRepetitions:
+          SettingsStore.shared.loadSettings().wakeChallengeSquatCount,
+        source: source
+      ).logicalSetID
+    } else {
+      logicalSetID = try ledgerStore.stableSetID(
+        owner: owner.ledgerOwner,
+        targetDate: plan.targetDate,
+        proposedSetID: plan.setID
+      )
+    }
+
+    let logicalAlarms = try ledgerStore.load().alarms.filter {
+      $0.owner == owner.ledgerOwner && $0.setID == logicalSetID
+    }
+    let overridesBySlot = Dictionary(
+      uniqueKeysWithValues: logicalAlarms.map {
+        ($0.slot, $0.current.userOverride)
+      }
+    )
+    let selectedSounds = SoundLibrary().selectedSounds(
+      for: SettingsStore.shared.loadSettings()
+    )
+    let projectedAlarms = plan.alarms.map { planned in
+      let slot = AlarmLedgerSlot.primary(
+        slotFromFinal: planned.total - planned.ordinal
+      )
+      let userOverride =
+        overridesBySlot[slot]
+        ?? AlarmUserOverride.defaults(
+          isFinal: planned.isCanonical,
+          ordinal: planned.ordinal,
+          total: planned.total
+        )
+      let decision = AlarmPhysicalSchedulePolicy.resolve(
+        userOverride: userOverride,
+        defaultSound: planned.sound,
+        availableSounds: selectedSounds,
+        targetDate: plan.targetDate,
+        rotationIndex: planned.ordinal - 1
+      )
+      return ProjectedPlannedAlarm(
+        planned: planned,
+        userOverride: userOverride,
+        decision: decision
+      )
+    }
+    return AlarmSetProjection(alarms: projectedAlarms)
+  }
+
   private func schedule(
     id: UUID,
     chainID: UUID,
     setID: UUID,
     isCanonical: Bool,
+    requiresChallenge: Bool? = nil,
     owner: ScheduledAlarmOwner,
     fireDate: Date,
     targetTitle: String,
@@ -1817,20 +3232,28 @@ actor AlarmScheduler {
     ordinal: Int,
     total: Int,
     title: String,
-    soundChoice: AlarmSoundChoice
+    soundChoice: AlarmSoundChoice,
+    role: ScheduledAlarmRole = .primary,
+    relayOrdinal: Int? = nil,
+    relayTotal: Int? = nil
   ) async throws -> ScheduledAlarmRecord {
     try Task.checkCancellation()
     guard SettingsStore.shared.loadMuteState() == nil else {
       throw AlarmSchedulerError.alarmsMuted
     }
+    let requiresChallenge = requiresChallenge ?? isCanonical
     let metadata = RiseAlarmMetadata(
       setID: setID,
       isCanonical: isCanonical,
+      requiresChallenge: requiresChallenge,
       targetTitle: targetTitle,
       targetDate: targetDate,
       offsetMinutes: offsetMinutes,
       ordinal: ordinal,
-      total: total
+      total: total,
+      role: role,
+      relayOrdinal: relayOrdinal,
+      relayTotal: relayTotal
     )
     let alertTitle = LocalizedStringResource(stringLiteral: title)
     let wakeButton = AlarmButton(
@@ -1851,7 +3274,7 @@ actor AlarmScheduler {
     // Earlier attacks can be stopped normally. The final alarm keeps its
     // false-snooze lock until the squat challenge is completed.
     let stopIntent: any LiveActivityIntent =
-      if isCanonical {
+      if requiresChallenge {
         FalseSnoozeIntent(chainID: chainID, alarmID: id)
       } else {
         SilenceAlarmIntent(chainID: chainID, alarmID: id)
@@ -1880,10 +3303,14 @@ actor AlarmScheduler {
       setID: setID,
       details: [
         "canonical": String(isCanonical),
+        "requiresChallenge": String(requiresChallenge),
         "clipDurationSeconds": soundChoice.clipDurationSeconds.map { String($0) } ?? "unknown",
         "fireEpoch": String(fireDate.timeIntervalSince1970),
         "ordinal": String(ordinal),
         "owner": owner.rawValue,
+        "role": role.rawValue,
+        "relayOrdinal": relayOrdinal.map(String.init) ?? "none",
+        "relayTotal": relayTotal.map(String.init) ?? "none",
         "soundBytes": soundByteCount ?? "unknown",
         "soundFile": soundChoice.fileName ?? "system",
         "soundID": soundChoice.id,
@@ -1903,9 +3330,13 @@ actor AlarmScheduler {
         setID: setID,
         details: [
           "canonical": String(isCanonical),
+          "requiresChallenge": String(requiresChallenge),
           "fireEpoch": String(fireDate.timeIntervalSince1970),
           "ordinal": String(ordinal),
           "owner": owner.rawValue,
+          "role": role.rawValue,
+          "relayOrdinal": relayOrdinal.map(String.init) ?? "none",
+          "relayTotal": relayTotal.map(String.init) ?? "none",
           "total": String(total),
         ]
       )
@@ -1918,6 +3349,7 @@ actor AlarmScheduler {
         setID: setID,
         details: [
           "canonical": String(isCanonical),
+          "requiresChallenge": String(requiresChallenge),
           "error": error.localizedDescription,
           "fireEpoch": String(fireDate.timeIntervalSince1970),
           "ordinal": String(ordinal),
@@ -1925,19 +3357,57 @@ actor AlarmScheduler {
           "total": String(total),
         ]
       )
+      if let alarmError = error as? AlarmManager.AlarmError,
+        alarmError == .maximumLimitReached
+      {
+        throw AlarmSchedulerError.capacityLimitReached
+      }
       throw error
     }
     return ScheduledAlarmRecord(
       id: id,
       setID: setID,
       isCanonical: isCanonical,
+      requiresChallenge: requiresChallenge,
       fireDate: fireDate,
-      title: title
+      title: title,
+      role: role,
+      relayOrdinal: relayOrdinal,
+      relayTotal: relayTotal
     )
   }
 
   private func sound(for choice: AlarmSoundChoice) -> AlertConfiguration.AlertSound {
     guard let fileName = choice.fileName else { return .default }
     return .named(fileName)
+  }
+}
+
+extension ScheduledAlarmOwner {
+  fileprivate var ledgerOwner: AlarmLedgerOwner {
+    switch self {
+    case .barrage: .barrage
+    case .powerNap: .powerNap
+    case .test: .test
+    }
+  }
+}
+
+extension AlarmLedgerOwner {
+  fileprivate var scheduledOwner: ScheduledAlarmOwner {
+    switch self {
+    case .barrage: .barrage
+    case .powerNap: .powerNap
+    case .test: .test
+    }
+  }
+}
+
+extension AlarmTargetReason {
+  fileprivate var ledgerAlarmType: AlarmLedgerType {
+    switch self {
+    case .grindTime: .routine
+    case .earlyMeeting: .calendarAdjusted
+    }
   }
 }

@@ -13,9 +13,14 @@ const TMP_ROOT = process.env.TMP_ROOT || "/data/tmp";
 const CONCURRENCY = Number(process.env.SEED_CONCURRENCY || 12);
 
 const TIERS = ["soothing", "relaxing", "motivating", "energizing", "abrasive"];
-const PROVIDERS = ["lyria", "elevenlabs"];
+const PROVIDER_LABELS = { lyria: "Lyria", elevenlabs: "Eleven Labs" };
+const DEFAULT_PROVIDERS = ["lyria", "elevenlabs"];
 
+// A set may cover only part of its plan — v9's plan is 320 songs but only the
+// generated sample is worth showing — so `sampled` keeps a set to the songs
+// that actually have audio on disk instead of erroring on the rest.
 const SETS = [
+  { key: "v9", dir: "music_v9", previewsDir: "music_v9_previews", label: "v9", model: "Claude Opus 5", effort: "high", providers: ["elevenlabs"], sampled: true, note: "PyMusicLooper 20–30 s discovered loops" },
   { key: "v7", dir: "music_v7", previewsDir: "music_v7_previews", label: "v7", model: "Claude Sonnet 5", effort: "high" },
   { key: "v8", dir: "music_v8", previewsDir: "music_v8_previews", label: "v8", model: "Claude Opus 5", effort: "high" },
   { key: "v6", dir: "music_v6", previewsDir: "v6_previews", label: "v6", model: "Claude Fable 5", effort: "high" },
@@ -95,21 +100,31 @@ async function buildCatalog() {
   for (const cfg of SETS) {
     const songs = [];
     for (const tier of TIERS) {
-      const planPath = path.join(SCRATCH_ROOT, cfg.dir, "plan_v2", `${tier}.json`);
+      const planPath = path.join(SCRATCH_ROOT, cfg.dir, cfg.planDir || "plan_v2", `${tier}.json`);
       const planSongs = JSON.parse(await readFile(planPath, "utf8"));
 
       for (const song of planSongs) {
         const slug = slugify(song.title);
         const providers = {};
+        const setProviders = cfg.providers || DEFAULT_PROVIDERS;
 
-        for (const provider of PROVIDERS) {
+        if (cfg.sampled) {
+          const anyGenerated = await Promise.all(
+            setProviders.map((provider) =>
+              fileExists(path.join(SCRATCH_ROOT, cfg.dir, "audio", provider, tier, `${song.id}.mp3`))
+            )
+          );
+          if (!anyGenerated.some(Boolean)) continue;
+        }
+
+        for (const provider of setProviders) {
           const genLocal = path.join(SCRATCH_ROOT, cfg.dir, "audio", provider, tier, `${song.id}.mp3`);
           const sidecarLocal = path.join(SCRATCH_ROOT, cfg.dir, "audio", provider, tier, `${song.id}.json`);
-          const loopLocal = path.join(TMP_ROOT, cfg.previewsDir, tier, `${slug}_${provider}_x2.m4a`);
+          const loopLocal = path.join(TMP_ROOT, cfg.previewsDir, tier, `${slug}_${provider}_loop.m4a`);
           const seamLocal = path.join(TMP_ROOT, cfg.previewsDir, tier, `${slug}_${provider}_seam.m4a`);
 
           const genObject = `${cfg.dir}/audio/${provider}/${tier}/${song.id}.mp3`;
-          const loopObject = `${cfg.dir}/previews/${tier}/${slug}_${provider}_x2.m4a`;
+          const loopObject = `${cfg.dir}/previews/${tier}/${slug}_${provider}_loop.m4a`;
           const seamObject = `${cfg.dir}/previews/${tier}/${slug}_${provider}_seam.m4a`;
 
           let prompt = "";
@@ -118,7 +133,7 @@ async function buildCatalog() {
             prompt = sidecar.prompt || "";
           }
 
-          providers[provider] = { generated: genObject, loopX2: loopObject, seam: seamObject, prompt };
+          providers[provider] = { generated: genObject, loop: loopObject, seam: seamObject, prompt };
 
           uploads.push({ local: genLocal, object: genObject, contentType: "audio/mpeg" });
           uploads.push({ local: loopLocal, object: loopObject, contentType: "audio/mp4" });
@@ -146,7 +161,18 @@ async function buildCatalog() {
         });
       }
     }
-    sets.push({ key: cfg.key, label: cfg.label, model: cfg.model, effort: cfg.effort, songs });
+    sets.push({
+      key: cfg.key,
+      label: cfg.label,
+      model: cfg.model,
+      effort: cfg.effort,
+      note: cfg.note || "",
+      providers: (cfg.providers || DEFAULT_PROVIDERS).map((key) => ({
+        key,
+        label: PROVIDER_LABELS[key] || key,
+      })),
+      songs,
+    });
   }
 
   return { catalog: { sets }, uploads };

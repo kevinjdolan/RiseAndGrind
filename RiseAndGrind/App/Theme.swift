@@ -13,10 +13,17 @@ enum RGTheme {
   static let magenta = Color(red: 0.970, green: 0.075, blue: 0.435)
   static let mint = Color(red: 0.310, green: 0.960, blue: 0.690)
   static let coolBlue = Color(red: 0.110, green: 0.610, blue: 1.000)
+  static let purple = Color(red: 0.545, green: 0.310, blue: 0.965)
   static let danger = Color(red: 1.000, green: 0.265, blue: 0.250)
 
   static let brandGradient = LinearGradient(
     colors: [gold, orange, magenta],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
+
+  static let powerNapGradient = LinearGradient(
+    colors: [coolBlue, purple],
     startPoint: .topLeading,
     endPoint: .bottomTrailing
   )
@@ -173,6 +180,27 @@ struct RGConditionalAccentButtonStyle: ButtonStyle {
   }
 }
 
+struct RGPowerNapButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline.weight(.bold))
+      .foregroundStyle(RGTheme.cream)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 13)
+      .frame(minHeight: 54)
+      .background(
+        RGTheme.powerNapGradient.opacity(configuration.isPressed ? 0.85 : 1),
+        in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+      )
+      .overlay {
+        RoundedRectangle(cornerRadius: 15, style: .continuous)
+          .stroke(RGTheme.cream.opacity(0.13), lineWidth: 1)
+      }
+      .scaleEffect(configuration.isPressed ? 0.975 : 1)
+      .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+  }
+}
+
 struct RGSecondaryButtonStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
@@ -223,13 +251,13 @@ struct RGLimitRow: View {
 
       VStack(alignment: .leading, spacing: 3) {
         Text(title)
-          .font(.subheadline.weight(.bold))
+          .font(.headline.weight(.bold))
           .foregroundStyle(RGTheme.cream)
           .lineLimit(1)
           .minimumScaleFactor(0.65)
           .allowsTightening(true)
         Text(detail)
-          .font(.caption)
+          .font(.subheadline)
           .foregroundStyle(RGTheme.mutedCream)
           .fixedSize(horizontal: false, vertical: true)
       }

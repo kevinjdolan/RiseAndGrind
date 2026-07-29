@@ -10,6 +10,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
   let id: UUID
   let sourceAlarmID: UUID
   let setID: UUID
+  let ledgerAttemptID: UUID?
   let sourceSound: AlarmSoundChoice
   let isCanonical: Bool
   var owner: ScheduledAlarmOwner
@@ -24,6 +25,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
     id: UUID,
     sourceAlarmID: UUID,
     setID: UUID,
+    ledgerAttemptID: UUID? = nil,
     sourceSound: AlarmSoundChoice,
     isCanonical: Bool = false,
     owner: ScheduledAlarmOwner,
@@ -37,6 +39,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
     self.id = id
     self.sourceAlarmID = sourceAlarmID
     self.setID = setID
+    self.ledgerAttemptID = ledgerAttemptID
     self.sourceSound = sourceSound
     self.isCanonical = isCanonical
     self.owner = owner
@@ -56,6 +59,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
     case id
     case sourceAlarmID
     case setID
+    case ledgerAttemptID
     case sourceSound
     case isCanonical
     case owner
@@ -73,6 +77,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
     id = try container.decode(UUID.self, forKey: .id)
     sourceAlarmID = try container.decode(UUID.self, forKey: .sourceAlarmID)
     setID = try container.decodeIfPresent(UUID.self, forKey: .setID) ?? sourceAlarmID
+    ledgerAttemptID = try container.decodeIfPresent(UUID.self, forKey: .ledgerAttemptID)
     sourceSound =
       try container.decodeIfPresent(AlarmSoundChoice.self, forKey: .sourceSound) ?? .system
     isCanonical = try container.decodeIfPresent(Bool.self, forKey: .isCanonical) ?? false
@@ -101,6 +106,7 @@ struct WakeChallengeRequest: Codable, Equatable, Identifiable, Sendable {
     try container.encode(id, forKey: .id)
     try container.encode(sourceAlarmID, forKey: .sourceAlarmID)
     try container.encode(setID, forKey: .setID)
+    try container.encodeIfPresent(ledgerAttemptID, forKey: .ledgerAttemptID)
     try container.encode(sourceSound, forKey: .sourceSound)
     try container.encode(isCanonical, forKey: .isCanonical)
     try container.encode(owner, forKey: .owner)
@@ -182,12 +188,32 @@ final class WakeChallengeCoordinator {
       return false
     }
 
+    let ledgerAttemptID: UUID?
+    do {
+      ledgerAttemptID = try AlarmLedgerStore.shared.beginChallenge(
+        physicalDeliveryID: alarmID,
+        requiredRepetitions: settings.wakeChallengeSquatCount,
+        at: now,
+        source: "WakeChallengeCoordinator.begin"
+      )
+    } catch {
+      ledgerAttemptID = nil
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_challenge_begin_failed",
+        source: "WakeChallengeCoordinator.begin",
+        alarmID: alarmID,
+        setID: chain?.setID,
+        details: ["error": error.localizedDescription]
+      )
+    }
+
     let request = WakeChallengeRequest(
       id: UUID(),
       sourceAlarmID: alarmID,
       setID: chain?.setID ?? alarmID,
+      ledgerAttemptID: ledgerAttemptID,
       sourceSound: sourceSound,
-      isCanonical: chain?.isCanonical ?? false,
+      isCanonical: chain?.requiresChallenge ?? false,
       owner: resolvedOwner,
       additionalOwner: nil,
       startedAt: now,
@@ -208,6 +234,14 @@ final class WakeChallengeCoordinator {
     didComplete = false
     ensureChallengeTrackIsLooping()
     guard challengePlayer?.isPlaying == true else {
+      if let ledgerAttemptID {
+        _ = try? AlarmLedgerStore.shared.abandonChallengeAttempt(
+          id: ledgerAttemptID,
+          completedRepetitions: 0,
+          at: now,
+          source: "WakeChallengeCoordinator.begin.playbackFailed"
+        )
+      }
       store.clearWakeChallenge()
       pending = nil
       activeSessionRequestID = nil
@@ -355,6 +389,26 @@ final class WakeChallengeCoordinator {
 
     do {
       try await NightlyCoordinator.shared.completeWakeChallenge(pending)
+      if let ledgerAttemptID = pending.ledgerAttemptID {
+        do {
+          _ = try AlarmLedgerStore.shared.completeChallengeAttempt(
+            id: ledgerAttemptID,
+            completedRepetitions: pending.targetSquats,
+            source: "WakeChallengeCoordinator.complete"
+          )
+        } catch {
+          AlarmEventJournal.shared.record(
+            "alarm_ledger_challenge_complete_failed",
+            source: "WakeChallengeCoordinator.complete",
+            alarmID: pending.sourceAlarmID,
+            setID: pending.setID,
+            details: [
+              "attemptID": ledgerAttemptID.uuidString,
+              "error": error.localizedDescription,
+            ]
+          )
+        }
+      }
       store.clearWakeChallenge()
       activeSessionRequestID = nil
       stopSourceSound()
@@ -381,6 +435,10 @@ final class WakeChallengeCoordinator {
   func exitChallengeKeepingAlarmsArmed() {
     guard let request = pending, !request.isCanonical, !isCompleting else { return }
     stopSourceSound()
+    abandonLedgerAttempt(
+      for: request,
+      source: "WakeChallengeCoordinator.exitChallengeKeepingAlarmsArmed"
+    )
     store.clearWakeChallenge()
     store.saveLastSummary(
       "Wake challenge exited without completion. Remaining attacks stay armed."
@@ -393,6 +451,12 @@ final class WakeChallengeCoordinator {
   }
 
   func stopForEmergencyMute() {
+    if let pending {
+      abandonLedgerAttempt(
+        for: pending,
+        source: "WakeChallengeCoordinator.stopForEmergencyMute"
+      )
+    }
     isPracticeAudioActive = false
     stopSourceSound()
     alarmHaptics.stop()
@@ -406,6 +470,12 @@ final class WakeChallengeCoordinator {
   }
 
   func resetForFactoryReset() {
+    if let pending {
+      abandonLedgerAttempt(
+        for: pending,
+        source: "WakeChallengeCoordinator.resetForFactoryReset"
+      )
+    }
     isPracticeAudioActive = false
     stopSourceSound()
     store.clearWakeChallenge()
@@ -416,6 +486,31 @@ final class WakeChallengeCoordinator {
     didComplete = false
     completionError = nil
     playbackError = nil
+  }
+
+  private func abandonLedgerAttempt(
+    for request: WakeChallengeRequest,
+    source: String
+  ) {
+    guard let ledgerAttemptID = request.ledgerAttemptID else { return }
+    do {
+      _ = try AlarmLedgerStore.shared.abandonChallengeAttempt(
+        id: ledgerAttemptID,
+        completedRepetitions: 0,
+        source: source
+      )
+    } catch {
+      AlarmEventJournal.shared.record(
+        "alarm_ledger_challenge_abandon_failed",
+        source: source,
+        alarmID: request.sourceAlarmID,
+        setID: request.setID,
+        details: [
+          "attemptID": ledgerAttemptID.uuidString,
+          "error": error.localizedDescription,
+        ]
+      )
+    }
   }
 
   private func challengeSound(

@@ -127,6 +127,8 @@ public struct AlarmSoundChoice: Codable, Hashable, Identifiable, Sendable {
 }
 
 public struct BarrageSettings: Codable, Equatable, Sendable {
+  /// The number of snoozable nudges before Grind Time. The Grind Time challenge
+  /// alarm is always scheduled in addition to these.
   public var alarmCount: Int
   public var spacingMinutes: Int
   public var finalWarningMinutes: Int
@@ -143,7 +145,7 @@ public struct BarrageSettings: Codable, Equatable, Sendable {
   }
 
   public mutating func normalize() {
-    alarmCount = min(max(alarmCount, 1), 12)
+    alarmCount = min(max(alarmCount, 0), 12)
     spacingMinutes = min(max(spacingMinutes, 1), 60)
     finalWarningMinutes = min(max(finalWarningMinutes, 1), spacingMinutes)
   }
@@ -177,9 +179,13 @@ public struct RiseAndGrindSettings: Codable, Equatable, Sendable {
   public static let defaultWakeChallengeSquatCount = 10
   public static let wakeChallengeSquatCountRange = 1...100
 
+  /// Every bundled song, selected by default. Must stay in lockstep with the
+  /// bundled manifest's per-tier count, which SoundLibrary validates on launch.
+  public static let bundledSongsPerTier = 64
+
   public static let defaultSelectedSoundIDs: Set<String> = Set(
     AlarmIntensityTier.allCases.flatMap { tier in
-      (1...100).map { String(format: "%@_%03d", tier.rawValue, $0) }
+      (1...bundledSongsPerTier).map { String(format: "%@_%03d", tier.rawValue, $0) }
     }
   )
 
@@ -384,7 +390,8 @@ public struct PlannedAlarm: Codable, Equatable, Identifiable, Sendable {
       case .grindTime: "Grind Time"
       case .earlyMeeting: "Early Bird"
       }
-    return "\(prefix) \(ordinal)/\(total)"
+    guard !isCanonical else { return prefix }
+    return "\(prefix) nudge \(ordinal)/\(max(1, total - 1))"
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -485,33 +492,58 @@ public struct AlarmPlan: Codable, Equatable, Sendable {
   }
 }
 
+public enum ScheduledAlarmRole: String, Codable, Equatable, Sendable {
+  case primary
+  case relay
+}
+
 public struct ScheduledAlarmRecord: Codable, Equatable, Identifiable, Sendable {
   public let id: UUID
   public let setID: UUID
   public let isCanonical: Bool
+  public let requiresChallenge: Bool
   public let fireDate: Date
   public let title: String
+  public let role: ScheduledAlarmRole
+  public let relayOrdinal: Int?
+  public let relayTotal: Int?
 
   public init(
     id: UUID,
     setID: UUID? = nil,
     isCanonical: Bool = false,
+    requiresChallenge: Bool? = nil,
     fireDate: Date,
-    title: String
+    title: String,
+    role: ScheduledAlarmRole = .primary,
+    relayOrdinal: Int? = nil,
+    relayTotal: Int? = nil
   ) {
     self.id = id
     self.setID = setID ?? id
     self.isCanonical = isCanonical
+    self.requiresChallenge = requiresChallenge ?? isCanonical
     self.fireDate = fireDate
     self.title = title
+    self.role = role
+    self.relayOrdinal = relayOrdinal
+    self.relayTotal = relayTotal
+  }
+
+  public var isRelay: Bool {
+    role == .relay
   }
 
   private enum CodingKeys: String, CodingKey {
     case id
     case setID
     case isCanonical
+    case requiresChallenge
     case fireDate
     case title
+    case role
+    case relayOrdinal
+    case relayTotal
   }
 
   public init(from decoder: any Decoder) throws {
@@ -519,8 +551,16 @@ public struct ScheduledAlarmRecord: Codable, Equatable, Identifiable, Sendable {
     id = try container.decode(UUID.self, forKey: .id)
     setID = try container.decodeIfPresent(UUID.self, forKey: .setID) ?? id
     isCanonical = try container.decodeIfPresent(Bool.self, forKey: .isCanonical) ?? false
+    requiresChallenge =
+      try container.decodeIfPresent(Bool.self, forKey: .requiresChallenge)
+      ?? isCanonical
     fireDate = try container.decode(Date.self, forKey: .fireDate)
     title = try container.decode(String.self, forKey: .title)
+    role =
+      try container.decodeIfPresent(ScheduledAlarmRole.self, forKey: .role)
+      ?? .primary
+    relayOrdinal = try container.decodeIfPresent(Int.self, forKey: .relayOrdinal)
+    relayTotal = try container.decodeIfPresent(Int.self, forKey: .relayTotal)
   }
 
   public func encode(to encoder: any Encoder) throws {
@@ -528,7 +568,11 @@ public struct ScheduledAlarmRecord: Codable, Equatable, Identifiable, Sendable {
     try container.encode(id, forKey: .id)
     try container.encode(setID, forKey: .setID)
     try container.encode(isCanonical, forKey: .isCanonical)
+    try container.encode(requiresChallenge, forKey: .requiresChallenge)
     try container.encode(fireDate, forKey: .fireDate)
     try container.encode(title, forKey: .title)
+    try container.encode(role, forKey: .role)
+    try container.encodeIfPresent(relayOrdinal, forKey: .relayOrdinal)
+    try container.encodeIfPresent(relayTotal, forKey: .relayTotal)
   }
 }

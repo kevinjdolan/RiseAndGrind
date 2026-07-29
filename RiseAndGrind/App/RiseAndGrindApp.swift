@@ -135,7 +135,11 @@ struct RiseAndGrindApp: App {
           EmergencyShakeMuteService.shared.start()
           await model.refreshAndReconcileSilently()
         }
-        .task {
+        .task(id: model.isAppReady) {
+          // AlarmManager.alarmUpdates triggers iOS's AlarmKit consent prompt on first
+          // subscription, so this must not start until the user has explicitly granted
+          // access on the onboarding permissions step.
+          guard model.isAppReady else { return }
           await model.monitorAlarmUpdates()
         }
         .task(id: scenePhase == .active && model.isAppReady) {

@@ -1,13 +1,14 @@
 ---
 name: preview-music-samples
-description: Build convenient listening previews for generated alarm loops — per-song files playing the loop twice, seam-only clips (last 5 s + first 5 s), and a markdown table of links grouped by tier with one column pair per provider, all in a temp directory. Use when the user wants to audition generated songs, compare providers, or check loop seams.
+description: Build convenient listening previews for generated alarm loops — per-song loop files (played on repeat by the listener), seam-only clips (last 5 s + first 5 s), and a markdown table of links grouped by tier with one column pair per provider, all in a temp directory. Use when the user wants to audition generated songs, compare providers, or check loop seams.
 ---
 
 # Preview Music Samples
 
 Give the user two listening modes per song and provider:
-- **`_x2`** — the loop played twice back-to-back; the repeat boundary is
-  exactly the seam the alarm will hit every 29 s.
+- **`_loop`** — the mastered loop, stored once; played on repeat (the
+  listening-room player loops it) the wrap is exactly the seam the alarm
+  will hit every 29 s.
 - **`_seam`** — only the last 5 s followed by the first 5 s; isolates the
   wrap point for fast seam judgment.
 
@@ -25,7 +26,7 @@ Give the user two listening modes per song and provider:
    ```
 
    Output lands under the repo's gitignored `tmp/`: per-tier directories of
-   `<Song>_<provider>_x2.m4a` and `<Song>_<provider>_seam.m4a`, plus
+   `<Song>_<provider>_loop.m4a` and `<Song>_<provider>_seam.m4a`, plus
    `index.md` — a table per tier with one row per song and a
    [play]/[seam] column pair per provider.
 3. Reply to the user with clickable links: link `index.md`, the tier

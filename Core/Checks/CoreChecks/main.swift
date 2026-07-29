@@ -27,12 +27,16 @@ let plan = try SchedulePlanner.makePlan(
   calendar: calendar
 )
 try require(
-  plan.alarms.map(\.offsetMinutes) == [50, 40, 30, 20, 10, 3],
-  "Six alarms must finish with a T-3 final warning"
+  plan.alarms.map(\.offsetMinutes) == [53, 43, 33, 23, 13, 3, 0],
+  "Six nudges must end with a T-3 final warning before the Grind Time alarm"
 )
 try require(
-  plan.alarms.last?.fireDate == calendar.date(byAdding: .minute, value: -3, to: target),
-  "The final alarm must fire three minutes before the wake target"
+  plan.alarms.last?.fireDate == target,
+  "The challenge alarm must fire at the wake target"
+)
+try require(
+  plan.alarms.filter(\.isCanonical).map(\.offsetMinutes) == [0],
+  "Only the Grind Time alarm may require the wake challenge"
 )
 
 let regularPlan = try SchedulePlanner.makePlan(
@@ -45,11 +49,11 @@ let regularPlan = try SchedulePlanner.makePlan(
   calendar: calendar
 )
 try require(
-  regularPlan.alarms.map(\.offsetMinutes) == [60, 50, 40, 30, 20, 10],
+  regularPlan.alarms.map(\.offsetMinutes) == [60, 50, 40, 30, 20, 10, 0],
   "A final warning equal to the interval must preserve a regular cadence"
 )
 try require(
-  Set(regularPlan.alarms.map(\.fireDate)).count == 6,
+  Set(regularPlan.alarms.map(\.fireDate)).count == 7,
   "A final warning equal to the interval must not create a duplicate alarm"
 )
 
@@ -73,7 +77,8 @@ let rotatingPlan = try SchedulePlanner.makePlan(
   calendar: calendar
 )
 try require(
-  rotatingPlan.alarms.map(\.sound.id) == ["first", "second", "first", "second", "first"],
+  rotatingPlan.alarms.map(\.sound.id)
+    == ["first", "second", "first", "second", "first", "second"],
   "Selected sounds must rotate through the barrage"
 )
 

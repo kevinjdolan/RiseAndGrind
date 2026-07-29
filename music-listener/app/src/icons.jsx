@@ -18,12 +18,13 @@ export function RepeatIcon() {
   );
 }
 
-export function NeedleIcon() {
+export function MagnetIcon() {
   return (
     <svg viewBox="0 0 24 24">
-      <path d="M4 20L17 7" />
-      <circle cx="18.5" cy="5.5" r="1.6" />
-      <path d="M15 10c1.2 1.8-1 2.6 0 4.4s2.8.8 2 3.1" />
+      <path d="M5 19v-8a7 7 0 0114 0v8" />
+      <path d="M9.5 19v-8a2.5 2.5 0 015 0v8" />
+      <path d="M5 14h4.5" />
+      <path d="M14.5 14h4.5" />
     </svg>
   );
 }
@@ -39,6 +40,6 @@ export function DownloadIcon() {
 
 export const CLIP_ICONS = {
   generated: SparkleIcon,
-  loopX2: RepeatIcon,
-  seam: NeedleIcon,
+  loop: RepeatIcon,
+  seam: MagnetIcon,
 };

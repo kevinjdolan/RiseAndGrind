@@ -27,6 +27,7 @@ struct SetupView: View {
   @State private var actionResult: RGActionResult?
   @State private var isAwaitingResult = false
   @State private var isShowingFactoryResetConfirmation = false
+  @State private var isShowingSilenceConfirmation = false
   @State private var isShowingSquatCalibration = false
   @State private var squatPracticeRequest: WakeChallengeRequest?
   @State private var testAlarmCount = 3
@@ -38,21 +39,14 @@ struct SetupView: View {
           appHealthCard
           wakeChallengeCard
           alarmTestCard
-          factoryResetCard
+          dangerZone
 
-          RGCard(accent: RGTheme.graphite) {
-            VStack(alignment: .leading, spacing: 8) {
-              Text("RISE & GRIND  ·  0.2.0")
-                .font(.caption.weight(.black))
-                .tracking(1.5)
-                .foregroundStyle(RGTheme.gold)
-              Text(
-                "A vertically integrated consciousness platform. No productivity claims have been reviewed by the board."
-              )
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-            }
-          }
+          Text("RISE & GRIND")
+            .font(.caption.weight(.black))
+            .tracking(1.8)
+            .foregroundStyle(RGTheme.gold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
@@ -82,17 +76,23 @@ struct SetupView: View {
       )
       .id(request.id)
     }
+    .sheet(isPresented: $isShowingSilenceConfirmation) {
+      RGDangerSilenceSheet(
+        isWorking: isBusy,
+        setMute: model.setMute
+      )
+    }
     .alert(
-      "Factory Reset Rise & Grind?",
+      "Revert to Factory System Settings?",
       isPresented: $isShowingFactoryResetConfirmation
     ) {
       Button("Cancel", role: .cancel) {}
-      Button("Erase Everything", role: .destructive) {
+      Button("Revert Everything", role: .destructive) {
         performFactoryReset()
       }
     } message: {
       Text(
-        "This clears every app-owned alarm, imported sound, setting, mute, and squat challenge, then returns to onboarding. This cannot be undone."
+        "This clears every app-owned alarm, alarm-history audit trail, imported sound, setting, mute, and squat challenge, then returns to onboarding. This cannot be undone."
       )
     }
   }
@@ -408,29 +408,47 @@ struct SetupView: View {
     }
   }
 
-  private var factoryResetCard: some View {
+  private var dangerZone: some View {
     RGCard(accent: RGTheme.danger) {
       VStack(alignment: .leading, spacing: 16) {
-        RGSectionHeading(
-          "Factory Reset",
-          eyebrow: "Burn the playbook",
-          detail:
-            "Clear every Rise & Grind alarm and erase all app-owned settings and imported audio."
-        )
+        VStack(alignment: .leading, spacing: 6) {
+          Text("BURN THE PLAYBOOK")
+            .font(.caption.weight(.black))
+            .tracking(1.8)
+            .foregroundStyle(RGTheme.danger)
+
+          Text("Danger Zone")
+            .font(.title2.weight(.black))
+            .foregroundStyle(RGTheme.cream)
+        }
+
+        Button(role: .destructive) {
+          isShowingSilenceConfirmation = true
+        } label: {
+          Label(
+            "Silence Me, You Weak Beta Loser",
+            systemImage: "speaker.slash.fill"
+          )
+          .lineLimit(1)
+          .minimumScaleFactor(0.68)
+          .allowsTightening(true)
+        }
+        .buttonStyle(RGDangerButtonStyle())
+        .disabled(isBusy)
 
         Button(role: .destructive) {
           isShowingFactoryResetConfirmation = true
         } label: {
-          Label("FACTORY RESET", systemImage: "trash.fill")
+          Label(
+            "Revert to Factory System Settings",
+            systemImage: "arrow.counterclockwise.circle.fill"
+          )
+          .lineLimit(1)
+          .minimumScaleFactor(0.68)
+          .allowsTightening(true)
         }
-        .buttonStyle(RGSecondaryButtonStyle())
+        .buttonStyle(RGDangerButtonStyle())
         .disabled(isBusy)
-
-        Text(
-          "iOS permission grants stay in Settings. Remove any existing Personal Automation separately in Shortcuts."
-        )
-        .font(.caption)
-        .foregroundStyle(RGTheme.mutedCream)
       }
     }
   }
@@ -481,7 +499,7 @@ struct SetupView: View {
 
       let message =
         model.errorMessage
-        ?? "Factory reset could not complete. Your local settings were not erased."
+        ?? "Factory reset could not complete every cleanup step. Review the remaining work and try again."
       model.clearError()
       actionResult = RGActionResult(
         eyebrow: "Factory reset stopped",
@@ -492,5 +510,149 @@ struct SetupView: View {
       )
     }
   }
+}
 
+private struct RGDangerSilenceSheet: View {
+  @Environment(\.dismiss) private var dismiss
+
+  let isWorking: Bool
+  let setMute: @MainActor (AlarmMuteChoice) async -> Void
+
+  @State private var choice = AlarmMuteChoice.day
+  @State private var isSubmitting = false
+  @State private var referenceDate = Date.now
+
+  var body: some View {
+    NavigationStack {
+      RGScreenBackground {
+        VStack(alignment: .leading, spacing: 18) {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("CONFIRM RETREAT")
+              .font(.caption.weight(.black))
+              .tracking(1.8)
+              .foregroundStyle(RGTheme.danger)
+
+            Text("Silence Rise & Grind?")
+              .font(.title2.weight(.black))
+              .foregroundStyle(RGTheme.cream)
+
+            Text(
+              "The alarms will stop firing, but every muted alarm stays in Agenda and remains tracked as evidence of your shame."
+            )
+            .font(.subheadline)
+            .foregroundStyle(RGTheme.mutedCream)
+            .fixedSize(horizontal: false, vertical: true)
+          }
+
+          Picker("Mute duration", selection: $choice) {
+            Text("Day").tag(AlarmMuteChoice.day)
+            Text("Week").tag(AlarmMuteChoice.week)
+            Text("Forever").tag(AlarmMuteChoice.indefinitely)
+          }
+          .pickerStyle(.segmented)
+
+          Label(muteDetail, systemImage: "speaker.slash.fill")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(RGTheme.orange)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Spacer(minLength: 0)
+
+          Button(role: .destructive) {
+            confirmSilence()
+          } label: {
+            if isSubmitting {
+              ProgressView()
+                .tint(RGTheme.cream)
+            } else {
+              Label("CONFIRM SILENCE", systemImage: "speaker.slash.fill")
+            }
+          }
+          .buttonStyle(RGDangerButtonStyle())
+          .disabled(isWorking || isSubmitting)
+
+          Button("Keep the Alarms") {
+            dismiss()
+          }
+          .buttonStyle(RGSecondaryButtonStyle())
+          .disabled(isSubmitting)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 16)
+      }
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") { dismiss() }
+            .disabled(isSubmitting)
+        }
+      }
+    }
+    .presentationDetents([.height(470)])
+    .presentationDragIndicator(.visible)
+    .presentationCornerRadius(28)
+    .onAppear {
+      referenceDate = .now
+    }
+  }
+
+  private var muteDetail: String {
+    guard
+      let state = try? SchedulePlanner.muteState(
+        for: choice,
+        after: referenceDate,
+        calendar: .autoupdatingCurrent
+      )
+    else {
+      return "Upcoming alarms will be muted."
+    }
+
+    switch state {
+    case .until(let expiration):
+      return
+        "Alarms stay silent until "
+        + expiration.formatted(date: .abbreviated, time: .shortened)
+        + "."
+    case .indefinitely:
+      return "Alarms stay silent until you explicitly resume Rise & Grind."
+    }
+  }
+
+  private func confirmSilence() {
+    isSubmitting = true
+    Task { @MainActor in
+      await setMute(choice)
+      isSubmitting = false
+      dismiss()
+    }
+  }
+}
+
+private struct RGDangerButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline.weight(.black))
+      .foregroundStyle(RGTheme.cream)
+      .frame(maxWidth: .infinity)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 13)
+      .frame(minHeight: 54)
+      .background(
+        LinearGradient(
+          colors: [
+            RGTheme.danger.opacity(configuration.isPressed ? 0.72 : 0.92),
+            RGTheme.magenta.opacity(configuration.isPressed ? 0.68 : 0.86),
+          ],
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        ),
+        in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+      )
+      .overlay {
+        RoundedRectangle(cornerRadius: 15, style: .continuous)
+          .stroke(Color.white.opacity(0.14), lineWidth: 1)
+      }
+      .scaleEffect(configuration.isPressed ? 0.975 : 1)
+      .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+  }
 }

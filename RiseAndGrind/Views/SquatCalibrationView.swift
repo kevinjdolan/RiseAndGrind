@@ -59,9 +59,9 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
   var poseImageName: String {
     switch self {
     case .depth:
-      "CalibrationChadDown"
+      "CalibrationShadDown"
     case .standing, .returned, .complete:
-      "CalibrationChadUp"
+      "CalibrationShadUp"
     }
   }
 
@@ -127,6 +127,11 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
         .init(startTime: 9.78, endTime: 11.30, text: "Phone in your hands,"),
         .init(startTime: 11.30, endTime: 12.90, text: "hold the button for"),
         .init(startTime: 12.90, endTime: 15.74, text: "two whole seconds."),
+        .init(
+          startTime: 35.80,
+          endTime: 40.00,
+          text: "Something interesting happens every day around here."
+        ),
       ]
     case .depth:
       [
@@ -958,7 +963,7 @@ struct SquatCalibrationView: View {
         endRadius: 250
       )
 
-      Image("CalibrationChadUp")
+      Image("CalibrationShadUp")
         .resizable()
         .scaledToFit()
         .padding(.vertical, 30)

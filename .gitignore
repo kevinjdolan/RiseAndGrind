@@ -43,3 +43,6 @@ Diagnostics/CalibrationLogs/
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# Local tooling venvs (pymusiclooper and friends; see scripts/master_loop_pml.py)
+.venvs/

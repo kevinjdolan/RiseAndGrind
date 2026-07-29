@@ -171,8 +171,23 @@ final class SchedulePlannerTests: XCTestCase {
     XCTAssertEqual(tooHigh.wakeChallengeSquatCount, 100)
   }
 
-  func testAllThreeHundredTwentyBuiltInSongsAreSelectedByDefault() {
-    XCTAssertEqual(RiseAndGrindSettings.defaultSelectedSoundIDs.count, 500)
+  func testEveryBundledSongIsSelectedByDefault() {
+    let tierCount = AlarmIntensityTier.allCases.count
+    XCTAssertEqual(
+      RiseAndGrindSettings.defaultSelectedSoundIDs.count,
+      RiseAndGrindSettings.bundledSongsPerTier * tierCount
+    )
+    // The ids are generated arithmetically, so a per-tier count that drifts from
+    // the bundled manifest would silently deselect songs rather than fail.
+    for tier in AlarmIntensityTier.allCases {
+      for index in 1...RiseAndGrindSettings.bundledSongsPerTier {
+        XCTAssertTrue(
+          RiseAndGrindSettings.defaultSelectedSoundIDs.contains(
+            String(format: "%@_%03d", tier.rawValue, index)
+          )
+        )
+      }
+    }
     XCTAssertEqual(
       RiseAndGrindSettings.defaults.selectedSoundIDs,
       RiseAndGrindSettings.defaultSelectedSoundIDs
@@ -210,7 +225,7 @@ final class SchedulePlannerTests: XCTestCase {
     )
   }
 
-  func testSixTenMinuteAlarmsFinishWithThreeMinuteFinalWarning() throws {
+  func testSixNudgesLeadIntoAChallengeAlarmAtGrindTime() throws {
     let target = try XCTUnwrap(
       calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
     )
@@ -224,28 +239,66 @@ final class SchedulePlannerTests: XCTestCase {
       calendar: calendar
     )
 
-    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [50, 40, 30, 20, 10, 3])
-    XCTAssertEqual(
-      plan.alarms.last?.fireDate,
-      calendar.date(byAdding: .minute, value: -3, to: target)
-    )
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [53, 43, 33, 23, 13, 3, 0])
+    XCTAssertEqual(plan.alarms.last?.fireDate, target)
     XCTAssertEqual(Set(plan.alarms.map(\.setID)), [plan.setID])
     XCTAssertEqual(plan.alarms.filter(\.isCanonical).count, 1)
     XCTAssertEqual(plan.alarms.first(where: \.isCanonical)?.id, plan.alarms.last?.id)
     XCTAssertEqual(
       plan.alarms.map(\.displayTitle),
       [
-        "Grind Time 1/6",
-        "Grind Time 2/6",
-        "Grind Time 3/6",
-        "Grind Time 4/6",
-        "Grind Time 5/6",
-        "Grind Time 6/6",
+        "Grind Time nudge 1/6",
+        "Grind Time nudge 2/6",
+        "Grind Time nudge 3/6",
+        "Grind Time nudge 4/6",
+        "Grind Time nudge 5/6",
+        "Grind Time nudge 6/6",
+        "Grind Time",
       ]
     )
   }
 
-  func testFinalWarningEqualToSpacingUsesRegularCadenceWithoutDuplicate() throws {
+  func testZeroNudgesStillSchedulesTheGrindTimeChallenge() throws {
+    let target = try XCTUnwrap(
+      calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
+    )
+    let plan = try SchedulePlanner.makePlan(
+      targetDate: target,
+      alarmCount: 0,
+      spacingMinutes: 10,
+      finalWarningMinutes: 3,
+      sounds: [.system],
+      reason: .grindTime,
+      calendar: calendar
+    )
+
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [0])
+    XCTAssertEqual(plan.alarms.map(\.displayTitle), ["Grind Time"])
+    XCTAssertEqual(plan.alarms.filter(\.isCanonical).count, 1)
+    XCTAssertEqual(plan.alarms.first?.fireDate, target)
+  }
+
+  func testOnlyTheGrindTimeAlarmIsCanonical() throws {
+    let target = try XCTUnwrap(
+      calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
+    )
+    let plan = try SchedulePlanner.makePlan(
+      targetDate: target,
+      alarmCount: 3,
+      spacingMinutes: 8,
+      finalWarningMinutes: 3,
+      sounds: [.system],
+      reason: .grindTime,
+      calendar: calendar
+    )
+
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [19, 11, 3, 0])
+    XCTAssertEqual(plan.alarms.map(\.isCanonical), [false, false, false, true])
+    XCTAssertEqual(plan.alarms.map(\.ordinal), [1, 2, 3, 4])
+    XCTAssertEqual(Set(plan.alarms.map(\.total)), [4])
+  }
+
+  func testFinalWarningEqualToSpacingKeepsAnEvenNudgeCadence() throws {
     let target = try XCTUnwrap(
       calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
     )
@@ -259,11 +312,11 @@ final class SchedulePlannerTests: XCTestCase {
       calendar: calendar
     )
 
-    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [60, 50, 40, 30, 20, 10])
-    XCTAssertEqual(Set(plan.alarms.map(\.fireDate)).count, 6)
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [60, 50, 40, 30, 20, 10, 0])
+    XCTAssertEqual(Set(plan.alarms.map(\.fireDate)).count, 7)
   }
 
-  func testSingleAlarmUsesFinalWarningOffset() throws {
+  func testSingleNudgeUsesFinalWarningOffset() throws {
     let target = try XCTUnwrap(
       calendar.date(from: DateComponents(year: 2026, month: 7, day: 23, hour: 8))
     )
@@ -277,7 +330,7 @@ final class SchedulePlannerTests: XCTestCase {
       calendar: calendar
     )
 
-    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [3])
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [3, 0])
   }
 
   func testFinalWarningAppliesToEarlyMeetingTarget() throws {
@@ -294,14 +347,16 @@ final class SchedulePlannerTests: XCTestCase {
       calendar: calendar
     )
 
-    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [20, 10, 3])
-    XCTAssertEqual(
-      plan.alarms.last?.fireDate,
-      calendar.date(byAdding: .minute, value: -3, to: meeting)
-    )
+    XCTAssertEqual(plan.alarms.map(\.offsetMinutes), [23, 13, 3, 0])
+    XCTAssertEqual(plan.alarms.last?.fireDate, meeting)
     XCTAssertEqual(
       plan.alarms.map(\.displayTitle),
-      ["Early Bird 1/3", "Early Bird 2/3", "Early Bird 3/3"]
+      [
+        "Early Bird nudge 1/3",
+        "Early Bird nudge 2/3",
+        "Early Bird nudge 3/3",
+        "Early Bird",
+      ]
     )
   }
 
@@ -325,7 +380,7 @@ final class SchedulePlannerTests: XCTestCase {
     let futurePlan = plan.keepingAlarms(after: cutoff)
 
     XCTAssertEqual(futurePlan.setID, plan.setID)
-    XCTAssertEqual(futurePlan.alarms.map(\.ordinal), [2, 3])
+    XCTAssertEqual(futurePlan.alarms.map(\.ordinal), [2, 3, 4])
     XCTAssertEqual(Set(futurePlan.alarms.map(\.setID)), [plan.setID])
     XCTAssertEqual(futurePlan.alarms.filter(\.isCanonical).count, 1)
     XCTAssertTrue(futurePlan.alarms.last?.isCanonical == true)
@@ -411,7 +466,10 @@ final class SchedulePlannerTests: XCTestCase {
       calendar: calendar
     )
 
-    XCTAssertEqual(plan.alarms.map(\.sound.id), ["first", "second", "first", "second", "first"])
+    XCTAssertEqual(
+      plan.alarms.map(\.sound.id),
+      ["first", "second", "first", "second", "first", "second"]
+    )
   }
 
   func testDeterministicSoundOrderIsStableForTargetDate() throws {
@@ -652,8 +710,8 @@ final class SchedulePlannerTests: XCTestCase {
 
     let futurePlan = fullPlan.keepingAlarms(after: now)
 
-    XCTAssertEqual(futurePlan.alarms.map(\.offsetMinutes), [20, 10, 3])
-    XCTAssertEqual(futurePlan.alarms.map(\.ordinal), [4, 5, 6])
+    XCTAssertEqual(futurePlan.alarms.map(\.offsetMinutes), [23, 13, 3, 0])
+    XCTAssertEqual(futurePlan.alarms.map(\.ordinal), [4, 5, 6, 7])
     XCTAssertTrue(futurePlan.alarms.allSatisfy { $0.fireDate > now })
   }
 

@@ -269,11 +269,11 @@ struct SoundLibrary: Sendable {
         BundledSoundManifest.self,
         from: Data(contentsOf: manifestURL)
       )
-      guard manifest.schemaVersion == 4,
-        manifest.trackCount == 500,
+      guard manifest.schemaVersion == 5,
+        manifest.trackCount == 320,
         manifest.tracks.count == manifest.trackCount,
         Set(manifest.tracks.map(\.id)).count == manifest.trackCount,
-        Set(manifest.tierCounts.values) == [100],
+        Set(manifest.tierCounts.values) == [64],
         Set(manifest.tierCounts.keys)
           == Set(AlarmIntensityTier.allCases.map(\.rawValue)),
         manifest.tracks.allSatisfy(\.defaultSelected)

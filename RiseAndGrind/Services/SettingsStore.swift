@@ -3,11 +3,6 @@
 import Foundation
 import RiseAndGrindCore
 
-enum IntroPitchDisposition: String, Sendable {
-  case viewed
-  case skipped
-}
-
 struct SettingsStore: @unchecked Sendable {
   static let shared = SettingsStore()
 
@@ -21,7 +16,6 @@ struct SettingsStore: @unchecked Sendable {
     static let alarmWakeHandoff = "riseAndGrind.alarmWakeHandoff.v1"
     static let importedSounds = "riseAndGrind.importedSounds.v2"
     static let onboardingCompleted = "riseAndGrind.onboardingCompleted.v1"
-    static let introPitchDisposition = "riseAndGrind.introPitchDisposition.v1"
     static let automationAcknowledged = "riseAndGrind.automationAcknowledged.v1"
     static let lastNightlyRun = "riseAndGrind.lastNightlyRun.v1"
     static let lastBackgroundRefresh = "riseAndGrind.lastBackgroundRefresh.v1"
@@ -31,6 +25,7 @@ struct SettingsStore: @unchecked Sendable {
     static let wakeCompletionSuppression = "riseAndGrind.wakeCompletionSuppression.v1"
     static let alarmSemanticsVersion = "riseAndGrind.alarmSemanticsVersion"
     static let settingsDefaultsVersion = "riseAndGrind.settingsDefaultsVersion"
+    static let ignoredCalendarEventIDs = "riseAndGrind.ignoredCalendarEventOccurrences.v1"
 
     static let legacySettings = "riseAndGrind.settings.v1"
     static let legacyScheduledAlarms = "riseAndGrind.scheduledAlarms.v1"
@@ -177,22 +172,6 @@ struct SettingsStore: @unchecked Sendable {
     defaults.set(completed, forKey: Key.onboardingCompleted)
   }
 
-  func loadIntroPitchDisposition() -> IntroPitchDisposition? {
-    if let rawValue = defaults.string(forKey: Key.introPitchDisposition),
-      let disposition = IntroPitchDisposition(rawValue: rawValue)
-    {
-      return disposition
-    }
-
-    // Existing users who already finished onboarding should not receive a new
-    // first-launch pitch after updating the app.
-    return loadOnboardingCompleted() ? .viewed : nil
-  }
-
-  func saveIntroPitchDisposition(_ disposition: IntroPitchDisposition) {
-    defaults.set(disposition.rawValue, forKey: Key.introPitchDisposition)
-  }
-
   func loadAutomationAcknowledged() -> Bool {
     defaults.bool(forKey: Key.automationAcknowledged)
   }
@@ -296,6 +275,32 @@ struct SettingsStore: @unchecked Sendable {
 
   func saveAlarmSemanticsVersion(_ version: Int) {
     defaults.set(version, forKey: Key.alarmSemanticsVersion)
+  }
+
+  func loadIgnoredCalendarEventIDs() -> Set<CalendarEventOccurrenceID> {
+    decode(forKey: Key.ignoredCalendarEventIDs) ?? []
+  }
+
+  func saveIgnoredCalendarEventIDs(_ eventIDs: Set<CalendarEventOccurrenceID>) {
+    encode(eventIDs, forKey: Key.ignoredCalendarEventIDs)
+  }
+
+  @discardableResult
+  func setCalendarEventIgnored(
+    _ eventID: CalendarEventOccurrenceID,
+    isIgnored: Bool
+  ) -> Bool {
+    var eventIDs = loadIgnoredCalendarEventIDs()
+    let changed =
+      if isIgnored {
+        eventIDs.insert(eventID).inserted
+      } else {
+        eventIDs.remove(eventID) != nil
+      }
+    if changed {
+      saveIgnoredCalendarEventIDs(eventIDs)
+    }
+    return changed
   }
 
   func clearAllPersistedState() {

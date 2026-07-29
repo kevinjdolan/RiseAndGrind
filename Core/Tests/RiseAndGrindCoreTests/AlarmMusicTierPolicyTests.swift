@@ -37,6 +37,41 @@ struct AlarmMusicTierPolicyTests {
   }
 
   @Test
+  func stackTierPinsTheGrindTimeAlarmToAbrasive() {
+    // One nudge plus the challenge.
+    #expect(
+      (1...2).map { AlarmMusicTierPolicy.stackTier(ordinal: $0, total: 2) }
+        == [.energizing, .abrasive]
+    )
+    // Three nudges plus the challenge: the nudges ramp across their own range.
+    #expect(
+      (1...4).map { AlarmMusicTierPolicy.stackTier(ordinal: $0, total: 4) }
+        == [.relaxing, .motivating, .energizing, .abrasive]
+    )
+  }
+
+  @Test
+  func stackTierLeavesLongNudgeLaddersUnchanged() {
+    #expect(
+      (1...7).map { AlarmMusicTierPolicy.stackTier(ordinal: $0, total: 7) }
+        == [
+          .soothing,
+          .relaxing,
+          .motivating,
+          .energizing,
+          .abrasive,
+          .abrasive,
+          .abrasive,
+        ]
+    )
+  }
+
+  @Test
+  func stackTierHandlesAChallengeWithNoNudges() {
+    #expect(AlarmMusicTierPolicy.stackTier(ordinal: 1, total: 1) == .abrasive)
+  }
+
+  @Test
   func additionalSnoozesEscalateAndCapAtAbrasive() {
     #expect(
       AlarmMusicTierPolicy.tier(ordinal: 1, total: 1, additionalSnoozes: 1)
