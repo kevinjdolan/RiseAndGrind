@@ -215,59 +215,62 @@ struct RGLadderEditor: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Stepper(value: $count, in: 0...12) {
-        HStack {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Nudge Count")
-            Text("Number of optional alarms before the Grind Time Challenge™")
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-          }
-          Spacer()
-          Text("\(count)")
-            .monospacedDigit()
-            .foregroundStyle(RGTheme.gold)
-        }
+        label(
+          title: "Nudge Count",
+          detail: "Number of optional alarms before the Grind Time Challenge™",
+          value: "\(count)"
+        )
       }
 
       Divider().overlay(RGTheme.cream.opacity(0.12))
 
       Stepper(value: $spacingMinutes, in: 1...60) {
-        HStack {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Nudge Snooze Duration")
-            Text("Delay time when you Snooze a Nudge")
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-          }
-          Spacer()
-          Text("\(spacingMinutes) min")
-            .monospacedDigit()
-            .foregroundStyle(RGTheme.gold)
-        }
+        label(
+          title: "Nudge Snooze Duration",
+          detail: "Delay time when you Snooze a Nudge",
+          value: "\(spacingMinutes) min"
+        )
       }
 
       Divider().overlay(RGTheme.cream.opacity(0.12))
 
       Stepper(value: finalWarning, in: 1...max(1, spacingMinutes)) {
-        HStack {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Final Warning")
-            Text("Minutes before Grind Time for the final Nudge")
-              .font(.caption)
-              .foregroundStyle(RGTheme.mutedCream)
-          }
-          Spacer()
-          Text("\(finalWarning.wrappedValue) min")
-            .monospacedDigit()
-            .foregroundStyle(RGTheme.gold)
-        }
+        label(
+          title: "Final Warning",
+          detail: "Minutes before Grind Time for the final Nudge",
+          value: "\(finalWarning.wrappedValue) min"
+        )
       }
 
     }
-    .font(.subheadline.weight(.semibold))
-    .foregroundStyle(RGTheme.cream)
     .onChange(of: spacingMinutes) { _, newSpacing in
       finalWarningMinutes = min(finalWarningMinutes, max(1, newSpacing))
+    }
+  }
+
+  /// Typographically identical to RGTimePicker and RGDurationEditor so every row
+  /// of the alarm configuration card reads as one list.
+  private func label(title: String, detail: String, value: String) -> some View {
+    HStack(spacing: 12) {
+      VStack(alignment: .leading, spacing: 3) {
+        Text(title)
+          .font(.headline.weight(.bold))
+          .foregroundStyle(RGTheme.cream)
+        Text(detail)
+          .font(.caption)
+          .foregroundStyle(RGTheme.mutedCream)
+          .lineLimit(2)
+          .minimumScaleFactor(0.72)
+          .allowsTightening(true)
+      }
+
+      Spacer(minLength: 4)
+
+      Text(value)
+        .font(.subheadline.monospacedDigit().weight(.bold))
+        .foregroundStyle(RGTheme.gold)
+        .lineLimit(1)
+        .contentTransition(.numericText())
     }
   }
 }
