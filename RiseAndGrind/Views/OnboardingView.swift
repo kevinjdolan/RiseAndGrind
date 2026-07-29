@@ -430,7 +430,7 @@ struct OnboardingWelcomeStepView: View {
             VStack(alignment: .leading, spacing: 14) {
               RGLimitRow(
                 icon: "calendar.badge.clock",
-                title: "Calendarmaxxed",
+                title: "Never Miss a Meeting with Calendarmaxxing",
                 detail:
                   "Sync your calendar and never be surprised by an early morning meeting ever again"
               )

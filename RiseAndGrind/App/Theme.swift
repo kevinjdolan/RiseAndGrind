@@ -250,12 +250,15 @@ struct RGLimitRow: View {
         .frame(width: 24)
 
       VStack(alignment: .leading, spacing: 3) {
+        // Wrapping keeps a long title at the same size as its shorter siblings
+        // instead of shrinking it to the scale floor on its own line.
         Text(title)
           .font(.headline.weight(.bold))
           .foregroundStyle(RGTheme.cream)
-          .lineLimit(1)
+          .lineLimit(2)
           .minimumScaleFactor(0.65)
           .allowsTightening(true)
+          .fixedSize(horizontal: false, vertical: true)
         Text(detail)
           .font(.subheadline)
           .foregroundStyle(RGTheme.mutedCream)
