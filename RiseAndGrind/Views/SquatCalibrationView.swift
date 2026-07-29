@@ -405,7 +405,7 @@ struct SquatCalibrationView: View {
           }
           .padding(.horizontal, 18)
           .padding(.top, 14)
-          .padding(.bottom, 24)
+          .padding(.bottom, 44)
         }
       }
     }
@@ -986,14 +986,13 @@ struct SquatCalibrationView: View {
 
   private var capturePanel: some View {
     VStack(spacing: 12) {
-      Text(session.stage.instruction)
-        .font(.body)
-        .foregroundStyle(RGTheme.cream)
-        .multilineTextAlignment(.center)
-        .fixedSize(horizontal: false, vertical: true)
+      if let errorMessage = session.errorMessage {
+        captureWarning(errorMessage)
+      }
 
       poseCaptureControl
     }
+    .animation(.easeInOut(duration: 0.22), value: session.errorMessage)
     .frame(maxWidth: .infinity)
     .padding(.horizontal, 16)
     .padding(.vertical, 16)
@@ -1005,6 +1004,36 @@ struct SquatCalibrationView: View {
             .stroke(session.stage.accent.opacity(0.26), lineWidth: 1)
         }
     }
+  }
+
+  /// A rejected hold — most often squatting too little between stages — used to
+  /// leave the session's message unrendered, so the capture looked like it had
+  /// simply done nothing. Clears itself when the next hold begins.
+  private func captureWarning(_ message: String) -> some View {
+    HStack(alignment: .top, spacing: 10) {
+      Image(systemName: "exclamationmark.triangle.fill")
+        .font(.headline)
+        .foregroundStyle(RGTheme.danger)
+
+      Text(message)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(RGTheme.cream)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(.horizontal, 14)
+    .padding(.vertical, 12)
+    .background {
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .fill(RGTheme.danger.opacity(0.14))
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(RGTheme.danger.opacity(0.55), lineWidth: 1)
+        }
+    }
+    .transition(.opacity.combined(with: .move(edge: .top)))
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Warning. \(message)")
   }
 
   private var poseCaptureControl: some View {
@@ -1127,8 +1156,10 @@ struct SquatCalibrationView: View {
           perform: {}
         )
         .accessibilityLabel(session.actionTitle)
+        // Carries the stage instruction now that it is no longer shown above the coin.
         .accessibilityHint(
-          "Press and hold continuously for two seconds. Releasing early resets the sample."
+          "\(session.stage.instruction) Press and hold continuously for two seconds. "
+            + "Releasing early resets the sample."
         )
       }
     }
