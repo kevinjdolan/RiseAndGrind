@@ -41,6 +41,7 @@
 		0F4F2EEF1A94ECBA63098827 /* Relaxing015.caf in Resources */ = {isa = PBXBuildFile; fileRef = 157CB2BD7023F596D6786F8F /* Relaxing015.caf */; };
 		0F61C7FDD4D46CA367D9F906 /* Soothing018.caf in Resources */ = {isa = PBXBuildFile; fileRef = F9614AB80BDE0F8DBE72AE7B /* Soothing018.caf */; };
 		0FC64C956765D85B72B70F2D /* Motivational-003_menace.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 296B4A01C522615B4870ED70 /* Motivational-003_menace.m4a */; };
+		10A35E04F348309571BC2FEE /* ShadDontIgnore.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 15E78E64FA4775988521B751 /* ShadDontIgnore.mp4 */; };
 		11344F2BA0D1864D32727CDA /* Energizing054.caf in Resources */ = {isa = PBXBuildFile; fileRef = 2BD1E10A322A337F9FCBA512 /* Energizing054.caf */; };
 		11455FFFBC004A2F432D9960 /* Motivational-086_different_breed_no_cap.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 819F0B394A7B663713BF270B /* Motivational-086_different_breed_no_cap.m4a */; };
 		117A82300FDF15E1395A1EC6 /* Motivational-054_absolute_unit_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 345760FDCB665C106E442A50 /* Motivational-054_absolute_unit_today.m4a */; };
@@ -557,6 +558,7 @@
 		15646DCBA44BABFBE27D2923 /* Energizing052.caf */ = {isa = PBXFileReference; path = Energizing052.caf; sourceTree = "<group>"; };
 		1570E4D5460412A004FCDEBF /* Soothing046.caf */ = {isa = PBXFileReference; path = Soothing046.caf; sourceTree = "<group>"; };
 		157CB2BD7023F596D6786F8F /* Relaxing015.caf */ = {isa = PBXFileReference; path = Relaxing015.caf; sourceTree = "<group>"; };
+		15E78E64FA4775988521B751 /* ShadDontIgnore.mp4 */ = {isa = PBXFileReference; path = ShadDontIgnore.mp4; sourceTree = "<group>"; };
 		15FAFF2941312D7C30429DC5 /* Energizing028.caf */ = {isa = PBXFileReference; path = Energizing028.caf; sourceTree = "<group>"; };
 		1664DE490FD2D34573823681 /* WakeChallengeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeChallengeView.swift; sourceTree = "<group>"; };
 		1703DADD7FAF73AD97617109 /* Motivating058.caf */ = {isa = PBXFileReference; path = Motivating058.caf; sourceTree = "<group>"; };
@@ -1537,6 +1539,7 @@
 			isa = PBXGroup;
 			children = (
 				B97F79178BE47B1A51F63243 /* IntroPitch.mp4 */,
+				15E78E64FA4775988521B751 /* ShadDontIgnore.mp4 */,
 			);
 			path = IntroPitch;
 			sourceTree = "<group>";
@@ -2150,6 +2153,7 @@
 				75DFBC4ABDC8ECCC1D0F7286 /* Relaxing062.caf in Resources */,
 				794279E478F7D95CECCA321D /* Relaxing063.caf in Resources */,
 				F536D644FC2E045E6332115A /* Relaxing064.caf in Resources */,
+				10A35E04F348309571BC2FEE /* ShadDontIgnore.mp4 in Resources */,
 				3D6AEE7919C93504D60FF8E5 /* ShadRingtone.m4a in Resources */,
 				C004A0200737480E3428EC93 /* ShortcutSetupDemo.mp4 in Resources */,
 				0A865E866E3643095A4CECF6 /* SnoozeSuccess1.mp3 in Resources */,
@@ -2397,7 +2401,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2407,7 +2411,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.8.1;
+				MARKETING_VERSION = 0.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
@@ -2483,7 +2487,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2493,7 +2497,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.8.1;
+				MARKETING_VERSION = 0.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;

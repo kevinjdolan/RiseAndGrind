@@ -124,7 +124,11 @@ struct IntroPitchView: View {
       if phase == .incomingCall {
         IncomingCallOverlay(
           onAnswer: { transitionToVideo() },
-          onDecline: { returnToIdle() }
+          onDecline: { returnToIdle() },
+          onRejectEngagedChange: { engaged in
+            // Shad's plea has to be audible over his own ringtone.
+            ringtonePlayer?.volume = engaged ? 0 : 1
+          }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
         .zIndex(2)
@@ -436,6 +440,10 @@ struct IntroPitchView: View {
 private struct IncomingCallOverlay: View {
   let onAnswer: () -> Void
   let onDecline: () -> Void
+  /// Lets the caller duck the ringtone while Shad's plea is audible.
+  let onRejectEngagedChange: (Bool) -> Void
+
+  @State private var isRejectEngaged = false
 
   var body: some View {
     GeometryReader { proxy in
@@ -475,7 +483,7 @@ private struct IncomingCallOverlay: View {
 
           Spacer(minLength: 16)
 
-          shadAvatar
+          ShadCallPortrait(isRejecting: isRejectEngaged)
             .frame(width: avatarSize, height: avatarSize)
             .clipShape(
               RoundedRectangle(cornerRadius: Self.avatarCornerRadius, style: .continuous)
@@ -489,20 +497,30 @@ private struct IncomingCallOverlay: View {
 
           Spacer(minLength: 16)
 
-          HStack(spacing: 16) {
-            Button(action: onDecline) {
-              Image(systemName: "phone.down.fill")
-                .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
-                .frame(width: 60, height: 60)
-                .background(RGTheme.danger, in: Circle())
-                .shadow(color: RGTheme.danger.opacity(0.5), radius: 14, y: 6)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Decline Shad's call")
-            .accessibilityHint("Ends the call and returns to the welcome screen")
+          VStack(spacing: 12) {
+            SlideActionControl(
+              label: "Let Him Cook (Talk about Rise & Grind)",
+              icon: "phone.fill",
+              tint: RGTheme.mint,
+              accessibilityLabel: "Answer Shad's call",
+              accessibilityHint: "Answers the call and plays Shad's pitch",
+              onComplete: onAnswer
+            )
 
-            SlideToAnswerControl(label: "Let Him Cook (Talk)", onComplete: onAnswer)
+            SlideActionControl(
+              label: "Leave Him on Read (You hate onboarding flows)",
+              icon: "phone.down.fill",
+              tint: RGTheme.danger,
+              accessibilityLabel: "Decline Shad's call",
+              accessibilityHint: "Ends the call and returns to the welcome screen",
+              onEngagedChange: { engaged in
+                withAnimation(.easeOut(duration: 0.18)) {
+                  isRejectEngaged = engaged
+                }
+                onRejectEngagedChange(engaged)
+              },
+              onComplete: onDecline
+            )
           }
           .padding(.horizontal, 26)
           .padding(.bottom, max(proxy.safeAreaInsets.bottom + 42, 60))
@@ -511,23 +529,6 @@ private struct IncomingCallOverlay: View {
       }
     }
     .ignoresSafeArea()
-  }
-
-  private var shadAvatar: some View {
-    Group {
-      if UIImage(named: "ShadAvatar") != nil {
-        Image("ShadAvatar")
-          .resizable()
-          .scaledToFill()
-      } else {
-        ZStack {
-          RGTheme.graphite
-          Image(systemName: "person.fill")
-            .font(.system(size: 72, weight: .black))
-            .foregroundStyle(RGTheme.mutedCream)
-        }
-      }
-    }
   }
 
   private static let avatarCornerRadius: CGFloat = 20
@@ -649,12 +650,22 @@ private struct FootnoteLegend: View {
   }
 }
 
-private struct SlideToAnswerControl: View {
+/// One slide-to-confirm track. Both call actions use it so accepting and
+/// rejecting read as the same gesture, distinguished only by colour and icon.
+private struct SlideActionControl: View {
   let label: String
+  let icon: String
+  let tint: Color
+  let accessibilityLabel: String
+  let accessibilityHint: String
+  /// Fires true once the drag starts and false if the user backs out without
+  /// completing, so callers can react to a rejection being considered.
+  var onEngagedChange: ((Bool) -> Void)? = nil
   let onComplete: () -> Void
 
   @State private var dragX: CGFloat = 0
   @State private var isCompleting = false
+  @State private var isEngaged = false
 
   private let knobSize: CGFloat = 52
   private let trackInset: CGFloat = 4
@@ -667,22 +678,26 @@ private struct SlideToAnswerControl: View {
         Capsule()
           .fill(RGTheme.graphite.opacity(0.78))
           .overlay {
-            Capsule().stroke(RGTheme.mint.opacity(0.35), lineWidth: 1)
+            Capsule().stroke(tint.opacity(0.35), lineWidth: 1)
           }
 
         Text(label)
           .font(.subheadline.weight(.black))
           .foregroundStyle(RGTheme.cream.opacity(0.92))
+          .lineLimit(1)
+          .minimumScaleFactor(0.55)
+          .allowsTightening(true)
           .frame(maxWidth: .infinity)
           .padding(.leading, knobSize + trackInset * 2)
+          .padding(.trailing, trackInset * 2)
           .opacity(maxDrag > 0 ? 1 - Double(dragX / maxDrag) : 1)
           .allowsHitTesting(false)
 
         Circle()
-          .fill(RGTheme.mint)
+          .fill(tint)
           .frame(width: knobSize, height: knobSize)
           .overlay {
-            Image(systemName: "phone.fill")
+            Image(systemName: icon)
               .font(.headline.weight(.black))
               .foregroundStyle(RGTheme.ink)
           }
@@ -691,6 +706,7 @@ private struct SlideToAnswerControl: View {
             DragGesture(minimumDistance: 0)
               .onChanged { value in
                 guard !isCompleting else { return }
+                setEngaged(true)
                 dragX = min(max(0, value.translation.width), maxDrag)
               }
               .onEnded { _ in
@@ -698,6 +714,7 @@ private struct SlideToAnswerControl: View {
                 if maxDrag > 0, dragX > maxDrag * 0.7 {
                   complete(maxDrag: maxDrag)
                 } else {
+                  setEngaged(false)
                   withAnimation(.spring(duration: 0.32, bounce: 0.4)) {
                     dragX = 0
                   }
@@ -708,13 +725,19 @@ private struct SlideToAnswerControl: View {
     }
     .frame(height: knobSize + trackInset * 2)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(label)
-    .accessibilityHint("Double tap to answer Shad's call")
+    .accessibilityLabel(accessibilityLabel)
+    .accessibilityHint(accessibilityHint)
     .accessibilityAddTraits(.isButton)
     .accessibilityAction {
       guard !isCompleting else { return }
       complete(maxDrag: nil)
     }
+  }
+
+  private func setEngaged(_ engaged: Bool) {
+    guard isEngaged != engaged else { return }
+    isEngaged = engaged
+    onEngagedChange?(engaged)
   }
 
   private func complete(maxDrag: CGFloat?) {
@@ -725,6 +748,129 @@ private struct SlideToAnswerControl: View {
       }
     }
     onComplete()
+  }
+}
+
+/// Shad's portrait, which gives way to his "don't ignore me" clip the moment the
+/// user starts dragging the reject slider. Backing out rewinds the clip in
+/// silence rather than cutting, so the portrait settles back onto the still.
+private struct ShadCallPortrait: View {
+  let isRejecting: Bool
+
+  @State private var player = AVPlayer()
+  @State private var isClipVisible = false
+  @State private var rewindTask: Task<Void, Never>?
+
+  private static let rewindRate: Float = -3.0
+
+  var body: some View {
+    ZStack {
+      ShadAvatarImage()
+
+      if isClipVisible {
+        IntroPitchVideoPlayer(player: player)
+      }
+    }
+    .onAppear(perform: prepare)
+    .onDisappear {
+      rewindTask?.cancel()
+      rewindTask = nil
+      player.pause()
+    }
+    .onChange(of: isRejecting) { _, rejecting in
+      if rejecting {
+        playForward()
+      } else {
+        rewind()
+      }
+    }
+  }
+
+  private func prepare() {
+    guard player.currentItem == nil else { return }
+    guard
+      let url =
+        Bundle.main.url(
+          forResource: "ShadDontIgnore",
+          withExtension: "mp4",
+          subdirectory: "IntroPitch"
+        ) ?? Bundle.main.url(forResource: "ShadDontIgnore", withExtension: "mp4")
+    else {
+      IntroPitchTrace.record("ShadDontIgnore.mp4 was not found in the app bundle")
+      return
+    }
+    player.replaceCurrentItem(with: AVPlayerItem(url: url))
+    player.actionAtItemEnd = .pause
+  }
+
+  private func playForward() {
+    rewindTask?.cancel()
+    rewindTask = nil
+    guard player.currentItem != nil else { return }
+    isClipVisible = true
+    player.isMuted = false
+    player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+    player.play()
+  }
+
+  private func rewind() {
+    guard isClipVisible else { return }
+    player.isMuted = true
+    rewindTask?.cancel()
+    rewindTask = Task { @MainActor in
+      if player.currentItem?.canPlayFastReverse == true {
+        player.rate = Self.rewindRate
+        while !Task.isCancelled, player.currentTime().seconds > 0.05 {
+          try? await Task.sleep(for: .milliseconds(40))
+        }
+      } else {
+        // Some items refuse reverse playback; walk the playhead back instead so
+        // the retreat still reads as a rewind rather than a cut.
+        let start = player.currentTime().seconds
+        let steps = 12
+        for step in stride(from: steps - 1, through: 0, by: -1) {
+          guard !Task.isCancelled else { break }
+          await player.seek(
+            to: CMTime(
+              seconds: start * Double(step) / Double(steps),
+              preferredTimescale: 600
+            ),
+            toleranceBefore: .zero,
+            toleranceAfter: .zero
+          )
+          try? await Task.sleep(for: .milliseconds(25))
+        }
+      }
+      guard !Task.isCancelled else { return }
+      finishRewind()
+    }
+  }
+
+  private func finishRewind() {
+    player.pause()
+    player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+    isClipVisible = false
+    rewindTask = nil
+  }
+}
+
+/// The still portrait, shared by the call overlay and its video state.
+private struct ShadAvatarImage: View {
+  var body: some View {
+    Group {
+      if UIImage(named: "ShadAvatar") != nil {
+        Image("ShadAvatar")
+          .resizable()
+          .scaledToFill()
+      } else {
+        ZStack {
+          RGTheme.graphite
+          Image(systemName: "person.fill")
+            .font(.system(size: 72, weight: .black))
+            .foregroundStyle(RGTheme.mutedCream)
+        }
+      }
+    }
   }
 }
 

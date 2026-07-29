@@ -48,6 +48,9 @@ struct ContentView: View {
             complete: model.completeOnboarding,
             openSettings: model.openSystemSettings
           )
+          // A factory reset mints a new run so onboarding restarts at the intro
+          // pitch instead of holding the step the last run ended on.
+          .id(model.onboardingRunID)
         }
       }
       .allowsHitTesting(!isShowingCannotRightNowOverlay)

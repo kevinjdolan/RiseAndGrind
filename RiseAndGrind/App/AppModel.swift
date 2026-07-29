@@ -54,6 +54,10 @@ final class AppModel {
   private(set) var notificationAuthorization = "Checking…"
   private(set) var motionAuthorization = "Checking…"
   private(set) var onboardingCompleted: Bool
+  /// Identity for the onboarding run. A factory reset bumps it so onboarding is
+  /// rebuilt from step one — and Shad's call rings again — rather than resuming
+  /// whatever view state the previous run left behind.
+  private(set) var onboardingRunID = UUID()
   private(set) var automationAcknowledged: Bool
   private(set) var lastNightlyRun: Date?
   private(set) var lastBackgroundRefresh: Date?
@@ -494,6 +498,7 @@ final class AppModel {
 
     alarmLedger = .empty
     onboardingCompleted = false
+    onboardingRunID = UUID()
     errorMessage = nil
     return true
   }
