@@ -474,7 +474,7 @@ struct OnboardingWelcomeStepView: View {
               .minimumScaleFactor(0.8)
 
             Text(
-              "The Alarm Clock App that just won’t quit, like you once you reach your full potential."
+              "The Alarm Clock App that just won’t quit,\nlike you once you reach your full potential."
             )
             .font(.body)
             .foregroundStyle(RGTheme.mutedCream)
@@ -486,7 +486,7 @@ struct OnboardingWelcomeStepView: View {
             VStack(alignment: .leading, spacing: 14) {
               RGLimitRow(
                 icon: "calendar.badge.clock",
-                title: "Never Miss a Meeting with Calendarmaxxing™",
+                title: "Calendarmaxxing™",
                 detail:
                   "Sync your calendar so that you’ll never be caught off-guard and miss an early morning meeting"
               )
