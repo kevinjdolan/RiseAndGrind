@@ -1709,6 +1709,15 @@ private struct SquatGaugeFinale: View {
   }
 }
 
+/// Shad's one spoken line over the reward clip, timed against a transcription.
+private enum ChallengeCompletionCaptions {
+  static let track = CaptionTrack([
+    CaptionCue(23.70, 25.98, "IT'S TRUE WHAT THEY SAY."),
+    CaptionCue(25.98, 26.94, "MONEY REALLY"),
+    CaptionCue(26.94, 28.18, "DOES BUY HAPPINESS.", .ascend),
+  ])
+}
+
 private struct ChallengeCompletionExperience: View {
   private static let messageRevealTime = 4.0
   private static let rapidFadeStartTime = 32.0
@@ -1727,6 +1736,7 @@ private struct ChallengeCompletionExperience: View {
   @State private var isShowingSkipButton = false
   @State private var backgroundDimOpacity = 0.0
   @State private var hasFinishedPlayback = false
+  @State private var playbackSeconds: TimeInterval = 0
 
   var body: some View {
     GeometryReader { proxy in
@@ -1744,6 +1754,14 @@ private struct ChallengeCompletionExperience: View {
         completionCopy
           .opacity(isShowingMessage ? 1 : 0)
           .accessibilityHidden(!isShowingMessage)
+
+        CaptionLayer(
+          track: ChallengeCompletionCaptions.track,
+          seconds: playbackSeconds
+        )
+        .frame(width: proxy.size.width * 0.86, height: 70)
+        .position(x: proxy.size.width / 2, y: proxy.size.height * 0.74)
+        .allowsHitTesting(false)
 
         completionSkipButton
           .opacity(isShowingSkipButton ? 1 : 0)
@@ -1906,6 +1924,7 @@ private struct ChallengeCompletionExperience: View {
     guard !hasFinishedPlayback else { return }
     let seconds = time.seconds
     guard seconds.isFinite else { return }
+    playbackSeconds = seconds
 
     if seconds >= Self.messageRevealTime {
       revealMessage()

@@ -20,6 +20,7 @@
 		04330D140C469C5FB7E48507 /* Motivational-045_new_pr.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 8425A8F41529B806B46622A2 /* Motivational-045_new_pr.m4a */; };
 		04453A0F67D3F5871CD5003B /* Motivational-025_problem.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2AA94DC46147686B12ADC4D4 /* Motivational-025_problem.m4a */; };
 		06773719F804971B785DF4F8 /* Motivating056.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8FD0D54BF70B9A8F4AE1B08A /* Motivating056.caf */; };
+		074E2AAB738EDD152091A7CD /* TestPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48367A75B00A5F451F1FC1E8 /* TestPattern.swift */; };
 		0781CE58B2DA87E118B8ABB1 /* Energizing051.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9ABFB07AB4598450D07139FE /* Energizing051.caf */; };
 		07BDB82A623C88E40F059F07 /* Energizing013.caf in Resources */ = {isa = PBXBuildFile; fileRef = DD75B255EA0AE70435E11C94 /* Energizing013.caf */; };
 		092B0520AA4C2C65A4D37A9F /* Motivational-043_solid_rep.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C33BE53DB90A315AB6AD1192 /* Motivational-043_solid_rep.m4a */; };
@@ -389,6 +390,7 @@
 		C56D0A172710B2A2924BF3B2 /* Motivational-066_discipline_over_motivation.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 339227037E79F33B776E75F2 /* Motivational-066_discipline_over_motivation.m4a */; };
 		C56D7EA32ECE5EAE3EBB34B0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 922732951817774E79831633 /* PrivacyInfo.xcprivacy */; };
 		C5DA880DE64A708965F618F5 /* Soothing015.caf in Resources */ = {isa = PBXBuildFile; fileRef = DDD568E4CACD1AECC6D01C5D /* Soothing015.caf */; };
+		C6D37B1383662663E878D0DC /* VideoCaptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B48EC87543352E7235FBDFE /* VideoCaptions.swift */; };
 		C7618F1F3162797818221D15 /* Abrasive014.caf in Resources */ = {isa = PBXBuildFile; fileRef = 13BAF6731D9AD963ACA46863 /* Abrasive014.caf */; };
 		C7840DAD976CD3361551E12C /* EmergencyShakeDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ABB7646575023DD7A4B0DF /* EmergencyShakeDetectorTests.swift */; };
 		C787ACB60EAC98C2A6F93B30 /* Motivating029.caf in Resources */ = {isa = PBXBuildFile; fileRef = 802DDAAA5CAD5339756FE937 /* Motivating029.caf */; };
@@ -659,6 +661,7 @@
 		46A3579765CFF40FD09AFC87 /* Motivational-065_strength_for_days.m4a */ = {isa = PBXFileReference; path = "Motivational-065_strength_for_days.m4a"; sourceTree = "<group>"; };
 		473FA17ACFA9EF3002CA2E48 /* Energizing016.caf */ = {isa = PBXFileReference; path = Energizing016.caf; sourceTree = "<group>"; };
 		47E708923A9ABC1DF3E2341B /* Soothing030.caf */ = {isa = PBXFileReference; path = Soothing030.caf; sourceTree = "<group>"; };
+		48367A75B00A5F451F1FC1E8 /* TestPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPattern.swift; sourceTree = "<group>"; };
 		48E9799F1A66175338352197 /* Abrasive045.caf */ = {isa = PBXFileReference; path = Abrasive045.caf; sourceTree = "<group>"; };
 		491A37F548C259F124A7A991 /* CalibrationInstruction1.mp4 */ = {isa = PBXFileReference; path = CalibrationInstruction1.mp4; sourceTree = "<group>"; };
 		4921C7D1B33BB687E2886522 /* Soothing043.caf */ = {isa = PBXFileReference; path = Soothing043.caf; sourceTree = "<group>"; };
@@ -692,6 +695,7 @@
 		5A5DEC394AEC97AEF6C2937E /* Relaxing042.caf */ = {isa = PBXFileReference; path = Relaxing042.caf; sourceTree = "<group>"; };
 		5AC102DC9ADB328C12A1907B /* Abrasive024.caf */ = {isa = PBXFileReference; path = Abrasive024.caf; sourceTree = "<group>"; };
 		5B0AF42703BCC109C47F7CA5 /* Abrasive057.caf */ = {isa = PBXFileReference; path = Abrasive057.caf; sourceTree = "<group>"; };
+		5B48EC87543352E7235FBDFE /* VideoCaptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCaptions.swift; sourceTree = "<group>"; };
 		5B6D3D071DB8CCEEE9AEF979 /* Motivational-075_standing_ovation_worthy.m4a */ = {isa = PBXFileReference; path = "Motivational-075_standing_ovation_worthy.m4a"; sourceTree = "<group>"; };
 		5C101F439F85DE99B928086D /* SquatDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatDetectorTests.swift; sourceTree = "<group>"; };
 		5C2786C1E9039F5F0D85D15D /* Motivational-044_clean_form.m4a */ = {isa = PBXFileReference; path = "Motivational-044_clean_form.m4a"; sourceTree = "<group>"; };
@@ -1195,6 +1199,8 @@
 				FCA9F10E8AF9C6864540FD1A /* ShortcutSetupDemoView.swift */,
 				DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */,
 				03890BA9A136E1E3090101B1 /* SquatDiagnosticView.swift */,
+				48367A75B00A5F451F1FC1E8 /* TestPattern.swift */,
+				5B48EC87543352E7235FBDFE /* VideoCaptions.swift */,
 				1664DE490FD2D34573823681 /* WakeChallengeView.swift */,
 			);
 			path = Views;
@@ -2289,7 +2295,9 @@
 				CF623081E330405C1FE8587D /* SquatCalibrationView.swift in Sources */,
 				4CFC3429F109E2AB74AFB6A6 /* SquatChallengeDiagnosticRecorder.swift in Sources */,
 				62A7CB6A2BC1E241A83908CC /* SquatDiagnosticView.swift in Sources */,
+				074E2AAB738EDD152091A7CD /* TestPattern.swift in Sources */,
 				6EF5A9F64F798AE50EEA4746 /* Theme.swift in Sources */,
+				C6D37B1383662663E878D0DC /* VideoCaptions.swift in Sources */,
 				C1EA9615936B0B4886906AF8 /* WakeChallengeCoordinator.swift in Sources */,
 				2878F447DE98287D92C36443 /* WakeChallengeView.swift in Sources */,
 			);
@@ -2405,7 +2413,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2415,7 +2423,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.4;
+				MARKETING_VERSION = 0.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
@@ -2491,7 +2499,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2501,7 +2509,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.4;
+				MARKETING_VERSION = 0.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;

@@ -113,62 +113,61 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
     }
   }
 
-  var captions: [SquatCalibrationCaptionCue] {
+  /// Timed against a word-level transcription of each instruction clip.
+  var captionTrack: CaptionTrack {
     switch self {
     case .standing:
-      [
-        .init(startTime: 0.00, endTime: 1.04, text: "Lock in,"),
-        .init(startTime: 1.04, endTime: 2.02, text: "rise up,"),
-        .init(startTime: 2.02, endTime: 3.52, text: "and stay on top."),
-        .init(startTime: 3.52, endTime: 4.80, text: "Back straight up,"),
-        .init(startTime: 4.80, endTime: 6.52, text: "knees low-key bent."),
-        .init(startTime: 6.52, endTime: 8.34, text: "Stand on business,"),
-        .init(startTime: 8.34, endTime: 9.78, text: "ten toes down."),
-        .init(startTime: 9.78, endTime: 11.30, text: "Phone in your hands,"),
-        .init(startTime: 11.30, endTime: 12.90, text: "hold the button for"),
-        .init(startTime: 12.90, endTime: 15.74, text: "two whole seconds."),
-        .init(
-          startTime: 35.80,
-          endTime: 40.00,
-          text: "Something interesting happens every day around here."
-        ),
-      ]
+      CaptionTrack([
+        CaptionCue(0.00, 1.14, "NOW WE NEED TO CALIBRATE"),
+        CaptionCue(1.14, 2.28, "YOUR SQUAT FORM."),
+        CaptionCue(2.28, 3.36, "FOLLOW ALONG.", .slam),
+        CaptionCue(3.36, 5.76, "PLANT YOUR FEET, TEN TOES DOWN,"),
+        CaptionCue(5.76, 6.54, "JUST A BIT OUTSIDE"),
+        CaptionCue(6.54, 8.04, "YOUR SHOULDER WIDTH,"),
+        CaptionCue(8.04, 9.90, "AND BEND YOUR KNEES A SMIDGE."),
+        CaptionCue(9.90, 11.40, "YOUR STANCE SHOULD REMAIN"),
+        CaptionCue(11.40, 12.06, "JUST LIKE THIS"),
+        CaptionCue(12.06, 13.62, "UNTIL WE DROP TO THE"),
+        CaptionCue(13.62, 14.76, "BOTTOM OF OUR SQUAT."),
+        CaptionCue(14.76, 16.44, "NOW FOR YOUR PHONE GRIP."),
+        CaptionCue(16.44, 17.58, "BEND YOUR ELBOWS"),
+        CaptionCue(17.58, 18.96, "AND HOLD YOUR PHONE JUST ABOUT"),
+        CaptionCue(18.96, 20.10, "SIX INCHES IN FRONT"),
+        CaptionCue(20.10, 21.48, "OF YOUR SOLAR PLEXUS."),
+        CaptionCue(21.48, 23.40, "KEEP YOUR BACK STRAIGHT"),
+        CaptionCue(23.40, 24.60, "AND CORE STRONG.", .punch),
+        CaptionCue(24.60, 25.56, "LOOK FORWARD"),
+        CaptionCue(25.56, 26.52, "AND HOLD THE BUTTON ON YOUR PHONE"),
+        CaptionCue(26.52, 27.70, "FOR TWO SECONDS.", .pulse),
+      ])
     case .depth:
-      [
-        .init(startTime: 0.00, endTime: 0.96, text: "Now drop that"),
-        .init(startTime: 0.96, endTime: 2.16, text: "hang down low"),
-        .init(startTime: 2.16, endTime: 3.68, text: "to the flo’."),
-        .init(startTime: 3.68, endTime: 4.50, text: "Hips back,"),
-        .init(startTime: 4.50, endTime: 5.50, text: "knees out,"),
-        .init(startTime: 5.50, endTime: 6.42, text: "and let your elbows"),
-        .init(startTime: 6.42, endTime: 8.64, text: "give ’em a lil’ kiss."),
-        .init(startTime: 8.64, endTime: 9.44, text: "Try to keep those"),
-        .init(startTime: 9.44, endTime: 11.18, text: "ten toes down."),
-        .init(startTime: 11.18, endTime: 12.46, text: "Phone still clutched,"),
-        .init(
-          startTime: 12.46,
-          endTime: 14.00,
-          text: "hold the button for another"
-        ),
-        .init(startTime: 14.00, endTime: 15.68, text: "two seconds."),
-      ]
+      CaptionTrack([
+        CaptionCue(0.00, 1.02, "NOW DROP THAT"),
+        CaptionCue(1.02, 2.10, "THING DOWN LOW", .slump),
+        CaptionCue(2.10, 3.24, "TO THE FLO'."),
+        CaptionCue(3.24, 4.56, "HIPS BACK,"),
+        CaptionCue(4.56, 5.28, "KNEES OUT,"),
+        CaptionCue(5.28, 6.54, "AND LET YOUR ELBOWS"),
+        CaptionCue(6.54, 7.98, "GIVE 'EM A LIL' KISS."),
+        CaptionCue(7.98, 9.48, "TRY TO KEEP THOSE"),
+        CaptionCue(9.48, 10.74, "TEN TOES DOWN.", .punch),
+        CaptionCue(10.74, 12.48, "PHONE STILL CLUTCHED,"),
+        CaptionCue(12.48, 13.92, "HOLD THE BUTTON FOR ANOTHER"),
+        CaptionCue(13.92, 15.68, "TWO SECONDS.", .pulse),
+      ])
     case .returned:
-      [
-        .init(startTime: 0.00, endTime: 0.82, text: "Now let’s get our"),
-        .init(startTime: 0.82, endTime: 2.73, text: "body back to HQ."),
-        .init(
-          startTime: 2.73,
-          endTime: 4.02,
-          text: "Keep that phone gripped up"
-        ),
-        .init(startTime: 4.02, endTime: 5.46, text: "and ascend to your"),
-        .init(startTime: 5.46, endTime: 7.46, text: "original peak."),
-        .init(startTime: 7.46, endTime: 8.47, text: "Finally,"),
-        .init(startTime: 8.47, endTime: 9.78, text: "hold the button for"),
-        .init(startTime: 9.78, endTime: 12.52, text: "one last time."),
-      ]
+      CaptionTrack([
+        CaptionCue(0.00, 0.90, "NOW LET'S GET OUR"),
+        CaptionCue(0.90, 2.46, "BODY BACK TO HQ."),
+        CaptionCue(2.46, 4.08, "KEEP THAT PHONE GRIPPED UP"),
+        CaptionCue(4.08, 5.64, "AND ASCEND TO YOUR"),
+        CaptionCue(5.64, 6.66, "ORIGINAL PEAK.", .wave),
+        CaptionCue(6.66, 8.28, "FINALLY,"),
+        CaptionCue(8.28, 9.84, "HOLD THE BUTTON FOR"),
+        CaptionCue(9.84, 12.46, "ONE LAST TIME.", .pulse),
+      ])
     case .complete:
-      []
+      CaptionTrack([])
     }
   }
 
@@ -186,14 +185,14 @@ private enum SquatCalibrationUIStage: Int, CaseIterable, Sendable {
   }
 }
 
-private struct SquatCalibrationCaptionCue: Identifiable, Sendable {
-  let startTime: TimeInterval
-  let endTime: TimeInterval
-  let text: String
-
-  var id: TimeInterval {
-    startTime
-  }
+/// Shad's reaction when a hold registers no movement at all.
+private enum SquatCalibrationCaptions {
+  static let failure = CaptionTrack([
+    CaptionCue(0.00, 1.08, "IT DOESN'T SEEM LIKE YOU"),
+    CaptionCue(1.08, 2.04, "MOVED AT ALL.", .glitch),
+    CaptionCue(2.04, 3.60, "CAN YOU PLEASE DO IT"),
+    CaptionCue(3.60, 4.88, "FOR REAL THIS TIME?", .shake),
+  ])
 }
 
 private struct SquatCalibrationMotionPacket: Sendable {
@@ -373,13 +372,19 @@ struct SquatCalibrationView: View {
 
   @State private var session = SquatCalibrationViewSession()
   @State private var instructionPlayer = AVPlayer()
+  @State private var failurePlayer = AVPlayer()
   @State private var currentInstructionItem: AVPlayerItem?
   @State private var instructionTimeObserver: Any?
-  @State private var activeCaptionIndex: Int?
+  @State private var instructionSeconds: TimeInterval = 0
   @State private var isInstructionFinished = false
   @State private var instructionVideoError: String?
-  @State private var isShowingIdleCaptureCue = false
-  @State private var idleCaptureCueProgress: CGFloat = 0
+  @State private var currentFailureItem: AVPlayerItem?
+  @State private var isShowingFailureTestPattern = false
+  @State private var failureSeconds: TimeInterval = 0
+  @State private var failureTimeObserver: Any?
+  @State private var failureToneAudio = TestPatternTone()
+  @State private var isShowingCaptureCue = false
+  @State private var captureCueProgress: CGFloat = 0
 
   init(
     onComplete: @escaping @MainActor (SquatCalibrationProfile) -> Void = { _ in }
@@ -392,34 +397,32 @@ struct SquatCalibrationView: View {
       VStack(spacing: 0) {
         header
 
-        // A rejected hold takes the whole screen rather than pushing the capture
-        // panel around with a banner.
-        if let errorMessage = session.errorMessage {
-          SquatCalibrationFailureView(message: errorMessage, restart: restartCalibration)
-        } else {
-          ScrollView {
-            VStack(spacing: 14) {
-              instructionVideoCall
-              if session.stage != .complete {
-                capturePanel
-              }
-              if let result = session.completedResult {
-                resultCard(result)
-              }
-              actionArea
+        ScrollView {
+          VStack(spacing: 14) {
+            instructionVideoCall
+            if session.stage != .complete {
+              capturePanel
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 14)
-            .padding(.bottom, 44)
+            if let result = session.completedResult {
+              resultCard(result)
+            }
+            actionArea
           }
+          .padding(.horizontal, 18)
+          .padding(.top, 14)
+          .padding(.bottom, 44)
         }
       }
     }
     .interactiveDismissDisabled(session.isBusy)
     .onChange(of: session.errorMessage) { _, message in
-      // The failure clip has its own audio, so the instruction video steps aside.
+      // A rejected hold plays Shad's reaction in the call window; the clip has its
+      // own audio, so the instruction video steps aside.
       if message != nil {
         stopInstructionVideo()
+        playFailureVideo()
+      } else {
+        stopFailureVideo()
       }
     }
     .onAppear {
@@ -428,16 +431,25 @@ struct SquatCalibrationView: View {
     }
     .onDisappear {
       stopInstructionVideo()
+      stopFailureVideo()
       session.stop()
     }
     .onChange(of: scenePhase) { _, newPhase in
       if newPhase == .active {
         session.resume()
-        if session.stage != .complete {
+        if session.errorMessage != nil {
+          if isShowingFailureTestPattern {
+            failureToneAudio.start()
+          } else {
+            failurePlayer.play()
+          }
+        } else if session.stage != .complete {
           instructionPlayer.play()
         }
       } else {
         instructionPlayer.pause()
+        failurePlayer.pause()
+        failureToneAudio.stop()
         session.pause()
       }
     }
@@ -447,8 +459,9 @@ struct SquatCalibrationView: View {
     .task(
       id:
         "\(session.stage.rawValue)-\(session.isCapturePending)-\(scenePhase == .active)"
+        + "-\(session.errorMessage != nil)"
     ) {
-      resetIdleCaptureCue()
+      resetCaptureCue()
       guard
         session.stage != .complete,
         !session.isCapturePending,
@@ -457,27 +470,31 @@ struct SquatCalibrationView: View {
         return
       }
 
-      do {
-        try await Task.sleep(for: .seconds(8))
-      } catch {
-        return
-      }
-      guard
-        !Task.isCancelled,
-        session.stage != .complete,
-        !session.isCapturePending
-      else {
-        return
+      // A rejection needs the eye immediately; an idle screen gets the nudge only
+      // after the user has had time to act on their own.
+      if session.errorMessage == nil {
+        do {
+          try await Task.sleep(for: .seconds(8))
+        } catch {
+          return
+        }
+        guard
+          !Task.isCancelled,
+          session.stage != .complete,
+          !session.isCapturePending
+        else {
+          return
+        }
       }
 
       withAnimation(.easeInOut(duration: 0.28)) {
-        isShowingIdleCaptureCue = true
+        isShowingCaptureCue = true
       }
       withAnimation(
         .easeInOut(duration: accessibilityReduceMotion ? 1.35 : 0.72)
           .repeatForever(autoreverses: true)
       ) {
-        idleCaptureCueProgress = 1
+        captureCueProgress = 1
       }
     }
     .onChange(of: session.completedResult) { _, result in
@@ -489,30 +506,26 @@ struct SquatCalibrationView: View {
         for: AVPlayerItem.didPlayToEndTimeNotification
       )
     ) { notification in
-      guard
-        let currentInstructionItem,
-        let finishedItem = notification.object as? AVPlayerItem,
-        finishedItem === currentInstructionItem
-      else {
-        return
+      guard let finishedItem = notification.object as? AVPlayerItem else { return }
+      if finishedItem === currentFailureItem {
+        showFailureTestPattern()
+      } else if finishedItem === currentInstructionItem {
+        isInstructionFinished = true
       }
-      isInstructionFinished = true
     }
     .onReceive(
       NotificationCenter.default.publisher(
         for: AVPlayerItem.failedToPlayToEndTimeNotification
       )
     ) { notification in
-      guard
-        let currentInstructionItem,
-        let failedItem = notification.object as? AVPlayerItem,
-        failedItem === currentInstructionItem
-      else {
-        return
+      guard let failedItem = notification.object as? AVPlayerItem else { return }
+      if failedItem === currentFailureItem {
+        showFailureTestPattern()
+      } else if failedItem === currentInstructionItem {
+        instructionVideoError =
+          failedItem.error?.localizedDescription
+          ?? "The instruction video could not be played."
       }
-      instructionVideoError =
-        failedItem.error?.localizedDescription
-        ?? "The instruction video could not be played."
     }
   }
 
@@ -864,6 +877,27 @@ struct SquatCalibrationView: View {
 
       if session.stage == .complete {
         calibrationCompleteVideoState
+      } else if session.errorMessage != nil {
+        ZStack {
+          SquatCalibrationInstructionVideoPlayer(player: failurePlayer)
+
+          if isShowingFailureTestPattern {
+            SMPTEColorBars()
+              .transition(.opacity)
+          } else {
+            VStack {
+              Spacer()
+              CaptionLayer(
+                track: SquatCalibrationCaptions.failure,
+                seconds: failureSeconds,
+                style: .instruction(accent: RGTheme.danger)
+              )
+              .frame(height: 58)
+              .padding(.horizontal, 18)
+              .padding(.bottom, 18)
+            }
+          }
+        }
       } else if let instructionVideoError {
         VStack(spacing: 10) {
           Image(systemName: "video.slash.fill")
@@ -910,7 +944,7 @@ struct SquatCalibrationView: View {
 
           Spacer()
 
-          if session.stage != .complete {
+          if session.stage != .complete, session.errorMessage == nil {
             Button {
               replayInstructionVideo()
             } label: {
@@ -931,20 +965,15 @@ struct SquatCalibrationView: View {
 
         Spacer()
 
-        if let activeInstructionCaption, session.stage != .complete {
-          Text(activeInstructionCaption.text.uppercased())
-            .font(.title3.weight(.black))
-            .tracking(0.2)
-            .foregroundStyle(RGTheme.cream)
-            .multilineTextAlignment(.center)
-            .lineLimit(2)
-            .minimumScaleFactor(0.72)
-            .shadow(color: Color.black, radius: 2, y: 2)
-            .shadow(color: session.stage.accent.opacity(0.80), radius: 9)
-            .padding(.horizontal, 22)
-            .padding(.bottom, 22)
-            .id("\(session.stage.rawValue)-\(activeInstructionCaption.id)")
-            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+        if session.stage != .complete, session.errorMessage == nil {
+          CaptionLayer(
+            track: session.stage.captionTrack,
+            seconds: instructionSeconds,
+            style: .instruction(accent: session.stage.accent)
+          )
+          .frame(height: 62)
+          .padding(.horizontal, 22)
+          .padding(.bottom, 22)
         }
       }
       .padding(14)
@@ -953,10 +982,14 @@ struct SquatCalibrationView: View {
     .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
     .overlay {
       RoundedRectangle(cornerRadius: 28, style: .continuous)
-        .stroke(session.stage.accent.opacity(0.55), lineWidth: 1.5)
+        .stroke(stageAccent.opacity(0.55), lineWidth: 1.5)
     }
-    .shadow(color: session.stage.accent.opacity(0.16), radius: 24, y: 12)
-    .animation(.easeOut(duration: 0.18), value: activeCaptionIndex)
+    .shadow(color: stageAccent.opacity(0.16), radius: 24, y: 12)
+  }
+
+  /// The stage colour, or danger while a rejected hold is on screen.
+  private var stageAccent: Color {
+    session.errorMessage == nil ? session.stage.accent : RGTheme.danger
   }
 
   private var calibrationCompleteVideoState: some View {
@@ -986,16 +1019,6 @@ struct SquatCalibrationView: View {
     .accessibilityHidden(true)
   }
 
-  private var activeInstructionCaption: SquatCalibrationCaptionCue? {
-    guard
-      let activeCaptionIndex,
-      session.stage.captions.indices.contains(activeCaptionIndex)
-    else {
-      return nil
-    }
-    return session.stage.captions[activeCaptionIndex]
-  }
-
   private var capturePanel: some View {
     VStack(spacing: 12) {
       poseCaptureControl
@@ -1008,7 +1031,7 @@ struct SquatCalibrationView: View {
         .fill(RGTheme.elevatedInk.opacity(0.92))
         .overlay {
           RoundedRectangle(cornerRadius: 28, style: .continuous)
-            .stroke(session.stage.accent.opacity(0.26), lineWidth: 1)
+            .stroke(stageAccent.opacity(0.26), lineWidth: 1)
         }
     }
   }
@@ -1029,7 +1052,7 @@ struct SquatCalibrationView: View {
           AngularGradient(
             colors: [
               RGTheme.gold,
-              session.stage.accent,
+              stageAccent,
               RGTheme.magenta,
               RGTheme.gold,
             ],
@@ -1040,7 +1063,7 @@ struct SquatCalibrationView: View {
         .rotationEffect(.degrees(-90))
         .animation(.linear(duration: 0.08), value: session.captureProgress)
 
-      if isShowingIdleCaptureCue {
+      if isShowingCaptureCue {
         Circle()
           .fill(Color.black.opacity(0.80))
           .allowsHitTesting(false)
@@ -1055,99 +1078,128 @@ struct SquatCalibrationView: View {
             .foregroundStyle(RGTheme.mint)
         }
         .padding(17)
+      } else if let errorMessage = session.errorMessage {
+        restartCoinButton(message: errorMessage)
       } else {
-        Button {
-        } label: {
-          ZStack {
-            RGSquatCoinAttentionGlow(
-              diameter: 192,
-              progress: idleCaptureCueProgress,
-              isActive: isShowingIdleCaptureCue
-            )
-
-            RGSquatCoinFace(
-              imageName: session.stage.coinImageName,
-              diameter: 192,
-              accent:
-                isShowingIdleCaptureCue
-                ? RGTheme.gold
-                : session.stage.accent,
-              isReady: session.canCapture || session.isCapturePending
-            )
-            .overlay {
-              if isShowingIdleCaptureCue {
-                Circle()
-                  .fill(
-                    RGTheme.gold.opacity(
-                      0.10 + (idleCaptureCueProgress * 0.12)
-                    )
-                  )
-                  .blendMode(.softLight)
-              }
-            }
-            .scaleEffect(
-              accessibilityReduceMotion
-                ? 1
-                : 1 + (idleCaptureCueProgress * 0.065)
-            )
-
-            VStack(spacing: 0) {
-              Spacer()
-              Text(session.actionTitle)
-                .font(.caption.weight(.black))
-                .tracking(0.65)
-                .foregroundStyle(RGTheme.cream)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(RGTheme.ink.opacity(0.92), in: Capsule())
-                .overlay {
-                  Capsule()
-                    .stroke(
-                      isShowingIdleCaptureCue
-                        ? RGTheme.gold.opacity(0.92)
-                        : session.stage.accent.opacity(0.48),
-                      lineWidth: 1
-                    )
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 8)
-            }
-          }
-          .rotationEffect(.degrees(captureTremorPhase * 0.65))
-          .offset(x: captureTremorPhase * 1.25)
-          .animation(
-            .linear(duration: 0.08),
-            value: session.captureProgress
-          )
-        }
-        .buttonStyle(RGSquatCoinHoldButtonStyle())
-        .contentShape(Circle())
-        .allowsHitTesting(session.canCapture || session.isCapturePending)
-        .onLongPressGesture(
-          minimumDuration: .infinity,
-          maximumDistance: 110,
-          pressing: { isPressing in
-            if isPressing {
-              session.beginCaptureHold()
-            } else {
-              session.endCaptureHold()
-            }
-          },
-          perform: {}
-        )
-        .accessibilityLabel(session.actionTitle)
-        // Carries the stage instruction now that it is no longer shown above the coin.
-        .accessibilityHint(
-          "\(session.stage.instruction) Press and hold continuously for two seconds. "
-            + "Releasing early resets the sample."
-        )
+        captureCoinButton
       }
     }
     .frame(width: 226, height: 226)
     .scaleEffect(session.isCapturePending ? 1.015 : 1)
     .animation(.easeInOut(duration: 0.16), value: session.isCapturePending)
+  }
+
+  private var captureCoinButton: some View {
+    Button {
+    } label: {
+      coinFace(title: session.actionTitle, isReady: session.canCapture || session.isCapturePending)
+        .rotationEffect(.degrees(captureTremorPhase * 0.65))
+        .offset(x: captureTremorPhase * 1.25)
+        .animation(
+          .linear(duration: 0.08),
+          value: session.captureProgress
+        )
+    }
+    .buttonStyle(RGSquatCoinHoldButtonStyle())
+    .contentShape(Circle())
+    .allowsHitTesting(session.canCapture || session.isCapturePending)
+    .onLongPressGesture(
+      minimumDuration: .infinity,
+      maximumDistance: 110,
+      pressing: { isPressing in
+        if isPressing {
+          session.beginCaptureHold()
+        } else {
+          session.endCaptureHold()
+        }
+      },
+      perform: {}
+    )
+    .accessibilityLabel(session.actionTitle)
+    // Carries the stage instruction now that it is no longer shown above the coin.
+    .accessibilityHint(
+      "\(session.stage.instruction) Press and hold continuously for two seconds. "
+        + "Releasing early resets the sample."
+    )
+  }
+
+  /// A rejected hold turns the coin into the way out: red instead of gold, and a
+  /// tap rather than a two-second hold.
+  private func restartCoinButton(message: String) -> some View {
+    Button(action: restartCalibration) {
+      coinFace(title: "RESTART CALIBRATION", isReady: true)
+    }
+    .buttonStyle(RGSquatCoinButtonStyle())
+    .contentShape(Circle())
+    .accessibilityLabel("Restart calibration")
+    .accessibilityHint("Calibration failed. \(message)")
+  }
+
+  private func coinFace(title: String, isReady: Bool) -> some View {
+    ZStack {
+      RGSquatCoinAttentionGlow(
+        diameter: 192,
+        progress: captureCueProgress,
+        isActive: isShowingCaptureCue,
+        tint: captureCueTint,
+        secondaryTint: captureCueSecondaryTint
+      )
+
+      RGSquatCoinFace(
+        imageName: session.stage.coinImageName,
+        diameter: 192,
+        accent: isShowingCaptureCue ? captureCueTint : stageAccent,
+        isReady: isReady
+      )
+      .overlay {
+        if isShowingCaptureCue {
+          Circle()
+            .fill(
+              captureCueTint.opacity(
+                0.10 + (captureCueProgress * 0.12)
+              )
+            )
+            .blendMode(.softLight)
+        }
+      }
+      .scaleEffect(
+        accessibilityReduceMotion
+          ? 1
+          : 1 + (captureCueProgress * 0.065)
+      )
+
+      VStack(spacing: 0) {
+        Spacer()
+        Text(title)
+          .font(.caption.weight(.black))
+          .tracking(0.65)
+          .foregroundStyle(RGTheme.cream)
+          .multilineTextAlignment(.center)
+          .lineLimit(2)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 8)
+          .background(RGTheme.ink.opacity(0.92), in: Capsule())
+          .overlay {
+            Capsule()
+              .stroke(
+                isShowingCaptureCue
+                  ? captureCueTint.opacity(0.92)
+                  : stageAccent.opacity(0.48),
+                lineWidth: 1
+              )
+          }
+          .padding(.horizontal, 24)
+          .padding(.bottom, 8)
+      }
+    }
+  }
+
+  private var captureCueTint: Color {
+    session.errorMessage == nil ? RGTheme.gold : RGTheme.danger
+  }
+
+  private var captureCueSecondaryTint: Color {
+    session.errorMessage == nil ? RGTheme.orange : RGTheme.magenta
   }
 
   private var captureTremorPhase: Double {
@@ -1156,12 +1208,12 @@ struct SquatCalibrationView: View {
   }
 
   @MainActor
-  private func resetIdleCaptureCue() {
+  private func resetCaptureCue() {
     var transaction = Transaction(animation: nil)
     transaction.disablesAnimations = true
     withTransaction(transaction) {
-      isShowingIdleCaptureCue = false
-      idleCaptureCueProgress = 0
+      isShowingCaptureCue = false
+      captureCueProgress = 0
     }
   }
 
@@ -1170,7 +1222,7 @@ struct SquatCalibrationView: View {
     instructionPlayer.pause()
     instructionPlayer.replaceCurrentItem(with: nil)
     currentInstructionItem = nil
-    activeCaptionIndex = stage.captions.isEmpty ? nil : 0
+    instructionSeconds = 0
     isInstructionFinished = false
     instructionVideoError = nil
 
@@ -1210,7 +1262,7 @@ struct SquatCalibrationView: View {
 
   private func replayInstructionVideo() {
     guard session.stage.videoAssetName != nil else { return }
-    activeCaptionIndex = session.stage.captions.isEmpty ? nil : 0
+    instructionSeconds = 0
     isInstructionFinished = false
     instructionVideoError = nil
     instructionPlayer.seek(
@@ -1223,6 +1275,26 @@ struct SquatCalibrationView: View {
         instructionPlayer.play()
       }
     }
+  }
+
+  private func installFailureTimeObserver() {
+    guard failureTimeObserver == nil else { return }
+    failureTimeObserver = failurePlayer.addPeriodicTimeObserver(
+      forInterval: CMTime(seconds: 0.08, preferredTimescale: 600),
+      queue: .main
+    ) { time in
+      Task { @MainActor in
+        let seconds = time.seconds
+        guard seconds.isFinite else { return }
+        failureSeconds = seconds
+      }
+    }
+  }
+
+  private func removeFailureTimeObserver() {
+    guard let failureTimeObserver else { return }
+    failurePlayer.removeTimeObserver(failureTimeObserver)
+    self.failureTimeObserver = nil
   }
 
   private func installInstructionTimeObserver() {
@@ -1240,9 +1312,7 @@ struct SquatCalibrationView: View {
   private func updateInstructionCaption(for time: CMTime) {
     let seconds = time.seconds
     guard seconds.isFinite else { return }
-    activeCaptionIndex = session.stage.captions.firstIndex {
-      $0.startTime <= seconds && seconds < $0.endTime
-    }
+    instructionSeconds = seconds
   }
 
   private func removeInstructionTimeObserver() {
@@ -1251,12 +1321,72 @@ struct SquatCalibrationView: View {
     self.instructionTimeObserver = nil
   }
 
+  private func playFailureVideo() {
+    guard
+      let url =
+        Bundle.main.url(
+          forResource: "CalibrationFailure",
+          withExtension: "mp4",
+          subdirectory: "CalibrationInstructions"
+        )
+        ?? Bundle.main.url(
+          forResource: "CalibrationFailure",
+          withExtension: "mp4"
+        )
+    else {
+      // Without the clip there is nothing to watch, so the feed is already dead.
+      showFailureTestPattern()
+      return
+    }
+
+    let audioSession = AVAudioSession.sharedInstance()
+    try? audioSession.setCategory(
+      .playback,
+      mode: .moviePlayback,
+      options: [.duckOthers]
+    )
+    try? audioSession.setActive(true)
+
+    hideFailureTestPattern()
+    let item = AVPlayerItem(url: url)
+    currentFailureItem = item
+    failurePlayer.actionAtItemEnd = .pause
+    failurePlayer.replaceCurrentItem(with: item)
+    failurePlayer.seek(to: .zero)
+    installFailureTimeObserver()
+    if UIApplication.shared.applicationState == .active {
+      failurePlayer.play()
+    }
+  }
+
+  private func stopFailureVideo() {
+    failurePlayer.pause()
+    removeFailureTimeObserver()
+    failureSeconds = 0
+    failurePlayer.replaceCurrentItem(with: nil)
+    currentFailureItem = nil
+    hideFailureTestPattern()
+  }
+
+  /// Shad says his piece and the feed drops to dead air, same as the intro call.
+  private func showFailureTestPattern() {
+    withAnimation(.easeIn(duration: 0.12)) {
+      isShowingFailureTestPattern = true
+    }
+    failureToneAudio.start()
+  }
+
+  private func hideFailureTestPattern() {
+    isShowingFailureTestPattern = false
+    failureToneAudio.stop()
+  }
+
   private func stopInstructionVideo() {
     removeInstructionTimeObserver()
     instructionPlayer.pause()
     instructionPlayer.replaceCurrentItem(with: nil)
     currentInstructionItem = nil
-    activeCaptionIndex = nil
+    instructionSeconds = 0
     try? AVAudioSession.sharedInstance().setActive(
       false,
       options: .notifyOthersOnDeactivation
@@ -1299,7 +1429,8 @@ struct SquatCalibrationView: View {
         .buttonStyle(RGPrimaryButtonStyle())
       }
       .padding(.top, 2)
-    } else if session.stage != .standing || session.errorMessage != nil {
+    } else if session.stage != .standing, session.errorMessage == nil {
+      // A rejected hold already turns the coin itself into the restart control.
       VStack(spacing: 10) {
         Button(action: restartCalibration) {
           Label("RESTART CALIBRATION", systemImage: "arrow.counterclockwise")
@@ -1309,106 +1440,6 @@ struct SquatCalibrationView: View {
       }
       .padding(.top, 2)
     }
-  }
-}
-
-/// Shad's reaction to a rejected hold, played in place of the calibration screen.
-/// The restart button only arrives once the clip is done, so it is not competing
-/// with him for attention.
-private struct SquatCalibrationFailureView: View {
-  let message: String
-  let restart: () -> Void
-
-  @State private var player = AVPlayer()
-  @State private var currentItem: AVPlayerItem?
-  @State private var isFinished = false
-
-  var body: some View {
-    ZStack {
-      SquatCalibrationInstructionVideoPlayer(player: player)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
-        .accessibilityHidden(true)
-
-      if isFinished {
-        VStack {
-          Spacer()
-
-          Button(action: restart) {
-            Label("RESTART CALIBRATION", systemImage: "arrow.counterclockwise")
-              .font(.title3.weight(.black))
-              .foregroundStyle(.white)
-              .frame(maxWidth: .infinity)
-              .padding(.vertical, 21)
-              .background(
-                RGTheme.danger,
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-              )
-              .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                  .stroke(Color.white.opacity(0.28), lineWidth: 1)
-              }
-              .shadow(color: RGTheme.danger.opacity(0.55), radius: 26, y: 10)
-          }
-          .buttonStyle(.plain)
-          .padding(.horizontal, 24)
-          .padding(.bottom, 34)
-        }
-        .transition(.opacity.combined(with: .scale(scale: 0.94)))
-      }
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    // The clip carries the bad news visually; the reason still reaches VoiceOver.
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel("Calibration failed. \(message)")
-    .onAppear(perform: play)
-    .onDisappear {
-      player.pause()
-      player.replaceCurrentItem(with: nil)
-      currentItem = nil
-    }
-    .onReceive(
-      NotificationCenter.default.publisher(
-        for: AVPlayerItem.didPlayToEndTimeNotification
-      )
-    ) { notification in
-      guard
-        let currentItem,
-        let finished = notification.object as? AVPlayerItem,
-        finished === currentItem
-      else {
-        return
-      }
-      withAnimation(.easeOut(duration: 0.24)) {
-        isFinished = true
-      }
-    }
-  }
-
-  private func play() {
-    guard
-      let url =
-        Bundle.main.url(
-          forResource: "CalibrationFailure",
-          withExtension: "mp4",
-          subdirectory: "CalibrationInstructions"
-        ) ?? Bundle.main.url(forResource: "CalibrationFailure", withExtension: "mp4")
-    else {
-      // Without the clip there is nothing to wait for, so offer the way out now.
-      isFinished = true
-      return
-    }
-
-    let audioSession = AVAudioSession.sharedInstance()
-    try? audioSession.setCategory(.playback, mode: .moviePlayback, options: [.duckOthers])
-    try? audioSession.setActive(true)
-
-    let item = AVPlayerItem(url: url)
-    currentItem = item
-    player.actionAtItemEnd = .pause
-    player.replaceCurrentItem(with: item)
-    player.seek(to: .zero)
-    player.play()
   }
 }
 

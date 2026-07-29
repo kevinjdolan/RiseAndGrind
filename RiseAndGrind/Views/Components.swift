@@ -639,12 +639,15 @@ struct RGSquatCoinAttentionGlow: View {
   let diameter: CGFloat
   let progress: CGFloat
   let isActive: Bool
+  /// The gold cue asks for a hold; the danger cue means the hold was rejected.
+  var tint: Color = RGTheme.gold
+  var secondaryTint: Color = RGTheme.orange
 
   var body: some View {
     if isActive {
       ZStack {
         Circle()
-          .fill(RGTheme.gold.opacity(0.24 + (progress * 0.22)))
+          .fill(tint.opacity(0.24 + (progress * 0.22)))
           .frame(width: diameter, height: diameter)
           .scaleEffect(1.10 + (progress * 0.24))
           .blur(radius: 16 + (progress * 16))
@@ -652,7 +655,7 @@ struct RGSquatCoinAttentionGlow: View {
         Circle()
           .stroke(
             LinearGradient(
-              colors: [Color.white, RGTheme.gold, RGTheme.orange],
+              colors: [Color.white, tint, secondaryTint],
               startPoint: .topLeading,
               endPoint: .bottomTrailing
             ),
@@ -661,7 +664,7 @@ struct RGSquatCoinAttentionGlow: View {
           .frame(width: diameter, height: diameter)
           .scaleEffect(1.03 + (progress * 0.13))
           .blur(radius: 1 + (progress * 4))
-          .shadow(color: RGTheme.gold, radius: 18 + (progress * 16))
+          .shadow(color: tint, radius: 18 + (progress * 16))
           .opacity(1 - (progress * 0.16))
 
         Circle()
