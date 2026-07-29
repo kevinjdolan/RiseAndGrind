@@ -392,24 +392,36 @@ struct SquatCalibrationView: View {
       VStack(spacing: 0) {
         header
 
-        ScrollView {
-          VStack(spacing: 14) {
-            instructionVideoCall
-            if session.stage != .complete {
-              capturePanel
+        // A rejected hold takes the whole screen rather than pushing the capture
+        // panel around with a banner.
+        if let errorMessage = session.errorMessage {
+          SquatCalibrationFailureView(message: errorMessage, restart: restartCalibration)
+        } else {
+          ScrollView {
+            VStack(spacing: 14) {
+              instructionVideoCall
+              if session.stage != .complete {
+                capturePanel
+              }
+              if let result = session.completedResult {
+                resultCard(result)
+              }
+              actionArea
             }
-            if let result = session.completedResult {
-              resultCard(result)
-            }
-            actionArea
+            .padding(.horizontal, 18)
+            .padding(.top, 14)
+            .padding(.bottom, 44)
           }
-          .padding(.horizontal, 18)
-          .padding(.top, 14)
-          .padding(.bottom, 44)
         }
       }
     }
     .interactiveDismissDisabled(session.isBusy)
+    .onChange(of: session.errorMessage) { _, message in
+      // The failure clip has its own audio, so the instruction video steps aside.
+      if message != nil {
+        stopInstructionVideo()
+      }
+    }
     .onAppear {
       session.start()
       playInstructionVideo(for: session.stage)
@@ -986,13 +998,8 @@ struct SquatCalibrationView: View {
 
   private var capturePanel: some View {
     VStack(spacing: 12) {
-      if let errorMessage = session.errorMessage {
-        captureWarning(errorMessage)
-      }
-
       poseCaptureControl
     }
-    .animation(.easeInOut(duration: 0.22), value: session.errorMessage)
     .frame(maxWidth: .infinity)
     .padding(.horizontal, 16)
     .padding(.vertical, 16)
@@ -1006,34 +1013,9 @@ struct SquatCalibrationView: View {
     }
   }
 
-  /// A rejected hold — most often squatting too little between stages — used to
-  /// leave the session's message unrendered, so the capture looked like it had
-  /// simply done nothing. Clears itself when the next hold begins.
-  private func captureWarning(_ message: String) -> some View {
-    HStack(alignment: .top, spacing: 10) {
-      Image(systemName: "exclamationmark.triangle.fill")
-        .font(.headline)
-        .foregroundStyle(RGTheme.danger)
-
-      Text(message)
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(RGTheme.cream)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
-    .background {
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(RGTheme.danger.opacity(0.14))
-        .overlay {
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .stroke(RGTheme.danger.opacity(0.55), lineWidth: 1)
-        }
-    }
-    .transition(.opacity.combined(with: .move(edge: .top)))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Warning. \(message)")
+  private func restartCalibration() {
+    session.restart()
+    playInstructionVideo(for: .standing)
   }
 
   private var poseCaptureControl: some View {
@@ -1319,10 +1301,7 @@ struct SquatCalibrationView: View {
       .padding(.top, 2)
     } else if session.stage != .standing || session.errorMessage != nil {
       VStack(spacing: 10) {
-        Button {
-          session.restart()
-          playInstructionVideo(for: .standing)
-        } label: {
+        Button(action: restartCalibration) {
           Label("RESTART CALIBRATION", systemImage: "arrow.counterclockwise")
         }
         .buttonStyle(RGSecondaryButtonStyle())
@@ -1330,6 +1309,106 @@ struct SquatCalibrationView: View {
       }
       .padding(.top, 2)
     }
+  }
+}
+
+/// Shad's reaction to a rejected hold, played in place of the calibration screen.
+/// The restart button only arrives once the clip is done, so it is not competing
+/// with him for attention.
+private struct SquatCalibrationFailureView: View {
+  let message: String
+  let restart: () -> Void
+
+  @State private var player = AVPlayer()
+  @State private var currentItem: AVPlayerItem?
+  @State private var isFinished = false
+
+  var body: some View {
+    ZStack {
+      SquatCalibrationInstructionVideoPlayer(player: player)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .accessibilityHidden(true)
+
+      if isFinished {
+        VStack {
+          Spacer()
+
+          Button(action: restart) {
+            Label("RESTART CALIBRATION", systemImage: "arrow.counterclockwise")
+              .font(.title3.weight(.black))
+              .foregroundStyle(.white)
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 21)
+              .background(
+                RGTheme.danger,
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+              )
+              .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                  .stroke(Color.white.opacity(0.28), lineWidth: 1)
+              }
+              .shadow(color: RGTheme.danger.opacity(0.55), radius: 26, y: 10)
+          }
+          .buttonStyle(.plain)
+          .padding(.horizontal, 24)
+          .padding(.bottom, 34)
+        }
+        .transition(.opacity.combined(with: .scale(scale: 0.94)))
+      }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    // The clip carries the bad news visually; the reason still reaches VoiceOver.
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("Calibration failed. \(message)")
+    .onAppear(perform: play)
+    .onDisappear {
+      player.pause()
+      player.replaceCurrentItem(with: nil)
+      currentItem = nil
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(
+        for: AVPlayerItem.didPlayToEndTimeNotification
+      )
+    ) { notification in
+      guard
+        let currentItem,
+        let finished = notification.object as? AVPlayerItem,
+        finished === currentItem
+      else {
+        return
+      }
+      withAnimation(.easeOut(duration: 0.24)) {
+        isFinished = true
+      }
+    }
+  }
+
+  private func play() {
+    guard
+      let url =
+        Bundle.main.url(
+          forResource: "CalibrationFailure",
+          withExtension: "mp4",
+          subdirectory: "CalibrationInstructions"
+        ) ?? Bundle.main.url(forResource: "CalibrationFailure", withExtension: "mp4")
+    else {
+      // Without the clip there is nothing to wait for, so offer the way out now.
+      isFinished = true
+      return
+    }
+
+    let audioSession = AVAudioSession.sharedInstance()
+    try? audioSession.setCategory(.playback, mode: .moviePlayback, options: [.duckOthers])
+    try? audioSession.setActive(true)
+
+    let item = AVPlayerItem(url: url)
+    currentItem = item
+    player.actionAtItemEnd = .pause
+    player.replaceCurrentItem(with: item)
+    player.seek(to: .zero)
+    player.play()
   }
 }
 

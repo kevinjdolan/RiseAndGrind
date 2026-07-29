@@ -1150,6 +1150,20 @@ private struct IntroPitchCaption: View {
         PunchCaption(text: cue.text)
       case .ascend:
         AscendCaption(text: cue.text)
+      case .slam:
+        SlamCaption(text: cue.text)
+      case .strobe:
+        StrobeCaption(text: cue.text)
+      case .glitch:
+        GlitchCaption(text: cue.text)
+      case .wave:
+        WaveCaption(text: cue.text)
+      case .escalate:
+        EscalateCaption(text: cue.text)
+      case .pulse:
+        PulseCaption(text: cue.text)
+      case .slump:
+        SlumpCaption(text: cue.text)
       }
     }
     .accessibilityLabel(cue.text.localizedCapitalized)
@@ -1304,51 +1318,131 @@ private func captionNoise(_ index: Int, _ salt: Int) -> Double {
   return value - value.rounded(.down)
 }
 
-/// Sparks shooting off "IMMINENT THREAT".
+/// "IMMINENT THREAT" going live: arc-welder sparks streaking off the words while
+/// lightning cracks across them and the whole line strobes on each discharge.
 private struct SparkCaption: View {
   let text: String
 
-  private let sparkCount = 44
-  private let lifetime = 0.62
+  private let sparkCount = 76
+  private let lifetime = 0.42
+  private let dischargeInterval = 0.11
+  private let dischargeDuration = 0.06
+
+  private static let arcBlue = Color(red: 0.44, green: 0.80, blue: 1)
 
   var body: some View {
     CaptionClock { elapsed in
+      let discharge = dischargeFlash(at: elapsed)
       CaptionText(text)
-        .brightness(0.05 + 0.05 * sin(elapsed * 21))
+        .brightness(0.08 + 0.22 * discharge)
+        .shadow(color: Self.arcBlue.opacity(0.7), radius: 10)
+        .shadow(color: Color.white.opacity(0.55 * discharge), radius: 24)
         .overlay {
           Canvas { context, size in
+            drawLightning(in: context, size: size, elapsed: elapsed)
             drawSparks(in: context, size: size, elapsed: elapsed)
           }
-          .padding(-52)
+          .padding(-56)
           .blendMode(.plusLighter)
           .allowsHitTesting(false)
         }
     }
   }
 
+  /// 1 the instant a bolt fires, decaying fast — drives the whole-line strobe.
+  private func dischargeFlash(at elapsed: Double) -> Double {
+    let age = elapsed.truncatingRemainder(dividingBy: dischargeInterval)
+    return max(1 - age / 0.07, 0)
+  }
+
   private func drawSparks(in context: GraphicsContext, size: CGSize, elapsed: Double) {
     var context = context
     for index in 0..<sparkCount {
-      let birth = Double(index) * 0.026
+      let birth = Double(index) * 0.011
       guard elapsed >= birth else { continue }
       let age = (elapsed - birth).truncatingRemainder(dividingBy: lifetime)
       let progress = age / lifetime
-      let originX = size.width * (0.24 + 0.52 * captionNoise(index, 1))
-      let originY = size.height * (0.44 + 0.12 * captionNoise(index, 2))
+      let originX = size.width * (0.26 + 0.48 * captionNoise(index, 1))
+      let originY = size.height * (0.45 + 0.10 * captionNoise(index, 2))
       let angle = captionNoise(index, 3) * 2 * .pi
-      let speed = 80 + 170 * captionNoise(index, 4)
-      let x = originX + cos(angle) * speed * age
-      let y = originY + sin(angle) * speed * age + 260 * age * age
-      let radius = 2.6 * (1 - progress) + 0.5
-      let heat = 1 - progress
+      let speed = 200 + 360 * captionNoise(index, 4)
+      // Drawing head-to-tail rather than as a dot gives each spark a trail.
+      var streak = Path()
+      streak.move(
+        to: sparkPoint(originX, originY, angle, speed, age: max(age - 0.03, 0))
+      )
+      streak.addLine(to: sparkPoint(originX, originY, angle, speed, age: age))
       context.opacity = 1 - progress * progress
-      context.fill(
-        captionDot(x: x, y: y, radius: radius),
-        with: .color(
-          Color(red: 1, green: 0.52 + 0.44 * heat, blue: 0.08 + 0.62 * heat * heat)
-        )
+      context.stroke(
+        streak,
+        with: .color(sparkColor(index: index, progress: progress)),
+        style: StrokeStyle(lineWidth: 2.4 * (1 - progress) + 0.6, lineCap: .round)
       )
     }
+  }
+
+  private func sparkPoint(
+    _ originX: Double,
+    _ originY: Double,
+    _ angle: Double,
+    _ speed: Double,
+    age: Double
+  ) -> CGPoint {
+    CGPoint(
+      x: originX + cos(angle) * speed * age,
+      y: originY + sin(angle) * speed * age + 300 * age * age
+    )
+  }
+
+  /// Mostly electric blue-white, with the occasional gold ember for grit.
+  private func sparkColor(index: Int, progress: Double) -> Color {
+    let heat = 1 - progress
+    guard captionNoise(index, 5) > 0.22 else {
+      return Color(red: 1, green: 0.70 + 0.28 * heat, blue: 0.22 * heat)
+    }
+    return Color(red: 0.52 + 0.48 * heat, green: 0.78 + 0.22 * heat, blue: 1)
+  }
+
+  private func drawLightning(in context: GraphicsContext, size: CGSize, elapsed: Double) {
+    let age = elapsed.truncatingRemainder(dividingBy: dischargeInterval)
+    guard age < dischargeDuration else { return }
+    var context = context
+    context.opacity = 1 - age / dischargeDuration
+    let epoch = Int(elapsed / dischargeInterval)
+    for strand in 0..<3 {
+      let seed = epoch &* 31 &+ strand
+      let bolt = lightningPath(seed: seed, size: size)
+      context.stroke(
+        bolt,
+        with: .color(Self.arcBlue.opacity(0.85)),
+        style: StrokeStyle(lineWidth: 3.4, lineCap: .round, lineJoin: .round)
+      )
+      context.stroke(
+        bolt,
+        with: .color(.white),
+        style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round)
+      )
+    }
+  }
+
+  private func lightningPath(seed: Int, size: CGSize) -> Path {
+    let steps = 9
+    let startY = size.height * (0.40 + 0.20 * captionNoise(seed, 21))
+    let endY = size.height * (0.40 + 0.20 * captionNoise(seed, 22))
+    var bolt = Path()
+    for step in 0...steps {
+      let along = Double(step) / Double(steps)
+      let x = size.width * (0.22 + 0.56 * along)
+      let jag = (captionNoise(seed &* 17 &+ step, 23) - 0.5) * size.height * 0.34
+      let y = startY + (endY - startY) * along + jag * sin(along * .pi)
+      let point = CGPoint(x: x, y: y)
+      if step == 0 {
+        bolt.move(to: point)
+      } else {
+        bolt.addLine(to: point)
+      }
+    }
+    return bolt
   }
 }
 
@@ -1616,6 +1710,184 @@ private struct AscendCaption: View {
   }
 }
 
+/// Letters drop in one after another and squash on landing — a statement being
+/// set down hard rather than spoken.
+private struct SlamCaption: View {
+  let text: String
+
+  private let stagger = 0.028
+  private let fallDuration = 0.10
+
+  var body: some View {
+    CaptionClock { elapsed in
+      CaptionLetters(text: text, elapsed: elapsed) { index, _, time in
+        let age = time - Double(index) * stagger
+        var state = LetterTransform()
+        state.anchor = .bottom
+        guard age > 0 else {
+          state.opacity = 0
+          state.offset = CGSize(width: 0, height: -36)
+          return state
+        }
+        let fall = min(age / fallDuration, 1)
+        let remaining = 1 - fall
+        state.opacity = min(age / 0.05, 1)
+        state.offset = CGSize(width: 0, height: -36 * remaining * remaining)
+        let impact = age < fallDuration ? 0 : max(1 - (age - fallDuration) / 0.22, 0)
+        state.scale = CGSize(width: 1 + 0.3 * impact, height: 1 - 0.28 * impact)
+        return state
+      }
+    }
+  }
+}
+
+/// A hard on/off blink in alarm red — the 5 a.m. clock face itself.
+private struct StrobeCaption: View {
+  let text: String
+
+  private let period = 0.34
+
+  var body: some View {
+    CaptionClock { elapsed in
+      let isLit = elapsed.truncatingRemainder(dividingBy: period) < period / 2
+      CaptionText(text, foreground: AnyShapeStyle(isLit ? RGTheme.danger : RGTheme.gold))
+        .brightness(isLit ? 0.28 : 0)
+        .scaleEffect(isLit ? 1.06 : 1)
+        .shadow(color: RGTheme.danger.opacity(isLit ? 0.9 : 0.2), radius: isLit ? 22 : 6)
+    }
+  }
+}
+
+/// Signal breaking up: red and cyan ghosts tear away from the line in stutters,
+/// for the beats where Shad contradicts something you believed.
+private struct GlitchCaption: View {
+  let text: String
+
+  private let frameDuration = 0.09
+
+  var body: some View {
+    CaptionClock { elapsed in
+      let epoch = Int(elapsed / frameDuration)
+      let isTorn = captionNoise(epoch, 31) < 0.45
+      let split = isTorn ? (captionNoise(epoch, 32) - 0.5) * 14 : 0
+      ZStack {
+        ghost(offsetX: -split, offsetY: isTorn ? 1.5 : 0, color: Self.tearRed)
+        ghost(offsetX: split, offsetY: isTorn ? -1.5 : 0, color: Self.tearCyan)
+        CaptionText(text)
+          .offset(x: split * 0.25)
+      }
+      .offset(x: isTorn ? (captionNoise(epoch, 33) - 0.5) * 6 : 0)
+    }
+  }
+
+  private static let tearRed = Color(red: 1, green: 0.16, blue: 0.28)
+  private static let tearCyan = Color(red: 0.2, green: 0.95, blue: 1)
+
+  private func ghost(offsetX: Double, offsetY: Double, color: Color) -> some View {
+    CaptionText(text, foreground: AnyShapeStyle(color))
+      .offset(x: offsetX, y: offsetY)
+      .blendMode(.plusLighter)
+      .opacity(0.85)
+  }
+}
+
+/// A crest rolling left to right through the letters — one nudge after another.
+private struct WaveCaption: View {
+  let text: String
+
+  var body: some View {
+    CaptionClock { elapsed in
+      CaptionLetters(text: text, elapsed: elapsed) { index, count, time in
+        let along = count > 1 ? Double(index) / Double(count - 1) : 0
+        let crest = pow(max(sin(time * 2.6 - along * 1.9), 0), 3)
+        var state = LetterTransform()
+        state.anchor = .bottom
+        state.offset = CGSize(width: 0, height: -13 * crest)
+        state.scale = CGSize(width: 1 + 0.10 * crest, height: 1 + 0.18 * crest)
+        state.brightness = 0.22 * crest
+        return state
+      }
+    }
+  }
+}
+
+/// Energy climbing across the line: each letter louder and shakier than the one
+/// before it, and the whole thing winding up as the phrase lands.
+private struct EscalateCaption: View {
+  let text: String
+
+  var body: some View {
+    CaptionClock { elapsed in
+      CaptionLetters(text: text, elapsed: elapsed, maximumSize: 19) { index, count, time in
+        let along = count > 1 ? Double(index) / Double(count - 1) : 0
+        let ramp = along * min(time / 0.9, 1)
+        var state = LetterTransform()
+        state.scale = CGSize(width: 1 + ramp * 0.18, height: 1 + ramp * 0.18)
+        state.offset = CGSize(
+          width: sin(time * (34 + 46 * along) + Double(index)) * 3.4 * ramp,
+          height: cos(time * (29 + 52 * along) + Double(index)) * 2.6 * ramp
+        )
+        state.rotation = .degrees(sin(time * 41 + Double(index)) * 5 * ramp)
+        state.brightness = 0.3 * ramp
+        return state
+      }
+    }
+  }
+}
+
+/// A double heartbeat that grows a little every cycle — the cost compounding.
+private struct PulseCaption: View {
+  let text: String
+
+  private let period = 0.78
+
+  var body: some View {
+    CaptionClock { elapsed in
+      let beat: Double = heartbeat(at: elapsed)
+      // Each cycle sits a shade larger than the last: the cost compounds.
+      let growth: Double = 1 + min(elapsed / 3, 0.12)
+      let scale: Double = growth * (1 + 0.16 * beat)
+      let glow: Double = 18 * beat + 4
+      CaptionText(text)
+        .scaleEffect(scale)
+        .brightness(0.25 * beat)
+        .shadow(color: RGTheme.danger.opacity(0.7 * beat), radius: glow)
+    }
+  }
+
+  private func heartbeat(at elapsed: Double) -> Double {
+    let cycle = elapsed.truncatingRemainder(dividingBy: period)
+    if cycle < 0.16 {
+      return sin(cycle * .pi / 0.16)
+    }
+    if cycle >= 0.22, cycle < 0.35 {
+      return 0.62 * sin((cycle - 0.22) * .pi / 0.13)
+    }
+    return 0
+  }
+}
+
+/// The line going slack and settling — comfort, giving in one letter at a time.
+private struct SlumpCaption: View {
+  let text: String
+
+  var body: some View {
+    CaptionClock { elapsed in
+      CaptionLetters(text: text, elapsed: elapsed) { index, _, time in
+        let settle = min(max(time - Double(index) * 0.045, 0) / 0.75, 1)
+        let eased = 1 - pow(1 - settle, 3)
+        var state = LetterTransform()
+        state.anchor = .top
+        state.offset = CGSize(width: 0, height: eased * 7)
+        state.rotation = .degrees((captionNoise(index, 41) - 0.5) * 14 * eased)
+        state.scale = CGSize(width: 1, height: 1 - 0.08 * eased)
+        state.opacity = 1 - 0.12 * eased
+        return state
+      }
+    }
+  }
+}
+
 private enum IntroPitchCaptionEffect: Sendable {
   case plain
   case sparks
@@ -1627,6 +1899,13 @@ private enum IntroPitchCaptionEffect: Sendable {
   case swell
   case punch
   case ascend
+  case slam
+  case strobe
+  case glitch
+  case wave
+  case escalate
+  case pulse
+  case slump
 }
 
 private struct IntroPitchCaptionCue: Identifiable, Sendable {
@@ -1652,8 +1931,14 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 0.54,
+      endTime: 1.32,
+      text: "I'M SHAD,",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 1.32,
       endTime: 2.04,
-      text: "I'M SHAD, AND I'LL BE YOUR GUIDE",
+      text: "AND I'LL BE YOUR GUIDE",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1670,8 +1955,14 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 4.14,
+      endTime: 5.10,
+      text: "THAT TREATS WAKING UP",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 5.10,
       endTime: 5.82,
-      text: "THAT TREATS WAKING UP AS MORE OF AN",
+      text: "AS MORE OF AN",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1696,7 +1987,7 @@ private enum IntroPitchCaptionLibrary {
       startTime: 8.82,
       endTime: 10.80,
       text: "RISE & GRIND ISN'T AN ALARM.",
-      effect: .plain
+      effect: .slam
     ),
     IntroPitchCaptionCue(
       startTime: 10.80,
@@ -1706,20 +1997,32 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 12.18,
+      endTime: 12.78,
+      text: "AND YOU ALWAYS",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 12.78,
       endTime: 13.86,
-      text: "AND YOU ALWAYS LOSE THE NEGOTIATION",
+      text: "LOSE THE NEGOTIATION",
       effect: .plain
     ),
     IntroPitchCaptionCue(
       startTime: 13.86,
       endTime: 15.00,
       text: "AT 5 A.M.",
-      effect: .plain
+      effect: .strobe
     ),
     IntroPitchCaptionCue(
       startTime: 15.00,
+      endTime: 16.02,
+      text: "NORMAL ALARMS ARE",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 16.02,
       endTime: 16.56,
-      text: "NORMAL ALARMS ARE EASY TO IGNORE",
+      text: "EASY TO IGNORE",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1730,15 +2033,27 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 17.52,
+      endTime: 18.54,
+      text: "BUT RISE & GRIND",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 18.54,
       endTime: 19.02,
-      text: "BUT RISE & GRIND PRESENTS YOU WITH",
+      text: "PRESENTS YOU WITH",
       effect: .plain
     ),
     IntroPitchCaptionCue(
       startTime: 19.02,
+      endTime: 19.98,
+      text: "A SERIES OF NUDGES",
+      effect: .wave
+    ),
+    IntroPitchCaptionCue(
+      startTime: 19.98,
       endTime: 21.42,
-      text: "A SERIES OF NUDGES IN ESCALATING INTENSITY",
-      effect: .plain
+      text: "IN ESCALATING INTENSITY",
+      effect: .escalate
     ),
     IntroPitchCaptionCue(
       startTime: 21.42,
@@ -1754,8 +2069,20 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 23.40,
+      endTime: 23.82,
+      text: "WHERE WE",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 23.82,
+      endTime: 24.24,
+      text: "WON'T RELENT",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 24.24,
       endTime: 24.60,
-      text: "WHERE WE WON'T RELENT UNTIL",
+      text: "UNTIL",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1774,7 +2101,7 @@ private enum IntroPitchCaptionLibrary {
       startTime: 27.00,
       endTime: 28.32,
       text: "SNOOZE ISN'T REST.",
-      effect: .plain
+      effect: .glitch
     ),
     IntroPitchCaptionCue(
       startTime: 28.32,
@@ -1784,8 +2111,14 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 29.34,
+      endTime: 30.84,
+      text: "WE EVEN PULL YOUR CALENDAR,",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 30.84,
       endTime: 31.20,
-      text: "WE EVEN PULL YOUR CALENDAR, BECAUSE",
+      text: "BECAUSE",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1814,21 +2147,27 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 36.12,
+      endTime: 37.08,
+      text: "SNOOZING WHEN",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 37.08,
       endTime: 38.46,
-      text: "SNOOZING WHEN I COULD BE CRUISING.",
+      text: "I COULD BE CRUISING.",
       effect: .plain
     ),
     IntroPitchCaptionCue(
       startTime: 38.46,
       endTime: 39.48,
       text: "COMFORT FELT LIKE WINNING.",
-      effect: .plain
+      effect: .slump
     ),
     IntroPitchCaptionCue(
       startTime: 39.48,
       endTime: 40.62,
       text: "IT WASN'T WINNING.",
-      effect: .plain
+      effect: .glitch
     ),
     IntroPitchCaptionCue(
       startTime: 40.62,
@@ -1840,7 +2179,7 @@ private enum IntroPitchCaptionLibrary {
       startTime: 42.30,
       endTime: 43.32,
       text: "COMPOUNDED EVERY MORNING.",
-      effect: .plain
+      effect: .pulse
     ),
     IntroPitchCaptionCue(
       startTime: 43.32,
@@ -1850,8 +2189,20 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 45.00,
+      endTime: 45.42,
+      text: "ALPHA BODY",
+      effect: .fire
+    ),
+    IntroPitchCaptionCue(
+      startTime: 45.42,
+      endTime: 45.78,
+      text: "AND",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 45.78,
       endTime: 46.38,
-      text: "ALPHA BODY AND ALPHA MIND",
+      text: "ALPHA MIND",
       effect: .fire
     ),
     IntroPitchCaptionCue(
@@ -1876,18 +2227,24 @@ private enum IntroPitchCaptionLibrary {
       startTime: 48.48,
       endTime: 49.32,
       text: "NO DEBATE.",
-      effect: .plain
+      effect: .slam
     ),
     IntroPitchCaptionCue(
       startTime: 49.32,
       endTime: 50.46,
       text: "NO SNOOZE.",
-      effect: .plain
+      effect: .slam
     ),
     IntroPitchCaptionCue(
       startTime: 50.46,
+      endTime: 51.48,
+      text: "A NEW YOU",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 51.48,
       endTime: 52.26,
-      text: "A NEW YOU THAT PAYS RESPECT",
+      text: "THAT PAYS RESPECT",
       effect: .plain
     ),
     IntroPitchCaptionCue(
@@ -1922,8 +2279,14 @@ private enum IntroPitchCaptionLibrary {
     ),
     IntroPitchCaptionCue(
       startTime: 58.38,
+      endTime: 58.98,
+      text: "I'LL HELP YOU",
+      effect: .plain
+    ),
+    IntroPitchCaptionCue(
+      startTime: 58.98,
       endTime: 59.82,
-      text: "I'LL HELP YOU SET UP YOUR REGIMEN",
+      text: "SET UP YOUR REGIMEN",
       effect: .plain
     ),
     IntroPitchCaptionCue(

@@ -200,6 +200,7 @@
 		671E80607C00B984BAEE20FE /* Motivational-011_lethal.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C239170CC3C4071CBE9FE5F6 /* Motivational-011_lethal.m4a */; };
 		673BB257266F1A15379E3217 /* Energizing019.caf in Resources */ = {isa = PBXBuildFile; fileRef = 69C6082558CFFED41620580A /* Energizing019.caf */; };
 		67BB5D86BE39274B7A466363 /* AlarmMusicTierPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5B0624EBE1A19A2E76FA60 /* AlarmMusicTierPolicyTests.swift */; };
+		67EE47EA367A98C8A9009FEA /* CalibrationFailure.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 32C8C3181C74E09434291934 /* CalibrationFailure.mp4 */; };
 		69ECA194F43EBBBA78BE6E19 /* Relaxing046.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9EF7D016C25EECB60660CD5A /* Relaxing046.caf */; };
 		6A3304FD93F44BA3AB4A2446 /* Energizing009.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1BA73DD3BDA51DE077D0C603 /* Energizing009.caf */; };
 		6A54F80EE8EDCFE6DF356467 /* Motivational-067_no_days_off.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3CA930967CD48560A68B946D /* Motivational-067_no_days_off.m4a */; };
@@ -613,6 +614,7 @@
 		323F792402CBA83977ECB28C /* Soothing016.caf */ = {isa = PBXFileReference; path = Soothing016.caf; sourceTree = "<group>"; };
 		327F26681062B8251BB12DE4 /* Motivational-029_built_different.m4a */ = {isa = PBXFileReference; path = "Motivational-029_built_different.m4a"; sourceTree = "<group>"; };
 		32A154A742EE831F1CBA10F0 /* SnoozeSuccess4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = SnoozeSuccess4.mp3; sourceTree = "<group>"; };
+		32C8C3181C74E09434291934 /* CalibrationFailure.mp4 */ = {isa = PBXFileReference; path = CalibrationFailure.mp4; sourceTree = "<group>"; };
 		339227037E79F33B776E75F2 /* Motivational-066_discipline_over_motivation.m4a */ = {isa = PBXFileReference; path = "Motivational-066_discipline_over_motivation.m4a"; sourceTree = "<group>"; };
 		33F31C0913630628E6B255C5 /* Abrasive036.caf */ = {isa = PBXFileReference; path = Abrasive036.caf; sourceTree = "<group>"; };
 		3444B31B359C0890CF9BA680 /* Motivational-072_elite_work_today.m4a */ = {isa = PBXFileReference; path = "Motivational-072_elite_work_today.m4a"; sourceTree = "<group>"; };
@@ -1657,6 +1659,7 @@
 		CF81722094D908E554E78201 /* CalibrationInstructions */ = {
 			isa = PBXGroup;
 			children = (
+				32C8C3181C74E09434291934 /* CalibrationFailure.mp4 */,
 				491A37F548C259F124A7A991 /* CalibrationInstruction1.mp4 */,
 				E42AA40B38A0A0FE698191EA /* CalibrationInstruction2.mp4 */,
 				FC6854F82C2D4CA2F9B3BD60 /* CalibrationInstruction3.mp4 */,
@@ -1854,6 +1857,7 @@
 				A0EEBA290BB06346FF43E091 /* Abrasive063.caf in Resources */,
 				4CEF589C36573B623E1E48F1 /* Abrasive064.caf in Resources */,
 				7EDE8899F92E9EA6A4300CC4 /* Assets.xcassets in Resources */,
+				67EE47EA367A98C8A9009FEA /* CalibrationFailure.mp4 in Resources */,
 				9AF46E0B122FE021F16BA21B /* CalibrationInstruction1.mp4 in Resources */,
 				1EAD11372B3F26A4712F1D7B /* CalibrationInstruction2.mp4 in Resources */,
 				C52F3C3BEACAA40751E323FA /* CalibrationInstruction3.mp4 in Resources */,
@@ -2401,7 +2405,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2411,7 +2415,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
@@ -2487,7 +2491,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2497,7 +2501,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
