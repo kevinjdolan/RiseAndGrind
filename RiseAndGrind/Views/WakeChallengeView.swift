@@ -416,6 +416,7 @@ struct WakeChallengeView: View {
       endpointPulseID: session.gaugeEndpointPulseID,
       endpointIsTop: session.gaugeEndpointIsTop,
       attentionCueIsActive: isShowingIdleCoinCue,
+      falseSquatID: session.falseSquatID,
       completionIsReady: isCompletionFinaleReady,
       onCompletionVideoCue: presentCompletionExperience
     ) {
@@ -424,6 +425,10 @@ struct WakeChallengeView: View {
       }
     }
     .id(request.id)
+    .onChange(of: session.falseSquatID) { _, newID in
+      guard newID > 0, !isSettingsTest else { return }
+      coordinator.playFalseSquatTaunt()
+    }
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Wake challenge progress")
     .accessibilityValue(
@@ -718,10 +723,13 @@ private struct NestedSquatGauge: View {
   let endpointPulseID: Int
   let endpointIsTop: Bool
   let attentionCueIsActive: Bool
+  let falseSquatID: Int
   let completionIsReady: Bool
   let onCompletionVideoCue: () -> Void
   let start: () -> Void
 
+  @State private var falseSquatStartedAt: Date?
+  @State private var falseSquatClearTask: Task<Void, Never>?
   @State private var displayedCycleProgress: Double
   @State private var displayedSquats: Int
   @State private var flashIntensity: CGFloat = 0
@@ -748,6 +756,7 @@ private struct NestedSquatGauge: View {
     endpointPulseID: Int,
     endpointIsTop: Bool,
     attentionCueIsActive: Bool,
+    falseSquatID: Int,
     completionIsReady: Bool,
     onCompletionVideoCue: @escaping () -> Void,
     start: @escaping () -> Void
@@ -761,6 +770,7 @@ private struct NestedSquatGauge: View {
     self.endpointPulseID = endpointPulseID
     self.endpointIsTop = endpointIsTop
     self.attentionCueIsActive = attentionCueIsActive
+    self.falseSquatID = falseSquatID
     self.completionIsReady = completionIsReady
     self.onCompletionVideoCue = onCompletionVideoCue
     self.start = start
@@ -998,6 +1008,22 @@ private struct NestedSquatGauge: View {
       .frame(width: diameter, height: diameter)
       .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
     }
+    .onChange(of: falseSquatID) { _, newID in
+      guard newID > 0 else { return }
+      falseSquatClearTask?.cancel()
+      falseSquatStartedAt = .now
+      falseSquatClearTask = Task { @MainActor in
+        try? await Task.sleep(
+          for: .seconds(FalseSquatRejectionEffect<EmptyView>.duration)
+        )
+        guard !Task.isCancelled else { return }
+        falseSquatStartedAt = nil
+      }
+    }
+    .onDisappear {
+      falseSquatClearTask?.cancel()
+      falseSquatClearTask = nil
+    }
     .onChange(of: cycleProgress) { _, newProgress in
       let clampedProgress = min(1, max(0, newProgress))
       guard clampedProgress >= displayedCycleProgress else { return }
@@ -1169,14 +1195,19 @@ private struct NestedSquatGauge: View {
 
   private func squatCoin(coreDiameter: CGFloat) -> some View {
     Button(action: start) {
-      FlippingSquatCoin(
-        imageName: coinImageName,
+      FalseSquatRejectionEffect(
         diameter: coreDiameter,
-        accent: legAccent,
-        endpointPulse: flashIntensity,
-        isReady: leg != .ready || canStart,
-        attentionCueIsActive: attentionCueIsActive
-      )
+        startedAt: falseSquatStartedAt
+      ) {
+        FlippingSquatCoin(
+          imageName: coinImageName,
+          diameter: coreDiameter,
+          accent: legAccent,
+          endpointPulse: flashIntensity,
+          isReady: leg != .ready || canStart,
+          attentionCueIsActive: attentionCueIsActive
+        )
+      }
     }
     .buttonStyle(RGSquatCoinButtonStyle())
     .disabled(leg != .ready || !canStart)
@@ -2060,6 +2091,8 @@ private final class WakeChallengeSquatSession {
   private(set) var gaugeCycleProgress = 0.0
   private(set) var gaugeCycleID = 0
   private(set) var gaugeEndpointPulseID = 0
+  /// Bumped each time the recognizer refuses a filled gauge.
+  private(set) var falseSquatID = 0
   private(set) var gaugeEndpointIsTop = true
 
   @ObservationIgnored
@@ -2185,6 +2218,7 @@ private final class WakeChallengeSquatSession {
       squats = 0
       gaugeLeg = .ready
       gaugeEndpointPulseID = 0
+      falseSquatID = 0
       gaugeEndpointIsTop = true
       maximumDropMeters = 0
       lastAttemptLabel = "—"
@@ -3064,6 +3098,7 @@ private final class WakeChallengeSquatSession {
         motionTimestamp: motion.timestamp
       )
     } else if update.event == .attemptRejected {
+      falseSquatID += 1
       appendDiagnosticEvent(
         "attempt_rejected",
         rawMotion: rawMotion,

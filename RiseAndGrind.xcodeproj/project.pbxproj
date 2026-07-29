@@ -14,6 +14,7 @@
 		00C33FE6BFA52995785E0946 /* Soothing059.caf in Resources */ = {isa = PBXBuildFile; fileRef = 98E90195EEC4CE7D52F58468 /* Soothing059.caf */; };
 		01091DC3202958B99DA078E1 /* Energizing023.caf in Resources */ = {isa = PBXBuildFile; fileRef = D432D7AF56BBDFEF56EE020B /* Energizing023.caf */; };
 		01C5EAF066C64A67AFF8B8F4 /* Abrasive037.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6E54A02DA6845923DB1BA565 /* Abrasive037.caf */; };
+		0221997A4CB51F34497848AA /* FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a in Resources */ = {isa = PBXBuildFile; fileRef = DAA5233F5A500A0E050B9846 /* FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a */; };
 		02DA429BE46446FEFD5381D5 /* Energizing062.caf in Resources */ = {isa = PBXBuildFile; fileRef = 99CAF6FC49ED3C59B92A05C3 /* Energizing062.caf */; };
 		0301FADC1F89BA7390F3D8F4 /* Energizing014.caf in Resources */ = {isa = PBXBuildFile; fileRef = 51534FDA30490C804FCFCF2A /* Energizing014.caf */; };
 		035283B750FACDC5050419C6 /* Abrasive057.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5B0AF42703BCC109C47F7CA5 /* Abrasive057.caf */; };
@@ -31,6 +32,7 @@
 		0A865E866E3643095A4CECF6 /* SnoozeSuccess1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 22F475F31293EDAB499CC9A9 /* SnoozeSuccess1.mp3 */; };
 		0ADD4DD8390F198EE767F391 /* Soothing051.caf in Resources */ = {isa = PBXBuildFile; fileRef = ABC001450527C37EB8E34241 /* Soothing051.caf */; };
 		0BC3154A2C16287FADD3DF81 /* Energizing008.caf in Resources */ = {isa = PBXBuildFile; fileRef = 04A0BF45A73928ABADEB1F5B /* Energizing008.caf */; };
+		0D103E02909F564D1DE8D6D5 /* FalseSquat-004_worst_squat_ever.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E7C7A1ABEE29D6A8CA759D16 /* FalseSquat-004_worst_squat_ever.m4a */; };
 		0E0E5DD23E3436B24B4562D7 /* Relaxing013.caf in Resources */ = {isa = PBXBuildFile; fileRef = 70D9CBF88DE968338E975EFB /* Relaxing013.caf */; };
 		0E3D13BD6DBDD4CFD6548ED5 /* Energizing015.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8B9ADBC94098E07013A47AC0 /* Energizing015.caf */; };
 		0E47DBCB99130E08019E29E2 /* SquatCalibrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4426C36A8C2DD2491FE1D7 /* SquatCalibrationTests.swift */; };
@@ -72,6 +74,7 @@
 		1EAD11372B3F26A4712F1D7B /* CalibrationInstruction2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = E42AA40B38A0A0FE698191EA /* CalibrationInstruction2.mp4 */; };
 		1F364BFB1C29DF22B41809D4 /* Motivating030.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9B7EE5EE43BC3BC56F56EEE2 /* Motivating030.caf */; };
 		1F7C09323C51ADD03294DD28 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 386EB75AD594DCDFA3C58220 /* ActivityKit.framework */; };
+		1FD1D791138091C2A78B4ED3 /* FalseSquat-007_the_phone_moved_you_didn_t.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 87F082A63A711596EE6180F8 /* FalseSquat-007_the_phone_moved_you_didn_t.m4a */; };
 		20134D4DC5EDF3DD20F343A7 /* Abrasive043.caf in Resources */ = {isa = PBXBuildFile; fileRef = 21F73E3BAE7E5143B527E978 /* Abrasive043.caf */; };
 		2073C316538B75DF13D0B4B9 /* Motivational-019_feral.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 41278F31A8868EC99041461B /* Motivational-019_feral.m4a */; };
 		20CC8E5B13DFF70147BAFEE8 /* Motivating063.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0705E285CEA18F06945B2693 /* Motivating063.caf */; };
@@ -86,6 +89,7 @@
 		2479A6CB641D8683E09ECD28 /* Energizing022.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1CFC27CCE291DFAE6A89C143 /* Energizing022.caf */; };
 		2539B8A7DCF6715F77AEF4BE /* Soothing035.caf in Resources */ = {isa = PBXBuildFile; fileRef = BDBD32E47B7FCB6AB9A8A29B /* Soothing035.caf */; };
 		27DFA1A132692698167C299D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F78C2308B3C12020AEF065 /* ContentView.swift */; };
+		28066CFEF576FF9A66CA506C /* FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9AF36585D947EA3C8E1AD2DE /* FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a */; };
 		2878F447DE98287D92C36443 /* WakeChallengeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1664DE490FD2D34573823681 /* WakeChallengeView.swift */; };
 		29077339ABB32EBA9170E4AA /* Soothing016.caf in Resources */ = {isa = PBXBuildFile; fileRef = 323F792402CBA83977ECB28C /* Soothing016.caf */; };
 		2B27CCB80895B1E278CCDD8E /* AlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A0D23A5DEEB185E661849F /* AlarmScheduler.swift */; };
@@ -112,6 +116,7 @@
 		35E9035B8C754A7EF052535A /* Abrasive003.caf in Resources */ = {isa = PBXBuildFile; fileRef = CC17C17FCB121ACAC08D1821 /* Abrasive003.caf */; };
 		362B2D518DB3415AE5488AF1 /* Motivational-070_real_deal_strength.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C6B0E413566D78509B1B595C /* Motivational-070_real_deal_strength.m4a */; };
 		367EDA640B29B3B590E88B06 /* Motivating020.caf in Resources */ = {isa = PBXBuildFile; fileRef = 52D551CF6FBB02C0610B7277 /* Motivating020.caf */; };
+		37C899315BE17FF07839A0FB /* FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2683A54EBC310C7427894169 /* FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a */; };
 		37EE8A6EA5C8D1AE97E454E5 /* Motivational-032_absolute_machine.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2BF37C308E0269F275039377 /* Motivational-032_absolute_machine.m4a */; };
 		3810D53768A84C81C88235B8 /* Relaxing052.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5747B3B0E3B97FFEC9063050 /* Relaxing052.caf */; };
 		386F47EB0F191B49F6874C07 /* Energizing052.caf in Resources */ = {isa = PBXBuildFile; fileRef = 15646DCBA44BABFBE27D2923 /* Energizing052.caf */; };
@@ -128,6 +133,7 @@
 		3F511B12B01B131A7EA2836C /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBD5B76119A9CE0A1BCF6603 /* UserNotifications.framework */; };
 		3FB0AF162E029CBFEE363F87 /* Relaxing031.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7FDEB8FFA961737C531DD690 /* Relaxing031.caf */; };
 		401DDA752817777B1FE5AC26 /* Abrasive017.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0EFE3AE1B4387C642FD76A7E /* Abrasive017.caf */; };
+		40336BF7493E4DAB7E448A2F /* FalseSquat-006_nice_wrist_workout_now_squat.m4a in Resources */ = {isa = PBXBuildFile; fileRef = CA0D80E45726111ACC41AC92 /* FalseSquat-006_nice_wrist_workout_now_squat.m4a */; };
 		405A5D0C7AC23E1182E7CF56 /* AlarmInteractionPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA66C1529C169BC2CBA2086B /* AlarmInteractionPolicyTests.swift */; };
 		43191C9B8038BB5CDA71C0C1 /* Abrasive058.caf in Resources */ = {isa = PBXBuildFile; fileRef = 985F112523D7F079A675D642 /* Abrasive058.caf */; };
 		43234577F1989C0810F25B4C /* Motivational-021_untouchable.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A898CC3E8CCAE5E860946CA9 /* Motivational-021_untouchable.m4a */; };
@@ -162,12 +168,14 @@
 		4CFC3429F109E2AB74AFB6A6 /* SquatChallengeDiagnosticRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370C424CD4D51F0434EDB41A /* SquatChallengeDiagnosticRecorder.swift */; };
 		4D2F2EB5D265B76E2F1A83AB /* Motivating026.caf in Resources */ = {isa = PBXBuildFile; fileRef = 64308F7881EC718481AF4DB7 /* Motivating026.caf */; };
 		4DCB0E3F044556172A5F1E3D /* Motivational-005_monster.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 8CAF66256FF61EBFCE71B32A /* Motivational-005_monster.m4a */; };
+		4E507741A355E5E54F5BE0FF /* FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 88CF1DBC4091BE5F3AD3203A /* FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a */; };
 		4EBA6E7AB5FB1A67673E5013 /* Motivational-031_certified_animal.m4a in Resources */ = {isa = PBXBuildFile; fileRef = C5F081F3521C6A4F4FA23CCA /* Motivational-031_certified_animal.m4a */; };
 		4FC9A191CE762AAEAFF6174C /* Soothing047.caf in Resources */ = {isa = PBXBuildFile; fileRef = A7E8152D5A4B1A93773B63B8 /* Soothing047.caf */; };
 		50539D452D88AD27475EA987 /* Motivational-060_never_in_doubt.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 46696E2B2E39E08EFA3A889A /* Motivational-060_never_in_doubt.m4a */; };
 		513616225B43D6DB809697E8 /* Motivational-050_diesel_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9448059DDFB361835B35938F /* Motivational-050_diesel_today.m4a */; };
 		514913E04D90C161D1EB8D56 /* Motivational-007_legend.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 772FAA0B0A26E8939A30C491 /* Motivational-007_legend.m4a */; };
 		5157C452295A1BA831A6F871 /* Energizing034.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0B29EF78969522958A98D7A0 /* Energizing034.caf */; };
+		53A5E0396626370BB740C958 /* FalseSquat-015_do_you_think_i_can_t_see_you.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B17F769616AC816395C2A664 /* FalseSquat-015_do_you_think_i_can_t_see_you.m4a */; };
 		53F9A704742C6AD20F6B2745 /* Motivational-075_standing_ovation_worthy.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5B6D3D071DB8CCEEE9AEF979 /* Motivational-075_standing_ovation_worthy.m4a */; };
 		54FD4D677DA908E92B564B57 /* Energizing010.caf in Resources */ = {isa = PBXBuildFile; fileRef = B153C6CB285D51B49B85918C /* Energizing010.caf */; };
 		557891D1EAFB19B61F36A455 /* Abrasive046.caf in Resources */ = {isa = PBXBuildFile; fileRef = 75F96130838B31E28FB03BD9 /* Abrasive046.caf */; };
@@ -186,6 +194,7 @@
 		5E2FD619AF5D8FF0839457DB /* Motivational-035_beast_mode.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3C881A1A515E2E8ACF68DCC5 /* Motivational-035_beast_mode.m4a */; };
 		5F478F925ECE0305E2C2643D /* Motivational-096_thats_mvp_energy_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3F6ECC34A8AD45EF7C559736 /* Motivational-096_thats_mvp_energy_today.m4a */; };
 		5F7CB1F8063561F533FB5E7E /* Relaxing007.caf in Resources */ = {isa = PBXBuildFile; fileRef = 674FFDCDD4FB0F65E6113EDC /* Relaxing007.caf */; };
+		5FCF7548F5D7B323E93D8356 /* FalseSquatTaunts.manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 4477854ACC4062F8E58FDAB7 /* FalseSquatTaunts.manifest.json */; };
 		60D06DE13770AF1EFD2952CC /* Relaxing002.caf in Resources */ = {isa = PBXBuildFile; fileRef = A36DAFC74D8B1A22A997F357 /* Relaxing002.caf */; };
 		6207995DA7752636D8E9F0D7 /* Energizing006.caf in Resources */ = {isa = PBXBuildFile; fileRef = C2F59238E1511DBFF1F69EAB /* Energizing006.caf */; };
 		623A1DE1DC4F97810583EC91 /* Soothing064.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3F1A37802001984C7CC0F127 /* Soothing064.caf */; };
@@ -202,11 +211,13 @@
 		673BB257266F1A15379E3217 /* Energizing019.caf in Resources */ = {isa = PBXBuildFile; fileRef = 69C6082558CFFED41620580A /* Energizing019.caf */; };
 		67BB5D86BE39274B7A466363 /* AlarmMusicTierPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5B0624EBE1A19A2E76FA60 /* AlarmMusicTierPolicyTests.swift */; };
 		67EE47EA367A98C8A9009FEA /* CalibrationFailure.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 32C8C3181C74E09434291934 /* CalibrationFailure.mp4 */; };
+		68D35CD6563C1BAFCC1DAD9A /* FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a in Resources */ = {isa = PBXBuildFile; fileRef = B0D8EBB8D56AC5D49B34F9CC /* FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a */; };
 		69ECA194F43EBBBA78BE6E19 /* Relaxing046.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9EF7D016C25EECB60660CD5A /* Relaxing046.caf */; };
 		6A3304FD93F44BA3AB4A2446 /* Energizing009.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1BA73DD3BDA51DE077D0C603 /* Energizing009.caf */; };
 		6A54F80EE8EDCFE6DF356467 /* Motivational-067_no_days_off.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3CA930967CD48560A68B946D /* Motivational-067_no_days_off.m4a */; };
 		6A5D7FACACCECC9C4F9FACE0 /* Energizing041.caf in Resources */ = {isa = PBXBuildFile; fileRef = 044A42CE55EC13A5E744FF41 /* Energizing041.caf */; };
 		6B2D43B400A84177DBF376C3 /* Energizing037.caf in Resources */ = {isa = PBXBuildFile; fileRef = 75A06B5B257F9BDE2BFDC8B2 /* Energizing037.caf */; };
+		6C38E88366C4FE460EC1976D /* FalseSquat-019_blanket_still_on_yeah_thought_so.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 706FF5944AE9D52254CBC8A7 /* FalseSquat-019_blanket_still_on_yeah_thought_so.m4a */; };
 		6C676E1A2EB70C45FA33119B /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E171F7003BF760ABD90BC93 /* AlarmKit.framework */; };
 		6C7DF8D702B045DD2D2F08E1 /* Soothing012.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4EE71B04F0265F9015F43397 /* Soothing012.caf */; };
 		6D47F6FA426619E3ABFCA98A /* Soothing054.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9003F4D715F47F66F0064FD3 /* Soothing054.caf */; };
@@ -217,6 +228,7 @@
 		6F4B76C672ACCC276F8F9076 /* Abrasive029.caf in Resources */ = {isa = PBXBuildFile; fileRef = 37D1D5A310EE49BBAEB77066 /* Abrasive029.caf */; };
 		70CA51D30AE4DB0925DA0CA4 /* Motivating034.caf in Resources */ = {isa = PBXBuildFile; fileRef = D311A4D7C218F6BAAB73B3C4 /* Motivating034.caf */; };
 		7168E6D295411E6021F3B2E9 /* Soothing057.caf in Resources */ = {isa = PBXBuildFile; fileRef = CCE8C39B6B0EC09889AF9395 /* Soothing057.caf */; };
+		718E5B7E9F28908F5538E4D6 /* FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 566193C72B09FAC4F4BD4544 /* FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a */; };
 		719C6BB47F6B9EBBEC683ADC /* Abrasive040.caf in Resources */ = {isa = PBXBuildFile; fileRef = 2299518BB6A9F60A73CC8DFB /* Abrasive040.caf */; };
 		722612ABE0C409ADE2B13345 /* Energizing017.caf in Resources */ = {isa = PBXBuildFile; fileRef = F907A3B110D5983366561D7C /* Energizing017.caf */; };
 		7378437CBC44EF4D6E84F960 /* Energizing036.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5E8ECC056F8933B8B469BC06 /* Energizing036.caf */; };
@@ -245,6 +257,7 @@
 		7C6EE582E03D03B5C182D9CE /* Relaxing054.caf in Resources */ = {isa = PBXBuildFile; fileRef = 965D75A450C9AFCA54C3B851 /* Relaxing054.caf */; };
 		7DCA3F2F5B35C2C07004C6FF /* Relaxing055.caf in Resources */ = {isa = PBXBuildFile; fileRef = 07FF390F9A8388C9CA81B690 /* Relaxing055.caf */; };
 		7E083A39F8259741CCBCE92B /* Motivating017.caf in Resources */ = {isa = PBXBuildFile; fileRef = D8162945C330C283F6152092 /* Motivating017.caf */; };
+		7ECA2645526978FE9B6C6625 /* FalseSquat-012_zero_reps_infinite_excuses.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9B5612B78A6E6313B5F11C28 /* FalseSquat-012_zero_reps_infinite_excuses.m4a */; };
 		7EDE8899F92E9EA6A4300CC4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1BA265C47D4A9FE4D500B713 /* Assets.xcassets */; };
 		7F0BA22FAAA02DDBB75D86D5 /* Soothing020.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0A1C7530969485F9F2985DE9 /* Soothing020.caf */; };
 		7F547E25D09E43BA9CDAA96B /* Energizing064.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4A2AAF2F7C632230BF1458C6 /* Energizing064.caf */; };
@@ -288,6 +301,7 @@
 		938DDA96A681E88F30B0CF94 /* Abrasive011.caf in Resources */ = {isa = PBXBuildFile; fileRef = 1352C87C6DDA0391694EDBAB /* Abrasive011.caf */; };
 		95007E35F2EDCEED3728C6BB /* Abrasive023.caf in Resources */ = {isa = PBXBuildFile; fileRef = EF855FA92C04D4082177CD87 /* Abrasive023.caf */; };
 		95F536CCF9F50581DBE5C9E0 /* Relaxing037.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3C0E95D623310EDFF6A01537 /* Relaxing037.caf */; };
+		96002AF675DCF6686FB125BA /* FalseSquat-008_i_ve_seen_deeper_puddles.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 9A7E5793D088F35B07D1C317 /* FalseSquat-008_i_ve_seen_deeper_puddles.m4a */; };
 		9603DA0ACA5C61EBA88AFC48 /* Motivating005.caf in Resources */ = {isa = PBXBuildFile; fileRef = CDA11C0E41D623A759EF787A /* Motivating005.caf */; };
 		964EEFD92083A32D5B2AD4BC /* Motivational-092_elite_work_no_cap.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A544BA36BEDE595781B8398B /* Motivational-092_elite_work_no_cap.m4a */; };
 		96B6DF9224B7681A6EC4BE42 /* Relaxing056.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7CA6D03DA29945219E0AAAFA /* Relaxing056.caf */; };
@@ -307,6 +321,7 @@
 		9AF46E0B122FE021F16BA21B /* CalibrationInstruction1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 491A37F548C259F124A7A991 /* CalibrationInstruction1.mp4 */; };
 		9B563FB911E30E230CFB8781 /* Motivational-030_real_menace.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D1ED0C7ECB5ADA6A919093B1 /* Motivational-030_real_menace.m4a */; };
 		9BE9B8A5459DB52F63101738 /* Energizing039.caf in Resources */ = {isa = PBXBuildFile; fileRef = A1EECC0B4D30846AB59F93AC /* Energizing039.caf */; };
+		9C0007CDDA5516802A2EFC2B /* FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a in Resources */ = {isa = PBXBuildFile; fileRef = DF888DAFEE16F91F9BBCFF8B /* FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a */; };
 		9C5FCB3054027DEC59C8027A /* Motivational-018_savage.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D17A6E7FB9365E56DEFCA372 /* Motivational-018_savage.m4a */; };
 		9CAF812484C90D66B3358A6A /* Relaxing034.caf in Resources */ = {isa = PBXBuildFile; fileRef = E464583133F65BD01D32990E /* Relaxing034.caf */; };
 		9CF9AE2209061B89C53A5DDB /* Soothing042.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEFA101ED803D95ECB624050 /* Soothing042.caf */; };
@@ -347,6 +362,7 @@
 		B076858D1E26E58F2446BF12 /* Abrasive047.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5C55BD153454DEEA3C68FE18 /* Abrasive047.caf */; };
 		B09DD4AFBB028AC1C8E50E96 /* Motivational-073_clutch_lift_there.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E2C54B2475FA1D18D2841011 /* Motivational-073_clutch_lift_there.m4a */; };
 		B0DB58616C3BD927CB65496E /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28AFC3092AAFDFEECD2D3C /* Components.swift */; };
+		B2D2F961FFE944736F772FB9 /* FalseSquat-002_are_you_even_trying.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A4701431E53D0F6FCBEB65D7 /* FalseSquat-002_are_you_even_trying.m4a */; };
 		B2F15E204B27B1C9872C9E9E /* Motivational-062_zero_excuses_today.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0CAEF4D76812CB0BBAC6AA4E /* Motivational-062_zero_excuses_today.m4a */; };
 		B449ED7E06565B446C3CF572 /* Energizing063.caf in Resources */ = {isa = PBXBuildFile; fileRef = 2ABB8606CED7F0D3394D3F3F /* Energizing063.caf */; };
 		B4EB2C9AD3110FB676DEB07B /* Motivational-091_thats_a_personal_best.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 79A295FAA15169BC24798DE3 /* Motivational-091_thats_a_personal_best.m4a */; };
@@ -360,6 +376,7 @@
 		B708B5C44613D049DAB7AEBA /* Relaxing027.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6AC970A7C219CFBACB3F289D /* Relaxing027.caf */; };
 		B729108D749FB1409FB67317 /* Motivational-083_absolute_unit_no_cap.m4a in Resources */ = {isa = PBXBuildFile; fileRef = E4CF528AE045369F4F05EBC9 /* Motivational-083_absolute_unit_no_cap.m4a */; };
 		B7D86F84709E6B0BC5FA9534 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B62ED628967133CA4028243 /* CalendarService.swift */; };
+		B83AA7D2D4AA676DC53B9F11 /* FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a in Resources */ = {isa = PBXBuildFile; fileRef = EC1CC0DA2119706B7ED935AC /* FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a */; };
 		B887D21DFF5E0BABB474D743 /* NightlyNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7964268A1528F9F2FDDE21AC /* NightlyNotificationService.swift */; };
 		B8ED2DFF8154C2F00E4B845B /* Abrasive006.caf in Resources */ = {isa = PBXBuildFile; fileRef = A9BBB81CF45886C9451362E9 /* Abrasive006.caf */; };
 		B9104931C02165ACBC6DE35B /* Relaxing017.caf in Resources */ = {isa = PBXBuildFile; fileRef = 10A6877F35935D7188D61203 /* Relaxing017.caf */; };
@@ -370,9 +387,11 @@
 		BD0AA7251173ADAD4241C72F /* Motivational-094_full_send_no_fear.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 4DFF86C3FEB201B4F376CF8B /* Motivational-094_full_send_no_fear.m4a */; };
 		BD691835C91DA2EB401D6448 /* Motivating036.caf in Resources */ = {isa = PBXBuildFile; fileRef = 8DA7E28613D282F444AA8A8A /* Motivating036.caf */; };
 		BE3188474330E490ADCCCB66 /* Motivational-022_certified.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6D09016B43347682E5425919 /* Motivational-022_certified.m4a */; };
+		BE7DB6B486A9C5DC07F382D1 /* FalseSquat-011_gravity_is_not_impressed.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 429773D5DEAFB62D40058925 /* FalseSquat-011_gravity_is_not_impressed.m4a */; };
 		BE8262CE51B763E15EDE5BD1 /* Soothing025.caf in Resources */ = {isa = PBXBuildFile; fileRef = B60096DE751F08DE758F5562 /* Soothing025.caf */; };
 		BEA15B785667AEF3843B29EB /* Motivating039.caf in Resources */ = {isa = PBXBuildFile; fileRef = 9C4E184C0C6D057A5223332E /* Motivating039.caf */; };
 		BEE86508334722242F19FDBF /* Abrasive059.caf in Resources */ = {isa = PBXBuildFile; fileRef = ED16DB2EDAD4075427BB652E /* Abrasive059.caf */; };
+		BEF693127D0778BA3DE68987 /* FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D6D872325368B1B3E13AB706 /* FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a */; };
 		BF0A81601E4525C18DAF18AF /* Motivational-041_serious_power.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0BBC972527B8FCEC90E964AD /* Motivational-041_serious_power.m4a */; };
 		BF31472298BB8B1F06424A49 /* Motivational-042_big_pump.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FC401FC621D5D32EC5D457F1 /* Motivational-042_big_pump.m4a */; };
 		BF93AF1E9EF527482162D37F /* Motivational-063_iron_never_lies.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D0CE1E036EC398ED1DC6ADAD /* Motivational-063_iron_never_lies.m4a */; };
@@ -416,6 +435,7 @@
 		CEB56B1D1A19FF1F23EA9632 /* Motivating041.caf in Resources */ = {isa = PBXBuildFile; fileRef = F71E1E4E571617D2B8DA82C4 /* Motivating041.caf */; };
 		CF0B29C1A6A45ED771CB4159 /* Soothing038.caf in Resources */ = {isa = PBXBuildFile; fileRef = E5E23E5D7EB3BB7C56F7B70A /* Soothing038.caf */; };
 		CF623081E330405C1FE8587D /* SquatCalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */; };
+		D0100B311E519C39BF77F3BE /* FalseSquatRejection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1909743700B1458022957 /* FalseSquatRejection.swift */; };
 		D07204CC7848C77E93FCB07A /* Motivating027.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7DFF486879DD00A82177DE3F /* Motivating027.caf */; };
 		D0CCF6DC8DCF350C63FC6C22 /* Energizing029.caf in Resources */ = {isa = PBXBuildFile; fileRef = EB09E2565D2CBC15F4CD6385 /* Energizing029.caf */; };
 		D138D50D4F60BB0324952349 /* Motivating003.caf in Resources */ = {isa = PBXBuildFile; fileRef = C5BD5B570A5351FBFFCB0B98 /* Motivating003.caf */; };
@@ -435,6 +455,7 @@
 		DB151EFD90C4083D6BD1A319 /* Motivational-076_thats_a_big_dub.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6B31E5955D009297AF2FCEA4 /* Motivational-076_thats_a_big_dub.m4a */; };
 		DBD5F6120FFD7CED788C1D1F /* Motivational-048_strong_finish.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 96A4D964436123F7BC4DC104 /* Motivational-048_strong_finish.m4a */; };
 		DBD7809E8225348FDB3DD727 /* Motivational-015_yoked.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 7E7E73C6A7E9FE57AF7DBE07 /* Motivational-015_yoked.m4a */; };
+		DC37612760600BD20B1F614E /* FalseSquat-001_sorry_i_don_t_think_that_counts.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 038125A636A3427DDE22ABDB /* FalseSquat-001_sorry_i_don_t_think_that_counts.m4a */; };
 		DC8F51C1ADC3A4014321F827 /* Soothing014.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6900BF6839D5ED80F74D9B20 /* Soothing014.caf */; };
 		DD04078BE2E13CE2124A66C7 /* Soothing028.caf in Resources */ = {isa = PBXBuildFile; fileRef = 637745E32261460D05C836F1 /* Soothing028.caf */; };
 		DD7C903DD85ABA5F9AE2FC2B /* Motivational-058_certified_gym_rat.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F3C1C69ACFFE247DD6CCFB52 /* Motivational-058_certified_gym_rat.m4a */; };
@@ -471,6 +492,7 @@
 		EE1C0C411726CAB36EC6E3B6 /* Abrasive012.caf in Resources */ = {isa = PBXBuildFile; fileRef = 3D8C19849DF5A6C038D9C067 /* Abrasive012.caf */; };
 		EE9DBD0B2B124F84FA480ABC /* Soothing032.caf in Resources */ = {isa = PBXBuildFile; fileRef = DD4CA974C01B30B55AAB5627 /* Soothing032.caf */; };
 		EF14A7C5B39711F7A88729AD /* Energizing021.caf in Resources */ = {isa = PBXBuildFile; fileRef = A3A4202F7CF5F1E93F864C0C /* Energizing021.caf */; };
+		EFE03E94E2DE7F31A8D993A4 /* FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F263863225EDD520CE7072AD /* FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a */; };
 		EFF4D998EB3395811EEB21F1 /* Motivating049.caf in Resources */ = {isa = PBXBuildFile; fileRef = 0E230C539BE59A2A0E5852A8 /* Motivating049.caf */; };
 		F08D89BFC8627E1341F2E4ED /* Soothing049.caf in Resources */ = {isa = PBXBuildFile; fileRef = 626F67C43D061A2C82A20E56 /* Soothing049.caf */; };
 		F09486EAA67882C55FCF6598 /* Relaxing042.caf in Resources */ = {isa = PBXBuildFile; fileRef = 5A5DEC394AEC97AEF6C2937E /* Relaxing042.caf */; };
@@ -513,6 +535,7 @@
 		0116980B95071EA2669E3B39 /* Abrasive034.caf */ = {isa = PBXFileReference; path = Abrasive034.caf; sourceTree = "<group>"; };
 		01B80CFCFC366D1EE55F35DD /* CalendarEventPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventPolicyTests.swift; sourceTree = "<group>"; };
 		036709E5A3371DCA56CAB2A2 /* Motivating046.caf */ = {isa = PBXFileReference; path = Motivating046.caf; sourceTree = "<group>"; };
+		038125A636A3427DDE22ABDB /* FalseSquat-001_sorry_i_don_t_think_that_counts.m4a */ = {isa = PBXFileReference; path = "FalseSquat-001_sorry_i_don_t_think_that_counts.m4a"; sourceTree = "<group>"; };
 		03890BA9A136E1E3090101B1 /* SquatDiagnosticView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatDiagnosticView.swift; sourceTree = "<group>"; };
 		044A42CE55EC13A5E744FF41 /* Energizing041.caf */ = {isa = PBXFileReference; path = Energizing041.caf; sourceTree = "<group>"; };
 		0467A5374B2E7371297BCA49 /* CalendarOverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarOverrideView.swift; sourceTree = "<group>"; };
@@ -594,6 +617,7 @@
 		2467F6ED0E875A1C0A06DEA8 /* Motivating014.caf */ = {isa = PBXFileReference; path = Motivating014.caf; sourceTree = "<group>"; };
 		248DC34535106FED7051E07A /* Soothing039.caf */ = {isa = PBXFileReference; path = Soothing039.caf; sourceTree = "<group>"; };
 		25A95E8E5F16FD0692320125 /* Relaxing011.caf */ = {isa = PBXFileReference; path = Relaxing011.caf; sourceTree = "<group>"; };
+		2683A54EBC310C7427894169 /* FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a */ = {isa = PBXFileReference; path = "FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a"; sourceTree = "<group>"; };
 		26C97F928BE4070C82E761A4 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		275F8DC0556B8E6534499A90 /* Abrasive048.caf */ = {isa = PBXFileReference; path = Abrasive048.caf; sourceTree = "<group>"; };
 		278D260F8A19232B03ACBE0E /* Energizing055.caf */ = {isa = PBXFileReference; path = Energizing055.caf; sourceTree = "<group>"; };
@@ -651,8 +675,10 @@
 		41278F31A8868EC99041461B /* Motivational-019_feral.m4a */ = {isa = PBXFileReference; path = "Motivational-019_feral.m4a"; sourceTree = "<group>"; };
 		412B1710088BF1C2DA997474 /* Motivating032.caf */ = {isa = PBXFileReference; path = Motivating032.caf; sourceTree = "<group>"; };
 		415DA0FAFBB3437302CE4AD8 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		429773D5DEAFB62D40058925 /* FalseSquat-011_gravity_is_not_impressed.m4a */ = {isa = PBXFileReference; path = "FalseSquat-011_gravity_is_not_impressed.m4a"; sourceTree = "<group>"; };
 		43EB4087088D9AFA7FDB061F /* Energizing048.caf */ = {isa = PBXFileReference; path = Energizing048.caf; sourceTree = "<group>"; };
 		4419D96C43A456FC2A95AD24 /* Soothing037.caf */ = {isa = PBXFileReference; path = Soothing037.caf; sourceTree = "<group>"; };
+		4477854ACC4062F8E58FDAB7 /* FalseSquatTaunts.manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = FalseSquatTaunts.manifest.json; sourceTree = "<group>"; };
 		450DEE99C97EFF908A0B05B8 /* ChallengeCompletion.mp4 */ = {isa = PBXFileReference; path = ChallengeCompletion.mp4; sourceTree = "<group>"; };
 		459D67369204A53C2DC7C0B1 /* AlarmAudioTranscoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAudioTranscoder.swift; sourceTree = "<group>"; };
 		45CFB5B25B29D74F86F29A1E /* Energizing061.caf */ = {isa = PBXFileReference; path = Energizing061.caf; sourceTree = "<group>"; };
@@ -687,6 +713,7 @@
 		52FB1132B71929E0FEDDD47E /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		547EA7D39098121F032C3EFF /* Relaxing044.caf */ = {isa = PBXFileReference; path = Relaxing044.caf; sourceTree = "<group>"; };
 		56543CB3DA758D7A261AF47E /* Relaxing058.caf */ = {isa = PBXFileReference; path = Relaxing058.caf; sourceTree = "<group>"; };
+		566193C72B09FAC4F4BD4544 /* FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a */ = {isa = PBXFileReference; path = "FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a"; sourceTree = "<group>"; };
 		5747B3B0E3B97FFEC9063050 /* Relaxing052.caf */ = {isa = PBXFileReference; path = Relaxing052.caf; sourceTree = "<group>"; };
 		57ADE94AA97FC2929DCE5BC8 /* AlarmPhysicalSchedulePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmPhysicalSchedulePolicyTests.swift; sourceTree = "<group>"; };
 		57EF8DC7D6FD26EDD191249A /* Motivating009.caf */ = {isa = PBXFileReference; path = Motivating009.caf; sourceTree = "<group>"; };
@@ -697,6 +724,7 @@
 		5B0AF42703BCC109C47F7CA5 /* Abrasive057.caf */ = {isa = PBXFileReference; path = Abrasive057.caf; sourceTree = "<group>"; };
 		5B48EC87543352E7235FBDFE /* VideoCaptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCaptions.swift; sourceTree = "<group>"; };
 		5B6D3D071DB8CCEEE9AEF979 /* Motivational-075_standing_ovation_worthy.m4a */ = {isa = PBXFileReference; path = "Motivational-075_standing_ovation_worthy.m4a"; sourceTree = "<group>"; };
+		5BC1909743700B1458022957 /* FalseSquatRejection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FalseSquatRejection.swift; sourceTree = "<group>"; };
 		5C101F439F85DE99B928086D /* SquatDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatDetectorTests.swift; sourceTree = "<group>"; };
 		5C2786C1E9039F5F0D85D15D /* Motivational-044_clean_form.m4a */ = {isa = PBXFileReference; path = "Motivational-044_clean_form.m4a"; sourceTree = "<group>"; };
 		5C55BD153454DEEA3C68FE18 /* Abrasive047.caf */ = {isa = PBXFileReference; path = Abrasive047.caf; sourceTree = "<group>"; };
@@ -735,6 +763,7 @@
 		6E6403550A1560BB6366F944 /* Motivating028.caf */ = {isa = PBXFileReference; path = Motivating028.caf; sourceTree = "<group>"; };
 		6E97B31A949ADFB5C6C13902 /* Motivating019.caf */ = {isa = PBXFileReference; path = Motivating019.caf; sourceTree = "<group>"; };
 		705A667C49B4624801FF32F1 /* Soothing061.caf */ = {isa = PBXFileReference; path = Soothing061.caf; sourceTree = "<group>"; };
+		706FF5944AE9D52254CBC8A7 /* FalseSquat-019_blanket_still_on_yeah_thought_so.m4a */ = {isa = PBXFileReference; path = "FalseSquat-019_blanket_still_on_yeah_thought_so.m4a"; sourceTree = "<group>"; };
 		70D29247DE5CD399A974A3F7 /* Abrasive044.caf */ = {isa = PBXFileReference; path = Abrasive044.caf; sourceTree = "<group>"; };
 		70D9CBF88DE968338E975EFB /* Relaxing013.caf */ = {isa = PBXFileReference; path = Relaxing013.caf; sourceTree = "<group>"; };
 		70FE1CEB7190384950290F1E /* Motivational-016_shredded.m4a */ = {isa = PBXFileReference; path = "Motivational-016_shredded.m4a"; sourceTree = "<group>"; };
@@ -785,7 +814,9 @@
 		85CCCBEB41657CEFF5421547 /* Relaxing036.caf */ = {isa = PBXFileReference; path = Relaxing036.caf; sourceTree = "<group>"; };
 		8741EC911BB45FFDF559692E /* Abrasive001.caf */ = {isa = PBXFileReference; path = Abrasive001.caf; sourceTree = "<group>"; };
 		87AE861402D740068E58DD6A /* Motivational-036_locked_in.m4a */ = {isa = PBXFileReference; path = "Motivational-036_locked_in.m4a"; sourceTree = "<group>"; };
+		87F082A63A711596EE6180F8 /* FalseSquat-007_the_phone_moved_you_didn_t.m4a */ = {isa = PBXFileReference; path = "FalseSquat-007_the_phone_moved_you_didn_t.m4a"; sourceTree = "<group>"; };
 		88B302E7BCA3F4C197B371E3 /* Relaxing010.caf */ = {isa = PBXFileReference; path = Relaxing010.caf; sourceTree = "<group>"; };
+		88CF1DBC4091BE5F3AD3203A /* FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a */ = {isa = PBXFileReference; path = "FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a"; sourceTree = "<group>"; };
 		8B9ADBC94098E07013A47AC0 /* Energizing015.caf */ = {isa = PBXFileReference; path = Energizing015.caf; sourceTree = "<group>"; };
 		8CAF66256FF61EBFCE71B32A /* Motivational-005_monster.m4a */ = {isa = PBXFileReference; path = "Motivational-005_monster.m4a"; sourceTree = "<group>"; };
 		8D519C959B79120A5E19D92A /* Energizing045.caf */ = {isa = PBXFileReference; path = Energizing045.caf; sourceTree = "<group>"; };
@@ -822,9 +853,12 @@
 		9993935783A1904FE8F3D74C /* Motivational-039_mvp_energy.m4a */ = {isa = PBXFileReference; path = "Motivational-039_mvp_energy.m4a"; sourceTree = "<group>"; };
 		99CAF6FC49ED3C59B92A05C3 /* Energizing062.caf */ = {isa = PBXFileReference; path = Energizing062.caf; sourceTree = "<group>"; };
 		9A21DC11018620A94D7BF8E3 /* Abrasive050.caf */ = {isa = PBXFileReference; path = Abrasive050.caf; sourceTree = "<group>"; };
+		9A7E5793D088F35B07D1C317 /* FalseSquat-008_i_ve_seen_deeper_puddles.m4a */ = {isa = PBXFileReference; path = "FalseSquat-008_i_ve_seen_deeper_puddles.m4a"; sourceTree = "<group>"; };
 		9AA37A07899784449BDAAB65 /* Motivating059.caf */ = {isa = PBXFileReference; path = Motivating059.caf; sourceTree = "<group>"; };
 		9ABFB07AB4598450D07139FE /* Energizing051.caf */ = {isa = PBXFileReference; path = Energizing051.caf; sourceTree = "<group>"; };
 		9AECC234C67EC9492BDDED6B /* Energizing033.caf */ = {isa = PBXFileReference; path = Energizing033.caf; sourceTree = "<group>"; };
+		9AF36585D947EA3C8E1AD2DE /* FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a */ = {isa = PBXFileReference; path = "FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a"; sourceTree = "<group>"; };
+		9B5612B78A6E6313B5F11C28 /* FalseSquat-012_zero_reps_infinite_excuses.m4a */ = {isa = PBXFileReference; path = "FalseSquat-012_zero_reps_infinite_excuses.m4a"; sourceTree = "<group>"; };
 		9B64025442742E2923C4F8A9 /* Soothing006.caf */ = {isa = PBXFileReference; path = Soothing006.caf; sourceTree = "<group>"; };
 		9B7EE5EE43BC3BC56F56EEE2 /* Motivating030.caf */ = {isa = PBXFileReference; path = Motivating030.caf; sourceTree = "<group>"; };
 		9C4E184C0C6D057A5223332E /* Motivating039.caf */ = {isa = PBXFileReference; path = Motivating039.caf; sourceTree = "<group>"; };
@@ -845,6 +879,7 @@
 		A36DAFC74D8B1A22A997F357 /* Relaxing002.caf */ = {isa = PBXFileReference; path = Relaxing002.caf; sourceTree = "<group>"; };
 		A3A4202F7CF5F1E93F864C0C /* Energizing021.caf */ = {isa = PBXFileReference; path = Energizing021.caf; sourceTree = "<group>"; };
 		A3CC1E5BD007849AB6719631 /* BackgroundRefreshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRefreshService.swift; sourceTree = "<group>"; };
+		A4701431E53D0F6FCBEB65D7 /* FalseSquat-002_are_you_even_trying.m4a */ = {isa = PBXFileReference; path = "FalseSquat-002_are_you_even_trying.m4a"; sourceTree = "<group>"; };
 		A544BA36BEDE595781B8398B /* Motivational-092_elite_work_no_cap.m4a */ = {isa = PBXFileReference; path = "Motivational-092_elite_work_no_cap.m4a"; sourceTree = "<group>"; };
 		A576F181A2615A5F5573F424 /* Motivational-034_pure_power.m4a */ = {isa = PBXFileReference; path = "Motivational-034_pure_power.m4a"; sourceTree = "<group>"; };
 		A5FA6076CF113CDFC82ED4C8 /* Abrasive038.caf */ = {isa = PBXFileReference; path = Abrasive038.caf; sourceTree = "<group>"; };
@@ -865,7 +900,9 @@
 		AE0F7A12B4FF7E13EA5C620E /* Energizing035.caf */ = {isa = PBXFileReference; path = Energizing035.caf; sourceTree = "<group>"; };
 		B008E8EE77790C5C7B37FF94 /* Motivational-046_personal_best.m4a */ = {isa = PBXFileReference; path = "Motivational-046_personal_best.m4a"; sourceTree = "<group>"; };
 		B0AF755B31CE86290618236A /* Motivational-078_she_ate_that_lift.m4a */ = {isa = PBXFileReference; path = "Motivational-078_she_ate_that_lift.m4a"; sourceTree = "<group>"; };
+		B0D8EBB8D56AC5D49B34F9CC /* FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a */ = {isa = PBXFileReference; path = "FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a"; sourceTree = "<group>"; };
 		B153C6CB285D51B49B85918C /* Energizing010.caf */ = {isa = PBXFileReference; path = Energizing010.caf; sourceTree = "<group>"; };
+		B17F769616AC816395C2A664 /* FalseSquat-015_do_you_think_i_can_t_see_you.m4a */ = {isa = PBXFileReference; path = "FalseSquat-015_do_you_think_i_can_t_see_you.m4a"; sourceTree = "<group>"; };
 		B1C391AD644D6FB20FA01C3C /* Motivational-097_aura_boost_no_cap.m4a */ = {isa = PBXFileReference; path = "Motivational-097_aura_boost_no_cap.m4a"; sourceTree = "<group>"; };
 		B472A9F1C3DEE904FE78B2D3 /* Relaxing062.caf */ = {isa = PBXFileReference; path = Relaxing062.caf; sourceTree = "<group>"; };
 		B485C5BBC2ABF32DEA712499 /* Motivating004.caf */ = {isa = PBXFileReference; path = Motivating004.caf; sourceTree = "<group>"; };
@@ -902,6 +939,7 @@
 		C8BF0C1D745657ABB0E038C1 /* Soothing021.caf */ = {isa = PBXFileReference; path = Soothing021.caf; sourceTree = "<group>"; };
 		C8FB1948DA9871D2938CC177 /* Relaxing018.caf */ = {isa = PBXFileReference; path = Relaxing018.caf; sourceTree = "<group>"; };
 		C9E470096064E90168C42EA9 /* Relaxing014.caf */ = {isa = PBXFileReference; path = Relaxing014.caf; sourceTree = "<group>"; };
+		CA0D80E45726111ACC41AC92 /* FalseSquat-006_nice_wrist_workout_now_squat.m4a */ = {isa = PBXFileReference; path = "FalseSquat-006_nice_wrist_workout_now_squat.m4a"; sourceTree = "<group>"; };
 		CA51780ACF988CA0C32D8CF4 /* Abrasive054.caf */ = {isa = PBXFileReference; path = Abrasive054.caf; sourceTree = "<group>"; };
 		CAE7DA563C4069BC2024D1BD /* Abrasive032.caf */ = {isa = PBXFileReference; path = Abrasive032.caf; sourceTree = "<group>"; };
 		CB3CE4D28EFCA51D423FEF7E /* Relaxing051.caf */ = {isa = PBXFileReference; path = Relaxing051.caf; sourceTree = "<group>"; };
@@ -928,6 +966,7 @@
 		D63B11F16F51DBFDB13C2C66 /* Energizing003.caf */ = {isa = PBXFileReference; path = Energizing003.caf; sourceTree = "<group>"; };
 		D68E190BF5E56A4D013584D9 /* Soothing005.caf */ = {isa = PBXFileReference; path = Soothing005.caf; sourceTree = "<group>"; };
 		D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		D6D872325368B1B3E13AB706 /* FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a */ = {isa = PBXFileReference; path = "FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a"; sourceTree = "<group>"; };
 		D76509853301467D9A81A3BD /* Soothing044.caf */ = {isa = PBXFileReference; path = Soothing044.caf; sourceTree = "<group>"; };
 		D8162945C330C283F6152092 /* Motivating017.caf */ = {isa = PBXFileReference; path = Motivating017.caf; sourceTree = "<group>"; };
 		D816DC1E39316C91545AA7B8 /* Motivating016.caf */ = {isa = PBXFileReference; path = Motivating016.caf; sourceTree = "<group>"; };
@@ -939,6 +978,7 @@
 		D9FFA2F854362C5D424EAC60 /* Motivational-077_he_ate_that_set.m4a */ = {isa = PBXFileReference; path = "Motivational-077_he_ate_that_set.m4a"; sourceTree = "<group>"; };
 		DA426FE584AC53D95EF800A7 /* Abrasive028.caf */ = {isa = PBXFileReference; path = Abrasive028.caf; sourceTree = "<group>"; };
 		DA86AAD0489FEEFE9E3B59E2 /* Soothing022.caf */ = {isa = PBXFileReference; path = Soothing022.caf; sourceTree = "<group>"; };
+		DAA5233F5A500A0E050B9846 /* FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a */ = {isa = PBXFileReference; path = "FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a"; sourceTree = "<group>"; };
 		DB600AD2AC501066780EA5C2 /* Energizing047.caf */ = {isa = PBXFileReference; path = Energizing047.caf; sourceTree = "<group>"; };
 		DB7B8909A2F3E2EA92E2F0B3 /* SquatCalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatCalibrationView.swift; sourceTree = "<group>"; };
 		DBCB8335EC6285C386ABC3AF /* RiseAndGrind.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RiseAndGrind.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -950,6 +990,7 @@
 		DD75B255EA0AE70435E11C94 /* Energizing013.caf */ = {isa = PBXFileReference; path = Energizing013.caf; sourceTree = "<group>"; };
 		DDBD0E045AF5948A6F4C25F0 /* Abrasive061.caf */ = {isa = PBXFileReference; path = Abrasive061.caf; sourceTree = "<group>"; };
 		DDD568E4CACD1AECC6D01C5D /* Soothing015.caf */ = {isa = PBXFileReference; path = Soothing015.caf; sourceTree = "<group>"; };
+		DF888DAFEE16F91F9BBCFF8B /* FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a */ = {isa = PBXFileReference; path = "FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a"; sourceTree = "<group>"; };
 		E1A9EE45F9FFB6F38FBB9AEE /* SoundLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundLibrary.swift; sourceTree = "<group>"; };
 		E2C54B2475FA1D18D2841011 /* Motivational-073_clutch_lift_there.m4a */ = {isa = PBXFileReference; path = "Motivational-073_clutch_lift_there.m4a"; sourceTree = "<group>"; };
 		E30997A9F96E6EE8F98E27CD /* Energizing042.caf */ = {isa = PBXFileReference; path = Energizing042.caf; sourceTree = "<group>"; };
@@ -960,8 +1001,10 @@
 		E4CF528AE045369F4F05EBC9 /* Motivational-083_absolute_unit_no_cap.m4a */ = {isa = PBXFileReference; path = "Motivational-083_absolute_unit_no_cap.m4a"; sourceTree = "<group>"; };
 		E4E574A4AD5CC3D5A869FF9E /* Soothing008.caf */ = {isa = PBXFileReference; path = Soothing008.caf; sourceTree = "<group>"; };
 		E5E23E5D7EB3BB7C56F7B70A /* Soothing038.caf */ = {isa = PBXFileReference; path = Soothing038.caf; sourceTree = "<group>"; };
+		E7C7A1ABEE29D6A8CA759D16 /* FalseSquat-004_worst_squat_ever.m4a */ = {isa = PBXFileReference; path = "FalseSquat-004_worst_squat_ever.m4a"; sourceTree = "<group>"; };
 		EB06446DAA560FE3827E1E1D /* Motivational-027_different_breed.m4a */ = {isa = PBXFileReference; path = "Motivational-027_different_breed.m4a"; sourceTree = "<group>"; };
 		EB09E2565D2CBC15F4CD6385 /* Energizing029.caf */ = {isa = PBXFileReference; path = Energizing029.caf; sourceTree = "<group>"; };
+		EC1CC0DA2119706B7ED935AC /* FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a */ = {isa = PBXFileReference; path = "FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a"; sourceTree = "<group>"; };
 		ECAB1CFCB13AC13C30EE4179 /* Motivating013.caf */ = {isa = PBXFileReference; path = Motivating013.caf; sourceTree = "<group>"; };
 		ED16DB2EDAD4075427BB652E /* Abrasive059.caf */ = {isa = PBXFileReference; path = Abrasive059.caf; sourceTree = "<group>"; };
 		ED195F66AB49B3C132A6AC28 /* Motivating040.caf */ = {isa = PBXFileReference; path = Motivating040.caf; sourceTree = "<group>"; };
@@ -973,6 +1016,7 @@
 		F0A49F3A5FE8DEB94D90DE13 /* Motivating007.caf */ = {isa = PBXFileReference; path = Motivating007.caf; sourceTree = "<group>"; };
 		F0D3EE621CB22B5C3C55983E /* Motivating033.caf */ = {isa = PBXFileReference; path = Motivating033.caf; sourceTree = "<group>"; };
 		F17707CE00D99AB3656F1AD4 /* Energizing038.caf */ = {isa = PBXFileReference; path = Energizing038.caf; sourceTree = "<group>"; };
+		F263863225EDD520CE7072AD /* FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a */ = {isa = PBXFileReference; path = "FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a"; sourceTree = "<group>"; };
 		F28660B9520E9CAC9FEAFBF8 /* Energizing026.caf */ = {isa = PBXFileReference; path = Energizing026.caf; sourceTree = "<group>"; };
 		F29C01B0C8BF1123C1BEFBB3 /* Relaxing033.caf */ = {isa = PBXFileReference; path = Relaxing033.caf; sourceTree = "<group>"; };
 		F30CFAB47B8B0145308B1FCF /* Soothing055.caf */ = {isa = PBXFileReference; path = Soothing055.caf; sourceTree = "<group>"; };
@@ -1193,6 +1237,7 @@
 				DC28AFC3092AAFDFEECD2D3C /* Components.swift */,
 				67F78C2308B3C12020AEF065 /* ContentView.swift */,
 				D6BCAD6ED5FACA40D32568D7 /* DashboardView.swift */,
+				5BC1909743700B1458022957 /* FalseSquatRejection.swift */,
 				D0C3A2E909B23C79D30ED753 /* IntroPitchView.swift */,
 				2FA004DE12777E6675646388 /* OnboardingView.swift */,
 				0B4677A17997B915E5881F34 /* SetupView.swift */,
@@ -1559,6 +1604,7 @@
 				CF81722094D908E554E78201 /* CalibrationInstructions */,
 				ECDA78B7FF12F5046648B885 /* ChallengeAudio */,
 				EA1684AAC51C2FF38AF59853 /* ChallengeCompletion */,
+				8C2B7F3597FDF3D81010333B /* FalseSquatTaunts */,
 				434EDAAFE4D6429D4F8BE26B /* IntroPitch */,
 				0140CDBB5736DF9803742EEC /* MotivationalLines */,
 				FB067A1FC2EC03C881DDBA40 /* Ringtone */,
@@ -1600,6 +1646,34 @@
 				2FDB323A95C09B299EA5F0C3 /* Views */,
 			);
 			path = RiseAndGrind;
+			sourceTree = "<group>";
+		};
+		8C2B7F3597FDF3D81010333B /* FalseSquatTaunts */ = {
+			isa = PBXGroup;
+			children = (
+				038125A636A3427DDE22ABDB /* FalseSquat-001_sorry_i_don_t_think_that_counts.m4a */,
+				A4701431E53D0F6FCBEB65D7 /* FalseSquat-002_are_you_even_trying.m4a */,
+				D6D872325368B1B3E13AB706 /* FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a */,
+				E7C7A1ABEE29D6A8CA759D16 /* FalseSquat-004_worst_squat_ever.m4a */,
+				2683A54EBC310C7427894169 /* FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a */,
+				CA0D80E45726111ACC41AC92 /* FalseSquat-006_nice_wrist_workout_now_squat.m4a */,
+				87F082A63A711596EE6180F8 /* FalseSquat-007_the_phone_moved_you_didn_t.m4a */,
+				9A7E5793D088F35B07D1C317 /* FalseSquat-008_i_ve_seen_deeper_puddles.m4a */,
+				B0D8EBB8D56AC5D49B34F9CC /* FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a */,
+				566193C72B09FAC4F4BD4544 /* FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a */,
+				429773D5DEAFB62D40058925 /* FalseSquat-011_gravity_is_not_impressed.m4a */,
+				9B5612B78A6E6313B5F11C28 /* FalseSquat-012_zero_reps_infinite_excuses.m4a */,
+				9AF36585D947EA3C8E1AD2DE /* FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a */,
+				F263863225EDD520CE7072AD /* FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a */,
+				B17F769616AC816395C2A664 /* FalseSquat-015_do_you_think_i_can_t_see_you.m4a */,
+				88CF1DBC4091BE5F3AD3203A /* FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a */,
+				DF888DAFEE16F91F9BBCFF8B /* FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a */,
+				DAA5233F5A500A0E050B9846 /* FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a */,
+				706FF5944AE9D52254CBC8A7 /* FalseSquat-019_blanket_still_on_yeah_thought_so.m4a */,
+				EC1CC0DA2119706B7ED935AC /* FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a */,
+				4477854ACC4062F8E58FDAB7 /* FalseSquatTaunts.manifest.json */,
+			);
+			path = FalseSquatTaunts;
 			sourceTree = "<group>";
 		};
 		AAEF859F477D482748BBA2B7 /* Services */ = {
@@ -1932,6 +2006,27 @@
 				02DA429BE46446FEFD5381D5 /* Energizing062.caf in Resources */,
 				B449ED7E06565B446C3CF572 /* Energizing063.caf in Resources */,
 				7F547E25D09E43BA9CDAA96B /* Energizing064.caf in Resources */,
+				DC37612760600BD20B1F614E /* FalseSquat-001_sorry_i_don_t_think_that_counts.m4a in Resources */,
+				B2D2F961FFE944736F772FB9 /* FalseSquat-002_are_you_even_trying.m4a in Resources */,
+				BEF693127D0778BA3DE68987 /* FalseSquat-003_i_can_tell_if_you_re_just_lying_in_bed_movin.m4a in Resources */,
+				0D103E02909F564D1DE8D6D5 /* FalseSquat-004_worst_squat_ever.m4a in Resources */,
+				37C899315BE17FF07839A0FB /* FalseSquat-005_that_was_an_arm_i_asked_for_a_body.m4a in Resources */,
+				40336BF7493E4DAB7E448A2F /* FalseSquat-006_nice_wrist_workout_now_squat.m4a in Resources */,
+				1FD1D791138091C2A78B4ED3 /* FalseSquat-007_the_phone_moved_you_didn_t.m4a in Resources */,
+				96002AF675DCF6686FB125BA /* FalseSquat-008_i_ve_seen_deeper_puddles.m4a in Resources */,
+				68D35CD6563C1BAFCC1DAD9A /* FalseSquat-009_that_s_not_a_squat_that_s_a_stretch.m4a in Resources */,
+				718E5B7E9F28908F5538E4D6 /* FalseSquat-010_you_re_cheating_a_machine_think_about_that.m4a in Resources */,
+				BE7DB6B486A9C5DC07F382D1 /* FalseSquat-011_gravity_is_not_impressed.m4a in Resources */,
+				7ECA2645526978FE9B6C6625 /* FalseSquat-012_zero_reps_infinite_excuses.m4a in Resources */,
+				28066CFEF576FF9A66CA506C /* FalseSquat-013_your_arm_is_in_phenomenal_shape_your_legs_ar.m4a in Resources */,
+				EFE03E94E2DE7F31A8D993A4 /* FalseSquat-014_i_watched_that_whole_thing_nothing_happened.m4a in Resources */,
+				53A5E0396626370BB740C958 /* FalseSquat-015_do_you_think_i_can_t_see_you.m4a in Resources */,
+				4E507741A355E5E54F5BE0FF /* FalseSquat-016_half_a_rep_is_a_whole_nothing.m4a in Resources */,
+				9C0007CDDA5516802A2EFC2B /* FalseSquat-017_that_s_the_effort_of_a_man_who_stays_average.m4a in Resources */,
+				0221997A4CB51F34497848AA /* FalseSquat-018_congratulations_you_fooled_absolutely_no_one.m4a in Resources */,
+				6C38E88366C4FE460EC1976D /* FalseSquat-019_blanket_still_on_yeah_thought_so.m4a in Resources */,
+				B83AA7D2D4AA676DC53B9F11 /* FalseSquat-020_try_it_again_but_with_your_legs_this_time.m4a in Resources */,
+				5FCF7548F5D7B323E93D8356 /* FalseSquatTaunts.manifest.json in Resources */,
 				238DE0BC7A316C35EAD5D4B1 /* IntroPitch.mp4 in Resources */,
 				0EBF593E6934FA5DA577AAD2 /* Motivating001.caf in Resources */,
 				34986D933C62F208A5CCA702 /* Motivating002.caf in Resources */,
@@ -2279,6 +2374,7 @@
 				27DFA1A132692698167C299D /* ContentView.swift in Sources */,
 				781B2DC215CB17EA8AA2B5C2 /* DashboardView.swift in Sources */,
 				AA7A19B3663FC83E526742CA /* EmergencyShakeMuteService.swift in Sources */,
+				D0100B311E519C39BF77F3BE /* FalseSquatRejection.swift in Sources */,
 				9E4C771BA02C8BE3FADF9590 /* IntroPitchView.swift in Sources */,
 				C39F664AE863676C97948F92 /* MotionAuthorizationService.swift in Sources */,
 				A678D197D0CDC046D8A1F551 /* NightlyCoordinator.swift in Sources */,
@@ -2413,7 +2509,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2423,7 +2519,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.10.0;
+				MARKETING_VERSION = 0.11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;
@@ -2499,7 +2595,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = J3BZJ3LKTQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -2509,7 +2605,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.10.0;
+				MARKETING_VERSION = 0.11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kevin.riseandgrind.alarmkit;
 				PRODUCT_NAME = RiseAndGrind;
 				SDKROOT = iphoneos;

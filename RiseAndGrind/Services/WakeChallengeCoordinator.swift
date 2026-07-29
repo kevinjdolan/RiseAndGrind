@@ -360,6 +360,43 @@ final class WakeChallengeCoordinator {
     }
   }
 
+  /// Plays one taunt when a filled gauge turns out not to have been a squat.
+  func playFalseSquatTaunt() {
+    guard pending != nil || isPracticeAudioActive else { return }
+    let candidates =
+      FalseSquatTauntLibrary.urls.count > 1
+      ? FalseSquatTauntLibrary.urls.filter { $0 != lastMotivationalLineURL }
+      : FalseSquatTauntLibrary.urls
+    guard let tauntURL = candidates.randomElement() else { return }
+
+    stopMotivationalLine()
+
+    do {
+      let audioSession = AVAudioSession.sharedInstance()
+      try audioSession.setCategory(.playback, mode: .default)
+      try audioSession.setActive(true)
+      let player = try AVAudioPlayer(contentsOf: tauntURL)
+      player.volume = 1
+      player.prepareToPlay()
+      guard player.play() else { return }
+
+      motivationalLinePlayer = player
+      lastMotivationalLineURL = tauntURL
+      challengePlayer?.setVolume(
+        ChallengeAudioLibrary.duckedVolume,
+        fadeDuration: 0.08
+      )
+
+      motivationalLineRestoreTask = Task { @MainActor [weak self] in
+        try? await Task.sleep(for: .seconds(player.duration + 0.12))
+        guard !Task.isCancelled else { return }
+        self?.stopMotivationalLine()
+      }
+    } catch {
+      stopMotivationalLine()
+    }
+  }
+
   func stopMotivationalLine() {
     motivationalLineRestoreTask?.cancel()
     motivationalLineRestoreTask = nil
@@ -724,6 +761,21 @@ private final class AlarmHapticSynchronizer {
     player.loopEnd = Self.loopDuration
     return player
   }
+}
+
+/// Shad's heckles for a rep the recognizer refused to credit.
+enum FalseSquatTauntLibrary {
+  static let urls: [URL] = {
+    let bundledURLs =
+      (Bundle.main.urls(forResourcesWithExtension: "m4a", subdirectory: nil) ?? [])
+      + (Bundle.main.urls(
+        forResourcesWithExtension: "m4a",
+        subdirectory: "FalseSquatTaunts"
+      ) ?? [])
+    return Array(Set(bundledURLs))
+      .filter { $0.deletingPathExtension().lastPathComponent.hasPrefix("FalseSquat-") }
+      .sorted { $0.lastPathComponent < $1.lastPathComponent }
+  }()
 }
 
 private enum MotivationalLineLibrary {
