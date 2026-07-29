@@ -45,7 +45,7 @@ struct IntroPitchView: View {
       }
       .allowsHitTesting(phase == .onboardingPreview)
       .accessibilityHidden(phase != .onboardingPreview)
-      .blur(radius: phase == .onboardingPreview ? 0 : 28)
+      .blur(radius: phase == .onboardingPreview ? 0 : 55)
       .opacity(phase == .videoPlaying ? 0 : 1)
 
       IntroPitchVideoPlayer(player: player)
@@ -442,11 +442,12 @@ private struct IncomingCallOverlay: View {
       let avatarSize = min(proxy.size.width - 56, proxy.size.height * 0.46) * 0.9
 
       ZStack {
+        // Barely-there mat: the blurred welcome step behind it is what should read.
         LinearGradient(
           colors: [
-            RGTheme.ink.opacity(0.32),
-            RGTheme.ink.opacity(0.20),
-            RGTheme.ink.opacity(0.32),
+            RGTheme.ink.opacity(0.05),
+            RGTheme.ink.opacity(0.03),
+            RGTheme.ink.opacity(0.05),
           ],
           startPoint: .top,
           endPoint: .bottom
