@@ -391,12 +391,10 @@ struct SquatCalibrationView: View {
     RGScreenBackground {
       VStack(spacing: 0) {
         header
-          .opacity(isShowingIdleCaptureCue ? 0.18 : 1)
 
         ScrollView {
           VStack(spacing: 14) {
             instructionVideoCall
-              .opacity(isShowingIdleCaptureCue ? 0.12 : 1)
             if session.stage != .complete {
               capturePanel
             }
@@ -404,7 +402,6 @@ struct SquatCalibrationView: View {
               resultCard(result)
             }
             actionArea
-              .opacity(isShowingIdleCaptureCue ? 0.18 : 1)
           }
           .padding(.horizontal, 18)
           .padding(.top, 14)
@@ -994,7 +991,6 @@ struct SquatCalibrationView: View {
         .foregroundStyle(RGTheme.cream)
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
-        .opacity(isShowingIdleCaptureCue ? 0.22 : 1)
 
       poseCaptureControl
     }
