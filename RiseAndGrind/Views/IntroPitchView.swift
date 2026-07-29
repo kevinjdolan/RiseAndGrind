@@ -35,13 +35,14 @@ struct IntroPitchView: View {
       Color.black
         .ignoresSafeArea()
 
+      // No .ignoresSafeArea() here: the ink fill already bleeds edge to edge, and the
+      // content must respect the safe area so this step's padding matches steps 2-5.
       RGScreenBackground {
         VStack(spacing: 0) {
           OnboardingProgressHeader(currentStep: 0)
           OnboardingWelcomeStepView(onContinue: onFinished)
         }
       }
-      .ignoresSafeArea()
       .allowsHitTesting(phase == .onboardingPreview)
       .accessibilityHidden(phase != .onboardingPreview)
       .blur(radius: phase == .onboardingPreview ? 0 : 28)
