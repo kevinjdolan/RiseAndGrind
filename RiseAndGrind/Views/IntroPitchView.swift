@@ -455,15 +455,15 @@ private struct IncomingCallOverlay: View {
 
         VStack(spacing: 0) {
           VStack(spacing: 4) {
-            Text("Incoming Call\(footnoteMark(1))")
+            Text("Incoming Call\(footnoteMark(1, size: 14))")
               .font(.title.weight(.black))
               .foregroundStyle(.white)
 
-            Text("Shad\(footnoteMark(2)) Sterling Hustleton, Jr.")
+            Text("Shad\(footnoteMark(2, size: 10)) Sterling Hustleton, Jr.")
               .font(.title3.weight(.bold))
               .foregroundStyle(.white)
 
-            Text("POSSIBLE GLAM\(footnoteMark(3))")
+            Text("POSSIBLE GLAM\(footnoteMark(3, size: 7))")
               .font(.caption.weight(.black))
               .tracking(1.6)
               .foregroundStyle(RGTheme.danger)
@@ -477,11 +477,14 @@ private struct IncomingCallOverlay: View {
 
           shadAvatar
             .frame(width: avatarSize, height: avatarSize)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(
+              RoundedRectangle(cornerRadius: Self.avatarCornerRadius, style: .continuous)
+            )
             .shadow(color: RGTheme.danger.opacity(0.35), radius: 26, y: 14)
             .accessibilityHidden(true)
 
-          FootnoteLegend(width: avatarSize)
+          // Spans the avatar's flat edge, stopping where its corners start to curve.
+          FootnoteLegend(width: avatarSize - Self.avatarCornerRadius * 2)
             .padding(.top, 8)
 
           Spacer(minLength: 16)
@@ -527,37 +530,122 @@ private struct IncomingCallOverlay: View {
     }
   }
 
-  /// A small raised footnote number, meant to be concatenated inline with the Text it annotates.
-  private static let superscriptDigits = ["¹", "²", "³"]
+  private static let avatarCornerRadius: CGFloat = 20
 
-  private func footnoteMark(_ number: Int) -> Text {
-    Text(Self.superscriptDigits[number - 1])
+  /// A raised footnote mark, meant to be concatenated inline with the Text it
+  /// annotates. `size` is set per call site because the annotated lines are set
+  /// at different sizes.
+  private func footnoteMark(_ number: Int, size: CGFloat) -> Text {
+    let mark = IntroPitchFootnotes.marks[number - 1]
+    return Text(mark.glyph)
+      .font(.system(size: size, weight: .bold))
+      .baselineOffset(size * mark.rise)
       .foregroundStyle(RGTheme.mutedCream)
   }
 }
 
-/// The full disclaimer, crammed onto a single shrink-to-fit line under the avatar —
-/// the fine-print gag is the point.
+/// The traditional footnote sequence. The asterisk is already drawn high in the
+/// font, so only the daggers get raised to sit as superscripts.
+private enum IntroPitchFootnotes {
+  static let marks: [(glyph: String, rise: CGFloat)] = [
+    ("*", 0),
+    ("†", 0.34),
+    ("‡", 0.34),
+  ]
+}
+
+/// The full disclaimer under the avatar, one footnote per line, set at whatever
+/// point size makes the longest of the three exactly span `width`. The fine-print
+/// gag is the point, so it stays small — just no longer crammed onto one line.
 private struct FootnoteLegend: View {
   let width: CGFloat
 
-  var body: some View {
-    let isWord = Text("is").italic()
-    let areWord = Text("are").italic()
-
-    Text(
-      "\(mark(1)) This call is not real. But it \(isWord) informative and there \(areWord) Easter Eggs.   \(mark(2)) Shad is not real. He is a construct, an abstraction of toxic masculinity.   \(mark(3)) Glam not guaranteed, but waking up on time can't hurt."
-    )
-    .font(.system(size: 9, weight: .regular))
-    .foregroundStyle(RGTheme.mutedCream.opacity(0.7))
-    .lineLimit(1)
-    .minimumScaleFactor(0.1)
-    .allowsTightening(true)
-    .frame(width: width)
+  /// One stretch of a footnote line. Split out so a single description drives
+  /// both the width measurement and the rendered Text.
+  private struct Run {
+    let text: String
+    var isItalic = false
+    var isBold = false
   }
 
-  private func mark(_ number: Int) -> Text {
-    Text(["¹", "²", "³"][number - 1]).fontWeight(.bold)
+  private static let lines: [[Run]] = [
+    [
+      Run(text: "\(IntroPitchFootnotes.marks[0].glyph) ", isBold: true),
+      Run(text: "This call is not real. But it "),
+      Run(text: "is", isItalic: true),
+      Run(text: " informative and there "),
+      Run(text: "are", isItalic: true),
+      Run(text: " Easter Eggs."),
+    ],
+    [
+      Run(text: "\(IntroPitchFootnotes.marks[1].glyph) ", isBold: true),
+      Run(text: "Shad is not real. He is a construct, an abstraction of toxic masculinity."),
+    ],
+    [
+      Run(text: "\(IntroPitchFootnotes.marks[2].glyph) ", isBold: true),
+      Run(text: "Glam not guaranteed, but waking up on time can't hurt."),
+    ],
+  ]
+
+  var body: some View {
+    let size = Self.fittingSize(for: width)
+
+    VStack(alignment: .leading, spacing: size * 0.42) {
+      ForEach(Array(Self.lines.enumerated()), id: \.offset) { _, line in
+        Self.text(for: line, size: size)
+          .lineLimit(1)
+          .allowsTightening(true)
+      }
+    }
+    .foregroundStyle(RGTheme.mutedCream.opacity(0.7))
+    .frame(width: width, alignment: .leading)
+  }
+
+  private static func text(for line: [Run], size: CGFloat) -> Text {
+    line.reduce(Text(verbatim: "")) { result, run in
+      var piece = Text(verbatim: run.text)
+        .font(.system(size: size, weight: run.isBold ? .bold : .regular))
+      if run.isItalic {
+        piece = piece.italic()
+      }
+      return result + piece
+    }
+  }
+
+  /// Width per point is only locally linear — the system font swaps optical
+  /// variants around 20 pt, and hinting nudges the small sizes — so the fit is
+  /// solved iteratively rather than in one division. The final shave keeps the
+  /// longest line just inside the frame instead of a hair over it.
+  private static func fittingSize(for width: CGFloat) -> CGFloat {
+    guard width > 0 else { return 1 }
+    var size: CGFloat = 10
+    for _ in 0..<4 {
+      let widest = widestLineWidth(at: size)
+      guard widest > 0 else { break }
+      size *= width / widest
+    }
+    return size * 0.99
+  }
+
+  private static func widestLineWidth(at size: CGFloat) -> CGFloat {
+    lines.map { line in
+      line.reduce(CGFloat.zero) { total, run in
+        let attributes: [NSAttributedString.Key: Any] = [.font: uiFont(for: run, size: size)]
+        return total + (run.text as NSString).size(withAttributes: attributes).width
+      }
+    }
+    .max() ?? 0
+  }
+
+  private static func uiFont(for run: Run, size: CGFloat) -> UIFont {
+    let base = UIFont.systemFont(ofSize: size, weight: run.isBold ? .bold : .regular)
+    guard
+      run.isItalic,
+      let descriptor = base.fontDescriptor.withSymbolicTraits(.traitItalic)
+    else {
+      return base
+    }
+    return UIFont(descriptor: descriptor, size: size)
   }
 }
 
