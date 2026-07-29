@@ -152,6 +152,15 @@ struct OnboardingView: View {
         nextTitle: settings.squatCalibration?.isUsable == true
           ? "Onward and Upward" : "Do this Later"
       ) { advance() }
+    case 4 where !automationAcknowledged:
+      // Until the automation is confirmed, deferring is the only way forward, so
+      // it takes the primary slot instead of a dead disabled button.
+      navigationButtons(
+        nextTitle: "Later",
+        nextIcon: "clock.badge.questionmark"
+      ) {
+        isShowingAutomationDeferralWarning = true
+      }
     default:
       navigationButtons(nextDisabled: !isNextEnabled) { advance() }
     }
@@ -354,7 +363,9 @@ struct OnboardingView: View {
           RGAutomationStep(
             number: 3, text: "Add the Rise & Grind action “Prepare Tomorrow’s Barrage.”")
 
-          RGShortcutAutomationLinks()
+          // Confirming is folded into the Add Shortcut button once the user comes
+          // back from Shortcuts; deferring lives in the footer.
+          RGShortcutAutomationLinks(onConfirmSetup: acknowledgeAutomation)
             .frame(maxWidth: .infinity, alignment: .leading)
 
           if automationAcknowledged {
@@ -364,18 +375,6 @@ struct OnboardingView: View {
               .frame(maxWidth: .infinity)
               .padding(.vertical, 13)
               .background(RGTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: 15))
-          } else {
-            Button(action: acknowledgeAutomation) {
-              Label("I SET IT UP", systemImage: "square.dashed.inset.filled")
-            }
-            .buttonStyle(RGPrimaryButtonStyle())
-
-            Button {
-              isShowingAutomationDeferralWarning = true
-            } label: {
-              Label("Later", systemImage: "clock.badge.questionmark")
-            }
-            .buttonStyle(RGSecondaryButtonStyle())
           }
         }
       }
@@ -384,6 +383,7 @@ struct OnboardingView: View {
 
   private func navigationButtons(
     nextTitle: String = "Onward and Upward",
+    nextIcon: String = "arrow.right",
     nextDisabled: Bool = false,
     next: @escaping () -> Void
   ) -> some View {
@@ -397,7 +397,7 @@ struct OnboardingView: View {
         .frame(width: geometry.size.width * 0.25)
 
         Button(action: next) {
-          Label(nextTitle, systemImage: "arrow.right")
+          Label(nextTitle, systemImage: nextIcon)
         }
         .buttonStyle(RGPrimaryButtonStyle())
         .disabled(nextDisabled)
