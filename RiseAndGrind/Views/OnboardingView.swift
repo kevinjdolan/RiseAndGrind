@@ -418,7 +418,7 @@ struct OnboardingWelcomeStepView: View {
               .minimumScaleFactor(0.8)
 
             Text(
-              "R&G is the alarm clock app that just won’t quit, like you once you reach your full potential."
+              "The Alarm Clock App that just won’t quit, like you once you reach your full potential."
             )
             .font(.body)
             .foregroundStyle(RGTheme.mutedCream)
@@ -430,9 +430,9 @@ struct OnboardingWelcomeStepView: View {
             VStack(alignment: .leading, spacing: 14) {
               RGLimitRow(
                 icon: "calendar.badge.clock",
-                title: "Never Miss a Meeting with Calendarmaxxing",
+                title: "Never Miss a Meeting with Calendarmaxxing™",
                 detail:
-                  "Sync your calendar and never be surprised by an early morning meeting ever again"
+                  "Sync your calendar so that you’ll never be caught off-guard and miss an early morning meeting"
               )
               RGLimitRow(
                 icon: "alarm.waves.left.and.right.fill",
@@ -444,7 +444,7 @@ struct OnboardingWelcomeStepView: View {
                 icon: "figure.strengthtraining.functional",
                 title: "Discipline When You Need It",
                 detail:
-                  "When it’s truly time to wake up, R&G will not relent until you’ve proven you’re up by passing the Grind Time Challenge"
+                  "When it’s truly time to wake up, R&G will not relent until you’ve proven you’re up by passing the Grind Time Challenge™"
               )
             }
           }

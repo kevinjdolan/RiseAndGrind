@@ -301,7 +301,7 @@ struct RGAlarmConfigurationCard: View {
 
       RGTimePicker(
         title: "Grind Time",
-        detail: "Default Time for the Grind Time Challenge",
+        detail: "Default Time for the Grind Time Challenge™",
         hour: $settings.grindHour,
         minute: $settings.grindMinute
       )
